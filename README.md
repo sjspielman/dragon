@@ -1,2 +1,3 @@
 # shinymineral
-Visualize mineral chemistry networks
+
+Temporary name for a forthcoming Shiny App that generates bipartite mineral/element networks.
