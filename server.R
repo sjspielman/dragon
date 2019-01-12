@@ -1,372 +1,391 @@
 library(shiny)
 library(colourpicker)
 library(tidyverse)
-library(patchwork)
+library(cowplot)
+library(igraph)
 
 server <- function(input, output) {
     
-    userdata <- reactive({
-      infile <- input$datafile
-      if (is.null(infile)) {
-        # User has not uploaded a file yet
-        return(NULL)
-      }
-      read.csv(infile$datapath) ## we actually want to force factors, all we do is summary!
-    })
-
-    ### Reactive variables for conditionalPanel interaction in ui.R
-    output$colornodetype <- reactive( input$colornode == "type" )
-    outputOptions(output, "colornodetype", suspendWhenHidden = FALSE)
+    ################ Prepare database information for use #############################
+    ages <- tibble("eon" = c("hadean", "archean", "paleo", "present"), "mya" = c(4000, 2500, 1600, 0))
+    rruff <- read_csv("data/rruff_minerals.csv")    
+    # > names(rruff)
+    #    [1] "mineral_name"       "mineral_id"         "mindat_id"         
+    #    [4] "at_locality"        "is_remote"          "rruff_chemistry"   
+    #    [7] "max_age"            "chemistry_elements"
+    ## is_remote = is the age actually associated with the locality (1) or was is ported from another locality (0)
     
 
+    ## TODO: Add to UI
+    default_element_size <- 12
+    default_mineral_size <- 3
+    
+    
+    
+    
+    
+    
+    ####################### Conditional Panel variables ##################################
 
-#    ## Simulate, plot, summarize reactive to "Run Simulation!"
-#    observeEvent(input$go,  {
-#        
-#        
-#        
-#    })
-#  
-#    
-#
-#    ## UI: Which variables to plot?
-#    output$selectvars <- renderUI({
-#    
-#        
-#        input$dataviz
-#        if (is.null(userdata())) return(NULL)
-#        dfnames <- names(userdata())
-#        
-#        switch(input$dataviz, 
-#                "scatter" = list(
-#                                selectInput("xvar", "Select the X-axis (aka independent/predictor) variable:",dfnames),
-#                                selectInput("yvar", "Select the Y-axis (aka dependent/response) variable:",dfnames),
-#                                checkboxInput(inputId = "bestfit",
-#                                    label = "Show the line of best fit (i.e. regression line)?",
-#                                    value = TRUE,
-#                                    width = NULL
-#                                )),         
-#                 "scatter2" = list(
-#                                selectInput("xvar", "Select the X-axis (aka independent/predictor) variable:",dfnames),
-#                                selectInput("yvar", "Select the Y-axis (aka dependent/response) variable:",dfnames),
-#                                selectInput("catvar", "Select the categorical variable to show in the scatterplot:",dfnames)                                
-#                                ),         
-#                "quant"   = selectInput("quantvar", "Select the quantitative variable to visualize:",dfnames),
-#                "multquant" = list(
-#                                    selectInput("quantvar", "Select the quantitative variable to visualize:",dfnames),
-#                                    selectInput("quantvar_cat", "Select the categorical variable to visualize the quantitative variable across:",dfnames)
-#                                ),
-#                "multquant2" = list(
-#                                    selectInput("quantvar", "Select the quantitative variable to visualize:",dfnames),
-#                                    selectInput("quantvar_cat", "Select the first categorical variable to visualize across:",dfnames),
-#                                    selectInput("quantvar_cat2", "Select the second categorical variable to visualize across:",dfnames)
-#                                ),
-#                "counts"   = selectInput("countvar", "Select the categorical variable to visualize its count:",dfnames),
-#                "counts2"  = list(
-#                                    selectInput("countvar", "Select the independent (aka explanatory) categorical variable:",dfnames),
-#                                    selectInput("countvar2", "Selection the dependent (aka response) categorical variable:",dfnames)
-#                                 )                              
-#            )
-#    })
-# 
-# 
-# 
-#    ## UI: Summary table of *full* upload
-#    output$summary <- renderPrint({
-#        req(userdata())
-#        if (is.null(userdata())) return(NULL)
-#         summary(userdata())
-#    })
-#
-#
-#
-#
-#    ###############################################################################################
-#    ############################## Functions for making individual plots ##########################
-#    isolate_data <- function(){
-#        isolate(userdata()) 
-#    }        
-#
-#
-#    isolate_color <- function(){
-#        isolate(input$yaycolor)
-#    }
-#        plot_histogram <- function()
-#    {
-#        finaldata <- isolate_data()
-#        thecolor  <- isolate_color()
-#        quantvar2 <- as.symbol( isolate(input$quantvar) )
-#        p <- ggplot(finaldata, aes(x = !!quantvar2)) + geom_histogram(color = "black", fill = thecolor)
-#        p    
-#    }
-#
-#    plot_density <- function()
-#    {
-#        finaldata <- isolate_data()
-#        thecolor  <- isolate_color()
-#        quantvar2 <- as.symbol( isolate(input$quantvar) )
-#        p <- ggplot(finaldata, aes(x = !!quantvar2)) + geom_density(color = "black", fill = thecolor, alpha=0.8)
-#        p    
-#    }
-#    plot_boxplot <- function()
-#    {
-#        finaldata <- isolate_data()
-#        thecolor  <- isolate_color()
-#        quantvar2 <- as.symbol( isolate(input$quantvar) )
-#        p <- ggplot(finaldata, aes(y = !!quantvar2)) + geom_boxplot(fill = thecolor) + theme(axis.title.x = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank())
-#        p    
-#    }
-#
-#    plot_jitter <- function()
-#    {
-#        finaldata <- isolate_data()
-#        thecolor  <- isolate_color()
-#        quantvar2 <- as.symbol( isolate(input$quantvar) )
-#        p <- ggplot(finaldata, aes(y = !!quantvar2)) + geom_jitter(size=3, aes(x=""), color = thecolor, width=0.075) + xlab("")
-#        p    
-#    }
-#    plot_barquant <- function()
-#    {
-#        finaldata <- isolate_data()
-#        thecolor  <- isolate_color()
-#        quantvar2 <- as.symbol( isolate(input$quantvar) )
-#        p <- ggplot(finaldata, aes(x="")) + stat_summary(aes(y = !!quantvar2), fun.y = "mean", geom = "bar", width=0.1, fill = thecolor) + stat_summary(aes(y = !!quantvar2), fun.data = "mean_se", geom = "errorbar", width = 0.05) + xlab("") + scale_y_continuous(expand = c(0,0))
-#        p    
-#    }
-#
-#
-#    plot_multbox <- function()
-#    {
-#        finaldata <- isolate_data()
-#        quantvar2 <-  as.symbol(isolate(input$quantvar))
-#        quantvar_cat2 <-  as.symbol(isolate(input$quantvar_cat))
-#        p <- ggplot(finaldata, aes(x = !!quantvar_cat2, y = !!quantvar2, fill = factor(!!quantvar_cat2))) + geom_boxplot() + scale_fill_hue(name = quantvar_cat2, l=45)
-#        p
-#    }
-#    plot_multbox2 <- function()
-#    {
-#        finaldata <- isolate_data()
-#        quantvar2 <-  as.symbol(isolate(input$quantvar))
-#        quantvar_cat2 <-  as.symbol(isolate(input$quantvar_cat))
-#        quantvar_cat22 <-  as.symbol(isolate(input$quantvar_cat2))
-#        p <- ggplot(finaldata, aes(x = !!quantvar_cat2, y = !!quantvar2, fill = factor(!!quantvar_cat22))) + geom_boxplot() + scale_fill_hue(name = quantvar_cat22, l=45)
-#        p
-#    }
-#    plot_multdensity <- function()
-#    {
-#        finaldata <- isolate_data()
-#        quantvar2 <-  as.symbol(isolate(input$quantvar))
-#        quantvar_cat2 <-  as.symbol(isolate(input$quantvar_cat))
-#        p <- ggplot(finaldata, aes(x = !!quantvar2, fill = factor(!!quantvar_cat2))) + geom_density(color = "black", alpha=0.5) + scale_fill_hue(name = quantvar_cat2, l=45)
-#        p
-#    }
-#    plot_multjitter <- function()
-#    {
-#        finaldata <- isolate_data()
-#        quantvar2 <-  as.symbol(isolate(input$quantvar))
-#        quantvar_cat2 <-  as.symbol(isolate(input$quantvar_cat))
-#        p <- ggplot(finaldata, aes(x = !!quantvar_cat2, y = !!quantvar2, color = factor(!!quantvar_cat2))) + geom_jitter(size=3, width = 0.1) + scale_color_hue(name = quantvar_cat2, l=45)
-#        p
-#    }
-#    plot_multjitter2 <- function()
-#    {
-#        finaldata <- isolate_data()
-#        quantvar2 <-  as.symbol(isolate(input$quantvar))
-#        quantvar_cat2 <-  as.symbol(isolate(input$quantvar_cat))
-#        quantvar_cat22 <-  as.symbol(isolate(input$quantvar_cat2))
-#        p <- ggplot(finaldata, aes(x = !!quantvar_cat2, y = !!quantvar2, color = factor(!!quantvar_cat22))) + geom_jitter(size=3, position = position_jitterdodge(jitter.width = 0.1, dodge.width = 0.8)) + scale_color_hue(name = quantvar_cat22, l=45)
-#        p
-#    }
-#    plot_multbarquant <- function()
-#    {
-#        finaldata <- isolate_data()
-#        quantvar2 <-  as.symbol(isolate(input$quantvar))
-#        quantvar_cat2 <-  as.symbol(isolate(input$quantvar_cat))
-#        p <- ggplot(finaldata) + stat_summary_bin(aes(x = factor(!!quantvar_cat2), y = !!quantvar2, fill = factor(!!quantvar_cat2)), fun.y = "mean", geom = "bar") + stat_summary_bin(aes(factor(!!quantvar_cat2), y = !!quantvar2), fun.data = "mean_se", geom = "linerange", size=3) + xlab(quantvar_cat2) +  scale_fill_hue(name = quantvar_cat2, l=45) + scale_y_continuous(expand = c(0,0))
-#        p
-#    }
-#    plot_multbarquant2 <- function()
-#    {
-#        finaldata <- isolate_data()
-#        quantvar2 <-  as.symbol(isolate(input$quantvar))
-#        quantvar_cat2 <-  as.symbol(isolate(input$quantvar_cat))
-#        quantvar_cat22 <-  as.symbol(isolate(input$quantvar_cat2))
-#        position_bar <- position_dodge(preserve = "total") ## will have a single category one fill up whole x
-#        position_error <- position_dodge(0.9)
-#        p <- ggplot(finaldata) + stat_summary_bin(aes(x = factor(!!quantvar_cat2), y = !!quantvar2, fill = factor(!!quantvar_cat22)), fun.y = "mean", geom = "bar", position = position_bar) + stat_summary_bin(aes(x = factor(!!quantvar_cat2), y = !!quantvar2, group = factor(!!quantvar_cat22)), fun.data = "mean_se", geom = "linerange", size=4, position = position_error) + xlab(quantvar_cat2) +  scale_fill_hue(name = quantvar_cat22, l=45) + scale_y_continuous(expand = c(0,0))
-#        p
-#    }
-#    plot_line <- function()
-#    {
-#        finaldata <- isolate_data()
-#        quantvar2 <-  as.symbol(isolate(input$quantvar))
-#        quantvar_cat2 <-  as.symbol(isolate(input$quantvar_cat))
-#        p <- ggplot(finaldata) + 
-#                stat_summary_bin(aes(x = factor(!!quantvar_cat2), y = !!quantvar2, color = factor(!!quantvar_cat2)), fun.y = "mean", geom = "point", size=5) +
-#                stat_summary_bin(aes(x = factor(!!quantvar_cat2), y = !!quantvar2), group=1, fun.y = "mean", geom = "line") +
-#                stat_summary_bin(aes(factor(!!quantvar_cat2), y = !!quantvar2), fun.data = "mean_se", geom = "linerange") + xlab(quantvar_cat2) +  scale_color_hue(name = quantvar_cat2, l=45) 
-#        p
-#    }
-#
-#    plot_barcount <- function()
-#    {
-#        finaldata <- isolate_data()
-#        thecolor  <- isolate_color()
-#        countvar <-  as.symbol(isolate(input$countvar))
-#        p <- ggplot(finaldata, aes(x = factor(!!countvar))) + geom_bar(fill = thecolor) + xlab(countvar) + scale_y_continuous(expand = c(0,0))
-#        p
-#    }
-#    plot_barcount2 <- function()
-#    {
-#        finaldata <- isolate_data()
-#        thecolor  <- isolate_color()
-#        countvar <-  as.symbol(isolate(input$countvar))
-#        countvar2 <-  as.symbol(isolate(input$countvar2))
-#        p <- ggplot(finaldata, aes(x = factor(!!countvar), fill = factor(!!countvar2))) + geom_bar(position = "dodge2") + xlab(countvar) + scale_fill_hue(name = countvar2, l=45) + scale_y_continuous(expand = c(0,0))
-#        p
-#    }    
-#    
-#    plot_scatter <- function()
-#    {
-#        finaldata <- isolate_data()
-#        thecolor  <- isolate_color()
-#        x <- as.symbol(isolate(input$xvar))
-#        y <- as.symbol(isolate(input$yvar))
-#        regression <- isolate(input$bestfit)
-#        p <- ggplot(finaldata, aes(x = !!x, y = !!y)) + geom_point(size=2)
-#        if (regression == TRUE) 
+    ################### mineral color ###############################
+    output$singlecolor_mineral <- reactive( input$color_mineral_by == "singlecolor" )
+    outputOptions(output, "singlecolor_mineral", suspendWhenHidden = FALSE)
+
+    output$palette_mineral <- reactive( input$color_mineral_by != "singlecolor" & input$color_mineral_by != "cluster" )
+    outputOptions(output, "palette_mineral", suspendWhenHidden = FALSE)
+    ##########################################################    
+    
+    ############### element color #############################
+    output$singlecolor_element <- reactive( input$color_element_by == "singlecolor" )
+    outputOptions(output, "singlecolor_element", suspendWhenHidden = FALSE)
+
+    output$palette_element <- reactive( input$color_element_by != "singlecolor" & input$color_element_by != "cluster" )
+    outputOptions(output, "palette_element", suspendWhenHidden = FALSE)     
+    ##########################################################
+    
+    
+    ############# edge color ################################
+    output$singlecolor_edge <- reactive( input$color_edge_by == "singlecolor" )
+    outputOptions(output, "singlecolor_edge", suspendWhenHidden = FALSE)
+
+    output$palette_edge <- reactive( input$color_edge_by != "singlecolor" & input$color_edge_by != "cluster" )
+    outputOptions(output, "palette_edge", suspendWhenHidden = FALSE)        
+    #########################################################
+    
+    ################### sizes ###############################
+    output$selectsize_element <- reactive( input$size_element_by == "singlesize" )
+    outputOptions(output, "selectsize_element", suspendWhenHidden = FALSE)
+    ##########################################################    
+
+    
+    ######################################################################################
+    
+    
+    ################################# Network it up ######################################
+    observeEvent(input$go,  {
+   
+        ############ Functions apparently needs to be here #########
+        splitrows <- function(dat)
+        {
+            x <- str_count(dat$chemistry_elements, " ") + 1 
+    
+            dat %>% 
+                separate(chemistry_elements, into=as.character(1:x), sep=" ") %>% 
+                select(-mineral_name) %>% 
+                gather(blah, element) %>% 
+                select(-blah) %>% 
+                mutate(mineral_name = mindat$mineral_name) -> splitdat
+    
+            splitdat
+        }
+        
+        ## this is the best hack and i made no apologies.
+        get_colors_legend <- function(dat, xvar, cvar, brewerpalette, legendname)  ### if brewerpalette is none, use discrete scale.
+        {
+            cvar <- as.symbol(cvar)
+            xvar <- as.symbol(xvar)
+            if(brewerpalette == "none")
+            {
+                p <- ggplot(dat, aes(x = !!xvar, y = as.factor(!!cvar), color = as.factor(!!cvar))) + geom_point() + scale_color_discrete(name = legendname)          
+            } else
+            {
+                p <- ggplot(dat, aes(x = !!xvar, y = !!cvar, color = !!cvar)) + geom_point() + scale_color_distiller(palette = brewerpalette, name = legendname)
+            }
+            plegend <- get_legend(p + theme_cowplot())  ## TODO: Claus help?
+            colors <- ggplot_build(p)$data[[1]]$colour
+            list(plegend, colors)
+        }
+
+#         get_size_legend <- function(dat, xvar, svar, legendname)  
+#         {
+#             svar <- as.symbol(svar)
+#             xvar <- as.symbol(xvar)
+#             p <- ggplot(dat, aes(x = item, y = network_degree_norm, size = network_degree_norm)) + geom_point() + labs(size = legendname)          
+#             plegend <- get_legend(p + theme_cowplot())  ## TODO: Claus help?
+#             sizes <- ggplot_build(p)$data[[1]]$size
+#             list(plegend, sizes)
+#         }
+            
+        ###########################################################
+        
+        ############################## Isolate input ##############################
+        element_of_interest <- isolate(input$element_of_interest)
+        include_age         <- isolate(input$include_age)
+        age_limit <- ages$mya[ages$eon == include_age]
+        #include_localities  <- isolate(input$include_localities)
+        
+       
+        label_element <- isolate(input$label_element) ## boolean
+        #size_element_by  <- isolate(input$size_element_by) ## "singlesize" or "degree" . THERE IS NO `size_mineral`. It's always small.
+        #if (size_element_by == "singlesize")
+        #{
+        #    element_size <- isolate(input$element_size)
+        #}
+        element_size <- isolate(input$element_size)
+        mineral_size <- isolate(input$mineral_size)
+
+        
+        color_element_by <- isolate(input$color_element_by) ## singlecolor, degree, cluster
+        if (color_element_by == "singlecolor") 
+        { 
+            elementcolor <- isolate(input$elementcolor)
+        }
+        else
+        {
+            elementpalette <- isolate(input$elementpalette)
+        }        
+        shape_element_by <- isolate(input$shape_element_by) ## none, circle, square
+      
+                        
+        
+        label_mineral <- isolate(input$label_mineral) ## boolean
+        color_mineral_by <- isolate(input$color_mineral_by) ## singlecolor, redox, maxage, numlocalties, cluster
+        if (color_mineral_by == "singlecolor") 
+        { 
+            mineralcolor <- isolate(input$mineralcolor)
+        }
+        else
+        {
+            mineralpalette <- isolate(input$mineralpalette)
+        }        
+        shape_mineral_by <- isolate(input$shape_mineral_by) ## none, circle, square
+
+
+        color_edge_by <- isolate(input$color_edge_by) ## singlecolor, redox
+
+
+
+
+
+                
+        
+
+        # Subset database to element_of_interest with age and locality specifications applied
+        element_only <- rruff %>% 
+                            mutate(has_element = if_else(str_detect(rruff_chemistry, element_of_interest), TRUE, FALSE)) %>% 
+                            filter(has_element == TRUE) %>% 
+                            select(-has_element, -mineral_id, -mindat_id)
+        element_only <- element_only %>%
+                            group_by(mineral_name) %>% 
+                            summarize(num_localities = sum(at_locality)) %>%
+                            left_join(element_only) %>%
+                            ungroup() %>% group_by(mineral_name) %>%
+                            mutate(overall_max_age = max(max_age)) %>%
+                            filter(max_age == overall_max_age) %>% 
+                            ungroup() %>%
+                            filter(max_age >= age_limit) %>%
+                            select(mineral_name, num_localities, max_age, rruff_chemistry, chemistry_elements) %>%
+                            unique()
+
+        # Separate out constituent elements to own row each
+        mineral_chemistry <- element_only %>% 
+                                select(mineral_name, chemistry_elements) %>% 
+                                unique()
+        mineral_elements <- tibble("mineral_name" = as.character(), "element" = as.character())
+        for (mineral in mineral_chemistry$mineral_name) {
+            mindat <- mineral_chemistry %>% filter(mineral_name == mineral)
+            mineral_elements <- bind_rows( mineral_elements, splitrows(mindat) )
+        }
+        
+        # Get element redox states
+        element_only %>% select(mineral_name, rruff_chemistry) %>% unique() -> mineral_chem
+        element_redox_states <- tibble("mineral_name" = as.character(), "element" = as.character(), "redox" = as.double(), "n" = as.integer())
+        for (mineral in mineral_chem$mineral_name)
+        {
+            mineral_chem %>%
+                filter(mineral_name == mineral) -> mindat
+
+
+            temp <- as.tibble(as.data.frame(str_match_all(mindat$rruff_chemistry, "([A-Z][a-z]*)\\^(\\d)([+-])\\^"), stringsAsFactors=FALSE))
+            if(nrow(temp) == 0)
+            {
+                temp2 <- tibble("mineral_name" = mineral, "element" = NA, "redox" = NA, "n" = 1)
+            } else
+            {
+                temp$X3 <- as.double(temp$X3)
+                temp %>% mutate(thesign = if_else(X4 == "+", 1, -1), 
+                                redox   = X3 * thesign) %>% 
+                                select(redox, X2) %>%
+                                mutate(mineral_name = mineral, n=1:n()) -> temp2
+                temp2 <- temp2[c(3, 2, 1, 4)]
+                names(temp2) <- c("mineral_name", "element", "redox", "n")
+            }
+    
+            element_redox_states <- bind_rows( element_redox_states, temp2 )
+        }
+        
+        mineral_element_information <- left_join(mineral_elements, element_redox_states) %>% 
+                                            select(-n) %>% 
+                                            replace_na(list(redox = 0)) %>% 
+                                            left_join(element_only) %>%
+                                            select(-rruff_chemistry, -chemistry_elements)
+        # "mineral_name"   "element"        "redox"          "num_localities"     "max_age" 
+
+    
+        
+    
+        ## Build the network here so can obtain information for cluster, degree (save in separate tibble since both minerals and elements need a row)
+        element.network <- graph.data.frame(mineral_elements, directed=FALSE)
+        V(element.network)$type <- bipartite_mapping(element.network)$type 
+        clustered.net <- cluster_louvain(element.network)
+        deg <- degree(element.network, mode="all")
+    
+        
+        cluster_degree_information <- left_join( tibble("item" = clustered.net$names, "cluster_ID"= as.numeric(clustered.net$membership)),
+                                                 tibble("item" = names(deg), "network_degree"= as.numeric(deg)) ) %>%
+                                            mutate(network_degree_norm = network_degree / max(network_degree))
+        ## item   cluster_ID     network_degree
+
+
+        ##################################################################################
+        ###################### Apply network visualization settings here #################
+        i_element <- V(element.network)$type == TRUE
+        i_mineral <- V(element.network)$type == FALSE
+        
+        ###################################### Node colors #########################################
+        leg <- ""
+
+        
+        if(color_element_by == "degree")
+        {
+            legcol <- get_colors_legend(cluster_degree_information, "item", "network_degree_norm", elementpalette, "Normalized element degree")
+            leg     <- legcol[[1]]
+            cols    <- legcol[[2]]
+            cluster_degree_information$degree_colors <- cols
+            ### todo: assign to ONLY elements
+            V(element.network)$color[i_element] <- as.character(cluster_degree_information$degree_colors[match(V(element.network)$name,cluster_degree_information$item)])
+        }
+        
+
+        
+
+        if(color_mineral_by == "redox")
+        {
+            legcol <- get_colors_legend(mineral_element_information, "mineral_name", "redox", mineralpalette, "Mean mineral redox state")
+            leg     <- legcol[[1]]
+            cols    <- legcol[[2]]
+            mineral_element_information$redox_colors <- cols
+            V(element.network)$color <- as.character(mineral_element_information$redox_colors[match(V(element.network)$name,mineral_element_information$mineral_name)])
+        }
+        
+        if(color_mineral_by == "maxage")
+        {
+            legcol <- get_colors_legend(mineral_element_information, "mineral_name", "num_localities", mineralpalette, "Number of known localities")
+            leg     <- legcol[[1]]
+            cols    <- legcol[[2]]
+            mineral_element_information$local_colors <- cols
+            V(element.network)$color <- as.character(mineral_element_information$local_colors[match(V(element.network)$name,mineral_element_information$mineral_name)])
+        }
+        
+        if(color_mineral_by == "localities")
+        {
+            legcol <- get_colors_legend(mineral_element_information, "mineral_name", "max_age", mineralpalette, "Maximum age of mineral")
+            leg     <- legcol[[1]]
+            cols    <- legcol[[2]]
+            mineral_element_information$age_colors <- cols
+            V(element.network)$color <- as.character(mineral_element_information$age_colors[match(V(element.network)$name,mineral_element_information$mineral_name)])
+        }
+        
+        
+        
+        
+        
+  
+        ## If one cluster is selected, override the other (i.e. mineral/element) to also be cluster. 
+        if(color_element_by == "cluster" | color_mineral_by == "cluster")
+        {
+            legcol <- get_colors_legend(cluster_degree_information, "item", "cluster_ID", "none", "Cluster ID")
+            leg     <- legcol[[1]]
+            cols    <- legcol[[2]]
+            cluster_degree_information$cluster_colors <- cols
+            V(element.network)$color <- as.character(cluster_degree_information$cluster_colors[match(V(element.network)$name,cluster_degree_information$item)])
+        }
+                
+        ###### Single color element. These must come at the end because some of the indexing above may get excitable in a few circumstances #####
+        if (color_element_by == "singlecolor")
+        {
+            V(element.network)$color[i_element] <- elementcolor
+        }
+        ##### Single color mineral ######
+        if (color_mineral_by == "singlecolor")
+        {
+            V(element.network)$color[i_mineral] <- mineralcolor
+        }           
+        
+        
+        ### TODO
+        #################################### Node size ####################################
+        V(element.network)$size[i_mineral] <- mineral_size
+        V(element.network)$size[i_element] <- element_size
+
+############### BUGGY WHY? #################
+#        if (size_element_by == "singlesize")
 #        {
-#            f.str <- paste(y, "~", x)
-#            fit <- lm(as.formula(f.str), data = finaldata)
-#            r2 <- round( summary(fit)$r.squared, 4 )
-#            slope <- round(fit$coefficients[2], 3)
-#
-#            p <- p + geom_smooth(color = thecolor, method = "lm") + ggtitle(paste0("R^2 = ", r2, ".   Slope = ", slope)) + theme(plot.title = element_text(face = "bold.italic", size=20, hjust =0.1))
+#            V(element.network)$size[i_element] <- element_size
 #        }
-#        p
-#    }
-#    plot_scatter2 <- function()
-#    {
-#        finaldata <- isolate_data()
-#        thecolor  <- isolate_color()
-#        x <- as.symbol(isolate(input$xvar))
-#        y <- as.symbol(isolate(input$yvar))
-#        catvar <- as.symbol(isolate(input$catvar))
-#        p <- ggplot(finaldata, aes(x = !!x, y = !!y, color = factor(!!catvar))) + geom_point(size=3) + scale_color_hue(name = catvar, l=45) 
-#		p
-#    }
+#         if (size_element_by == "degree")
+#         {
+#             p <- ggplot(cluster_degree_information, aes(x = item, y = network_degree_norm, size = network_degree_norm)) + geom_point() + labs(size = "Normalized element degree")          
+#             leg <- get_legend(p )  ## TODO: Claus help?
+#             cluster_degree_information$degree_size <- ggplot_build(p)$data[[1]]$size
+#             V(element.network)$size <- as.character(cluster_degree_information$degree_size[match(V(element.network)$name,cluster_degree_information$item)])
+#         }
+ 
+ 
+ 
+        
+        ################################### Node labels ##################################
+        if (!(label_mineral)) { 
+            V(element.network)$label[i_mineral] <- ""
+        } else
+        {
+            V(element.network)$label[i_mineral] <- V(element.network)$name[i_mineral]
+        }
+        if (!(label_element)) { 
+            V(element.network)$label[i_element] <- ""
+        }  else
+        {
+            V(element.network)$label[i_element] <- V(element.network)$name[i_element]
+        }      
+                
+              print(V(element.network))
+        
+        ### Edge colors
+
+
+
+        output$networkplot <- renderPlot({ 
+            plot(element.network, layout = layout.gem)
+        })   
+       
+        # Formatting needs fixing here
+        output$networklegend <- renderPlot({ 
+            if (!(leg == "")){ plot(leg) }
+         })   
+    
+    
+    
+    
+    
+    
+    
+       #output$mahplot <- renderPlot( { 
+       #    printplot()
+       #})
+
+       #output$download <- renderUI({
+       #    downloadButton('download_plot', 'Download plot')
+       #})
 #
 #
-#    ###############################################################################################
-#    ###############################################################################################
-#    
-#
-#    
-#    ## "Regular" function which returns the plot
-#    printplot <- function() {
-#
-#        viz <- isolate(input$dataviz)
-#        geom_quant <- isolate(input$whichquant)
-#
-#        ############### Single distribution ##################
-#        if (viz == "quant" & geom_quant == "Histogram") p <- plot_histogram()
-#
-#        if (viz == "quant" & geom_quant == "Density plot") p <- plot_density()
-#
-#        if (viz == "quant" & geom_quant == "Boxplot") p <- plot_boxplot()
-#
-#        if (viz == "quant" & geom_quant == "Jitter plot") p <- plot_jitter()
-#
-#        if (viz == "quant" & geom_quant == "Bar plot") p <- plot_barquant()
-#
-#        if (viz == "quant" & geom_quant == "Make all")
-#        {
-#            p1 <- plot_histogram()
-#            p2 <- plot_density()
-#            p3 <- plot_boxplot()
-#            p4 <- plot_jitter()
-#            p5 <- plot_barquant()
-#            
-#            p <- (p1 + p2 + p3) / (p4 + p5)
-#        }
-#        #######################################################
-#
-#        ############### Multiple distributions with single cat ##################
-#        if (viz == "multquant" & geom_quant == "Boxplot") p <- plot_multbox()
-#
-#        if (viz == "multquant" & geom_quant == "Density plot") p <- plot_multdensity()
-#
-#        if (viz == "multquant" & geom_quant == "Jitter plot") p <- plot_multjitter()
-#
-#        if (viz == "multquant" & geom_quant == "Bar plot") p <- plot_multbarquant()
-#
-#        if (viz == "multquant" & geom_quant == "Line plot") p <- plot_line()
-#
-#        if (viz == "multquant" & geom_quant == "Make all")
-#        {
-#            p1 <- plot_multbox() + theme(legend.position = "none")
-#            p2 <- plot_multdensity() + theme(legend.position = "none")
-#            p3 <- plot_multjitter() + theme(legend.position = "none")
-#            p4 <- plot_multbarquant() + theme(legend.position = "bottom")
-#            p5 <- plot_line() + theme(legend.position = "none")
-#            
-#            p <- (p1+p2+p3)/(p4+p5)
-#        }
-#        #######################################################
-#
-#        ############### Multiple distributions with two cat ##################
-#        if (viz == "multquant2" & geom_quant == "Boxplot") p <- plot_multbox2()
-#
-#        if (viz == "multquant2" & geom_quant == "Jitter plot") p <- plot_multjitter2()
-#
-#        if (viz == "multquant2" & geom_quant == "Bar plot") p <- plot_multbarquant2()
-#
-#        if (viz == "multquant2" & geom_quant == "Make all")
-#        {
-#            p1 <- plot_multbox2() + theme(legend.position = "none")
-#            p2 <- plot_multjitter2() + theme(legend.position = "bottom")
-#            p3 <- plot_multbarquant2() + theme(legend.position = "none")
-#           
-#            p <- p1+p2+p3
-#        }
-#        #######################################################
-#
-#
-#        ############### Barplot for counts ####################
-#        if (viz == "counts") p <- plot_barcount()
-#        if (viz == "counts2") p <- plot_barcount2()
-#        #######################################################
-#
-#        ############### Scatterplot ###########################
-#        if (viz == "scatter") p <- plot_scatter()
-#        if (viz == "scatter2") p <- plot_scatter2()
-#        #######################################################
-#        
-#        print(p)
-#    }
-#
-#
-#    ## Render plot and download button, reactive to "Go" button
-#    observeEvent(input$go,  {
-#
-#    
-#        output$mahplot <- renderPlot( { 
-#            printplot()
-#        })
-#
-#        output$download <- renderUI({
-#            downloadButton('download_plot', 'Download plot')
-#        })
-#
-#
-#       output$download_plot <- downloadHandler(
-#            filename = function() {
-#                "download.png"
-#            },
-#            content = function(file) {
-#                ggsave(file, printplot(), width = 6, height = 4)
-#            }
-#        )
-#    })  
+#      output$download_plot <- downloadHandler(
+#           filename = function() {
+#               "download.png"
+#           },
+#           content = function(file) {
+#               ggsave(file, printplot(), width = 6, height = 4)
+#           }
+#       )
+   })  
 }
 
