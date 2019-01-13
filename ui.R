@@ -7,7 +7,7 @@ library(RColorBrewer)
 
 
 #################################################################################################
-### Code to setup a palette picker, modified by https://dreamrs.github.io/shinyWidgets/articles/palette_picker.html
+### Code to setup a palette picker, modified from https://dreamrs.github.io/shinyWidgets/articles/palette_picker.html
 brewer.pal.info %>% 
     rownames_to_column("palette") %>%
     filter(category != "qual", colorblind == TRUE) %>%
@@ -72,134 +72,142 @@ ui <- fluidPage(theme = shinytheme("simplex"),
 
     #######################################################################################
     br(),
-    h4("Element options"),
+    h3("Node options"),
+    hr(),
+    
+    h4("Node Size"),
+    fluidRow(
+        column(6,sliderInput("element_size","Size for element nodes",value=10,min=1,max=15)),
+        column(6,sliderInput("mineral_size","Size for mineral nodes",value=4,min=1,max=15))
+    ),
 
-    checkboxInput("label_element","Label element nodes?",value = TRUE),
+    br(),h4("Node Labels"),
+    fluidRow(
+        column(6, checkboxInput("label_element","Show element labels",value = TRUE)),
+        column(6, checkboxInput("label_mineral","Show mineral labels",value = TRUE))
+    ),
     
-    ####### Element node size ##########
-    #selectInput("size_element_by", "Size element by?",
-    #            c("Select element size"          = "singlesize",
-    #              "Degree"                       = "degree")    
-    #),
-    #conditionalPanel(condition = "output.selectsize_element", 
-    #    {sliderInput("element_size","Choose the size for elements",value=10,min=1,max=15)}
-    #),
-    sliderInput("element_size","Choose the size for element nodes",value=10,min=1,max=15),
-    
-
-    
-    
+    #checkboxInput("label_element","Check box to label element nodes",value = TRUE),
+    #checkboxInput("label_mineral","Check box to label mineral nodes",value = FALSE),
+       
+    br(), h4("Node Color"),
     ####### Element node color ##########
-    selectInput("color_element_by", "Color elements by?",
-                c("Single color for all elements" = "singlecolor", 
-                  "Degree"                        = "degree",
-                  "Cluster ID"                    = "cluster") 
-    ),
+       fluidRow(
+            column(6,
+               selectInput("color_element_by", "Element color scheme",
+                c("Select color"   = "singlecolor", 
+                  "Degree"         = "degree",
+                  "Cluster ID"     = "cluster") 
+                )
+            ),
     
-    conditionalPanel(condition = "output.singlecolor_element",   
-        {colourInput("elementcolor", "Select element color:", value = "dodgerblue3")}
-    ),
+            column(6,
+                conditionalPanel(condition = "output.singlecolor_element",   
+                    {colourInput("elementcolor", "Select color:", value = "dodgerblue3")}
+                ),
 
-    conditionalPanel(condition = "output.palette_element",   
-        {pickerInput("elementpalette", label = "Choose a palette for element colors:",
-          choices = divseq.list, selected = "Blues", width = "80%",
-          choicesOpt = list(
-            content = sprintf(
-              "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-              unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
+                conditionalPanel(condition = "output.palette_element",   
+                    {pickerInput("elementpalette", label = "Select palette:",
+                    choices = divseq.list, selected = "Blues", width = "80%",
+                    choicesOpt = list(
+                        content = sprintf(
+                            "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
+                            unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
+                        )
+                    )
+                )}        
+                )
             )
-          )
-        )}        
-    ),
-    
-    ####### Element node label or shape ##########
-    selectInput("shape_element_by", "Shape of element nodes?",
-                c("No shape (use if you'd only like the label)"   = "none",
-                  "Circle"     = "circle",
-                  "Square"     = "square")    
-    ),
-    #######################################################################################
-    
-
-    #######################################################################################
-    br(),
-    h4("Mineral node options"),
-
-    checkboxInput("label_mineral","Label mineral nodes?",value = FALSE),
-
-
-    sliderInput("mineral_size","Choose the size for minerals",value=4,min=1,max=15),
-        
-    ####### Mineral node color ##########
-    selectInput("color_mineral_by", "Color minerals by?",
-           c("Single color for all minerals" = "singlecolor",  
-             "Mean mineral redox state"     = "redox",        
-             "Maximum mineral age"          = "maxage",      
-             "Number of localities"         = "numlocalities",
-             "Cluster ID"                   = "cluster") 
-    ),
-    
-    conditionalPanel(condition = "output.singlecolor_mineral",   
-        {colourInput("mineralcolor", "Select mineral color:", value = "firebrick3")}
-    ),
-
-    conditionalPanel(condition = "output.palette_mineral",   
-        {pickerInput("mineralpalette", label = "Choose a palette for mineral colors:",
-          choices = divseq.list, selected = "Blues", width = "80%",
-          choicesOpt = list(
-            content = sprintf(
-              "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-              unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
-            )
-          )
-        )}        
-    ),
-    
-    ####### Mineral node label or shape ##########
-    selectInput("shape_mineral", "Shape of mineral nodes?",
-                c("No shape (use if you'd only like the label)"   = "none",
-                  "Circle"     = "circle",
-                  "Square"     = "square")    
-    ),
-    #######################################################################################
-
-
-    #######################################################################################
-    br(),
-    h4("Edge options"),
-    
-    
-    selectInput("color_edge_by", "Color edges by?",
-           c("Single color for all edges" = "singlecolor",  
-             "Element redox state" = "redox")
         ),
-    conditionalPanel(condition = "output.singlecolor_edge",   
-        {colourInput("edgecolor", "Select edge color:", value = "black")}
-    ),
 
-    conditionalPanel(condition = "output.palette_edge",   
-        {pickerInput("edgepalette", label = "Choose a palette for edge colors:",
-          choices = divseq.list, selected = "Blues", width = "80%",
-          choicesOpt = list(
-            content = sprintf(
-              "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-              unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
+
+      fluidRow(
+            column(6,
+                selectInput("color_mineral_by", "Mineral color scheme",
+                       c("Select color" = "singlecolor",  
+                         "Mean mineral redox state"     = "redox",        
+                         "Maximum mineral age"          = "maxage",      
+                         "Number of localities"         = "numlocalities",
+                         "Cluster ID"                   = "cluster") 
+                )
+            ),
+    
+            column(6,
+                conditionalPanel(condition = "output.singlecolor_mineral",   
+                    {colourInput("mineralcolor", "Select color:", value = "firebrick3")}
+                ),
+
+                conditionalPanel(condition = "output.palette_mineral",   
+                    {pickerInput("mineralpalette", label = "Select palette:",
+                    choices = divseq.list, selected = "Blues", width = "80%",
+                    choicesOpt = list(
+                        content = sprintf(
+                            "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
+                            unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
+                        )
+                    )
+                )}        
+                )
             )
-          )
-        )}        
+        ),
+        
+        
+        
+    br(), h4("Node Shape"),
+    fluidRow(
+       column(6,
+           selectInput("shape_element_by", "Element nodes",
+                c("No shape (only label)"   = "none",
+                  "Circle"     = "circle",
+                  "Square"     = "square")    
+            )
+        ),
+        column(6, 
+            selectInput("shape_mineral", "Mineral nodes",
+                        c("No shape (only label)"   = "none",
+                          "Circle"     = "circle",
+                          "Square"     = "square")    
+            )
+        )
     ),
-        #######################################################################################
 
+    br(),
+    h3("Edge Options"),
+    hr(),    
+    fluidRow(
+      column(6,
+          selectInput("color_edge_by", "Color edges by?",
+           c("Select color" = "singlecolor",  
+             "Element redox state" = "redox")
+          )
+      ),
+    
+      column(6,
+          conditionalPanel(condition = "output.singlecolor_edge",   
+              {colourInput("edgecolor", "Select edge color:", value = "grey50")}
+          ),
 
-    #######################################################################################
-    #br(),
-    #h4("Network options"),
-    
-    ## TODO: There are about 30 options here.
-    #selectInput("networkalgorithm", "Select the algorithm to use for network display:",
-    #    c(
-    #
-    
+          conditionalPanel(condition = "output.palette_edge",   
+              {pickerInput("edgepalette", label = "Edge color palette:",
+              choices = divseq.list, selected = "Blues", width = "80%",
+              choicesOpt = list(
+                  content = sprintf(
+                      "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
+                      unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
+                  )
+              )
+            )}        
+          )
+        )),
+        
+
+####### TODO:
+#     br(),
+#     h4("Network options"),
+#     
+#     selectInput("network_layout", "Select a layout algorithm for the network:",
+#         c("
+        
     
     #######################################################################################
     
@@ -212,13 +220,26 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     
     # Main panel for displaying outputs
     mainPanel(
-      
-        div(style = "height: 800px;",
-            plotOutput("networkplot", height = "100%")
-        ),
-       div(style = "height: 100px;",
-            plotOutput("networklegend", height = "100%")
-       )
+          
+        fluidRow(
+            column(10,
+                div(style = "height: 800px;",
+                    plotOutput("networkplot", height = "800px")
+                    )
+            ),
+    
+            column(2,
+                div(style = "height: 200px;",
+                    plotOutput("networklegend",, height = "200px")
+                    )
+            )
+        )
+#         div(style = "height: 800px;",
+#             plotOutput("networkplot", height = "100%")
+#         ),
+#        div(style = "height: 100px;",
+#             plotOutput("networklegend", height = "100%")
+#        )
  
     #
     #    uiOutput("download")
