@@ -4,6 +4,7 @@ library(shinythemes)
 library(colourpicker)
 library(shinyWidgets)
 library(RColorBrewer)
+library(visNetwork)
 
 
 #################################################################################################
@@ -80,7 +81,8 @@ ui <- fluidPage(theme = shinytheme("simplex"),
         column(6,
             radioButtons("element_size_type", tags$b("Size scheme for elements"), 
                          c("Select a single size" = "singlesize",
-                           "Size elements by degree" = "degree"), selected = "singlesize")
+                           "Size elements by degree" = "degree",
+                           "Size elements by redox"  = "redox"), selected = "singlesize")
         ),
         column(6,    
             conditionalPanel(condition = "input.element_size_type == 'singlesize'", 
@@ -161,17 +163,21 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     ),
     fluidRow(
        column(6,
-           selectInput("shape_element_by", tags$b("Element node shape"),
+           selectInput("elementshape", tags$b("Element node shape"), ## shapes that scale with font
                 c("Circle"   = "circle",
-                  "Square"   = "square",
-                  "No shape" = "none")     
+                  "Ellipse"  = "ellipse",
+                  "Box"      = "box", 
+                  "Text only"     = "text"), selected = "Circle" 
             )
         ),
         column(6, 
-            selectInput("shape_mineral_by", tags$b("Mineral node shape"),
-                        c("Circle"   = "circle",
+            selectInput("mineralshape", tags$b("Mineral node shape"),
+                        c("Circle"   = "dot", #### !!!!!!
                           "Square"   = "square",
-                          "No shape" = "none")    
+                          "Dot"      = "dot", 
+                          "Star"     = "star",
+                          "Triangle" = "triangle",
+                          "Diamond"  = "diamond"), selected = "Circle"    
             )
         )
     ),
@@ -199,15 +205,13 @@ ui <- fluidPage(theme = shinytheme("simplex"),
             )}        
           )
         )),
-        
-
-#     ### TODO: make this work
-#     selectInput("network_layout", tags$br("Select a layout algorithm for the network:"),
-#         c("Fruchterman Reingold" =  "layout_with_fr",
-#           "Kamada-Kawai" = "layout_with_kk",
-#           "GEM" = "layout.gem")
-#     ),
-#           
+    
+    selectInput("network_layout", tags$br("Select a layout algorithm for the network:"),
+        c("Nicely"               = "layout_nicely",
+          "Fruchterman Reingold" =  "layout_with_fr",
+          "Kamada-Kawai"         = "layout_with_kk")
+    ),
+          
         
     
     #######################################################################################
@@ -221,21 +225,20 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     
     # Main panel for displaying outputs
     mainPanel(
-          
-         div(style = "height: 800px;",
-            plotOutput("networkplot", height = "100%")
-        ),
-       div(style = "height: 200px;",
-            plotOutput("networklegend", height = "75%")
-       ),
-        div(style = "float:right",
-            uiOutput("downloadp"),
-            br(),
-            uiOutput("downloadl"),
-            br(),br(),
-            uiOutput("downloaddata")
-        )
- 
+         div(style = "height: 600px; width = 600px;outline: 1px solid black;",
+            visNetworkOutput("networkplot", height = "100%")
+        ) #,
+       #div(style = "height: 200px;",
+       #     plotOutput("networklegend", height = "75%")
+       #),
+#         div(style = "float:right",
+#             uiOutput("downloadp"),
+#             br(),
+#             uiOutput("downloadl"),
+#             br(),br(),
+#             uiOutput("downloaddata")
+#         )
+#  
     )
   )
 )

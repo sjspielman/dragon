@@ -1,0 +1,10 @@
+name: shinymineral
+title:
+username:
+account: sjspielman
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 639805
+bundleId: 1812237
+url: https://sjspielman.shinyapps.io/shinymineral/
+when: 1547417863.98955

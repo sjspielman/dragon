@@ -3,6 +3,8 @@ library(colourpicker)
 library(tidyverse)
 library(cowplot)
 library(igraph)
+library(visNetwork)
+library(colourvalues) #!
 
 server <- function(input, output) {
     
@@ -16,6 +18,7 @@ server <- function(input, output) {
     ## is_remote = is the age actually associated with the locality (1) or was is ported from another locality (0)
     
     
+    #####  to do thereis a  fucking  separate_rows functions
     
     
     
@@ -129,29 +132,15 @@ server <- function(input, output) {
                                           legend.box.background = element_rect(color = "white")))
         geom.point.size <- 10
    
-   
-        ############ Functions apparently needs to be here #########
-        splitrows <- function(dat)
-        {
-            x <- str_count(dat$chemistry_elements, " ") + 1 
-    
-            dat %>% 
-                separate(chemistry_elements, into=as.character(1:x), sep=" ") %>% 
-                select(-mineral_name) %>% 
-                gather(blah, element) %>% 
-                select(-blah) %>% 
-                mutate(mineral_name = mindat$mineral_name) -> splitdat
-    
-            splitdat
-        }
+           
         ################################################################################
         
         ############################## Isolate input variables to prevent reactivity ##############################
         element_of_interest <- isolate(input$element_of_interest)
         include_age         <- isolate(input$include_age)
-        age_limit <- ages$mya[ages$eon == include_age]
+        age_limit           <- ages$mya[ages$eon == include_age]
         
-        network_layout <- isolate(input$network_layout)
+        network_layout      <- isolate(input$network_layout)
         
         element_size_type <- isolate(input$element_size_type)
 
@@ -161,6 +150,12 @@ server <- function(input, output) {
             elementsize <- isolate(input$element_size)
         }    
         
+        
+        
+        
+        
+        
+        
         label_element <- isolate(input$label_element) ## logical
         label_mineral <- isolate(input$label_mineral) ## logical
         if (label_element){ elementlabelcolor <- isolate(input$elementlabelcolor) }
@@ -168,6 +163,7 @@ server <- function(input, output) {
 
         color_element_by <- isolate(input$color_element_by) ## singlecolor, degree, cluster
         color_by_cluster <- isolate(input$colorbycluster)
+        
         if (!(color_by_cluster))
         {
             if (color_element_by == "singlecolor") 
@@ -190,13 +186,18 @@ server <- function(input, output) {
             }    
         }
         
-        shape_element_by <- isolate(input$shape_element_by) ## none, circle, square
-        shape_mineral_by <- isolate(input$shape_mineral_by) ## none, circle, square
+        elementshape <- isolate(input$elementshape) ## none, circle, square
+        mineralshape <- isolate(input$mineralshape) ## none, circle, square
 
 
         color_edge_by <- isolate(input$color_edge_by) ## singlecolor, redox
         if (color_edge_by == "singlecolor"){ edgecolor <- isolate(input$edgecolor) }
         if (color_edge_by == "redox"){ edgepalette <- isolate(input$edgepalette) }
+        
+        ######## TODO UI OPTIONS ############
+        edgeweight         <- 10 
+        element.fontsize   <- 30 ## maybe not ui
+        mineral.fontsize   <- 15 ## maybe not ui
         ##################################################
         
 
@@ -208,6 +209,7 @@ server <- function(input, output) {
                             mutate(has_element = if_else(str_detect(rruff_chemistry, element_of_interest), TRUE, FALSE)) %>% 
                             filter(has_element == TRUE) %>% 
                             select(-has_element, -mineral_id, -mindat_id)
+        
         element_only <- element_only %>%
                             group_by(mineral_name) %>% 
                             summarize(num_localities = sum(at_locality)) %>%
@@ -218,19 +220,11 @@ server <- function(input, output) {
                             ungroup() %>%
                             filter(max_age >= age_limit) %>%
                             select(mineral_name, num_localities, max_age, rruff_chemistry, chemistry_elements) %>%
-                            unique()
+                            unique() %>%
+                            separate_rows(chemistry_elements,sep=" ") 
 
-        # Separate out constituent elements to own row each
-        mineral_chemistry <- element_only %>% 
-                                select(mineral_name, chemistry_elements) %>% 
-                                unique()
-        mineral_elements <- tibble("mineral_name" = as.character(), "element" = as.character())
-        for (mineral in mineral_chemistry$mineral_name) {
-            mindat <- mineral_chemistry %>% filter(mineral_name == mineral)
-            mineral_elements <- bind_rows( mineral_elements, splitrows(mindat) )
-        }
         
-        # Get element redox states
+        ####### Get element redox states
         element_only %>% select(mineral_name, rruff_chemistry) %>% unique() -> mineral_chem
         element_redox_states <- tibble("mineral_name" = as.character(), "element" = as.character(), "redox" = as.double(), "n" = as.integer())
         for (mineral in mineral_chem$mineral_name)
@@ -256,154 +250,154 @@ server <- function(input, output) {
     
             element_redox_states <- bind_rows( element_redox_states, temp2 )
         }
-        
-        ### 1 row per EDGE
-        mineral_element_information <- left_join(mineral_elements, element_redox_states) %>% 
-                                            select(-n) %>% 
-                                            replace_na(list(redox = 0)) %>% 
-                                            left_join(element_only) %>%
-                                            select(-rruff_chemistry, -chemistry_elements)
-
-        # "mineral_name"   "element"        "redox"          "num_localities"     "max_age" 
-
-        mineral_element_information %>% 
-            group_by(mineral_name) %>%
-            summarize(mean_redox = mean(redox)) %>%
-            left_join(mineral_element_information) %>%
-            select(mineral_name, mean_redox, num_localities, max_age) %>%
-            rename(item = mineral_name) %>%
-            unique() -> mineral_information
-        # item    mean_redox    num_localities    max_age
+        ### 1 row per EDGE, to be joined with edges
+        mineral.element.information <- element_only %>% 
+                                        rename(element = chemistry_elements) %>%
+                                        left_join(element_redox_states) %>% 
+                                        replace_na(list(redox = 0)) %>% 
+                                        group_by(mineral_name, element, max_age, num_localities) %>%
+                                        summarize(redox = mean(redox)) %>%   ##  some minerals have a few states
+                                        unique() %>%
+                                        ungroup()
 
         ## Build the network here so can obtain information for cluster, degree (save in separate tibble since both minerals and elements need a row)
-        element.network <- graph.data.frame(mineral_elements, directed=FALSE)
+        network.data <- mineral.element.information %>% select(mineral_name, element)
+        element.network <- graph.data.frame(network.data, directed=FALSE)
         V(element.network)$type <- bipartite_mapping(element.network)$type 
         clustered.net <- cluster_louvain(element.network)
         deg <- degree(element.network, mode="all")
-    
-        ### 1 row per VERTEX
-        vertex_information <- left_join( tibble("item" = clustered.net$names, "cluster_ID"= as.numeric(clustered.net$membership)),
+
+        ### 1 row per VERTEX, to be joined with nodes
+        minerals.as.item <- mineral.element.information %>% 
+                                group_by(mineral_name) %>%
+                                summarize(redox = mean(redox)) %>%
+                                left_join(mineral.element.information) %>%
+                                select(mineral_name, redox, num_localities, max_age) %>%
+                                rename(item = mineral_name) %>%
+                                unique() 
+                                
+                                
+        vertex.information <- left_join( tibble("item" = clustered.net$names, "cluster_ID"= as.numeric(clustered.net$membership)),
                                          tibble("item" = names(deg), "network_degree"= as.numeric(deg)) ) %>%
-                                         mutate(type = ifelse(item %in% mineral_elements$mineral_name, "mineral", "element")) %>%
+                                         mutate(type = ifelse(item %in% mineral.element.information$mineral_name, "mineral", "element")) %>%
                                          group_by(type) %>%
                                          mutate(network_degree_norm = network_degree / max(network_degree)) %>%
-                                         ungroup() %>%
-                                         left_join(mineral_information)
-        ## item   cluster_ID     network_degree   type    mean_redox    num_localities    max_age
-            ## the last three columns are NA for type == element
+                                         ungroup() %>%                       
+                                         left_join(minerals.as.item) %>%
+                                         rename(id = item)
+                                 
+                                 
+        net <- toVisNetworkData(element.network)
 
-        
+        edges <- as.tibble(net$edges) %>% 
+                    bind_cols(mineral.element.information)
 
-        
-        ##################################################################################
-        ###################### Apply network visualization settings here #################
-        
-        i_element <- V(element.network)$type == TRUE    ### bottom indices
-        i_mineral <- V(element.network)$type == FALSE   ### top indices
-         
-        
-        
-        ###################################### Determine all color palette values #########################################
-        colorlegend <- FALSE
-        sizelegend <- FALSE
+        nodes <- as.tibble(net$nodes) %>%
+                    mutate(type = ifelse(type == FALSE, "mineral", "element")) %>% 
+                    left_join(vertex.information)
 
-        ## color palette for cluster
-        if (color_by_cluster)
-        {
-            vertex_information %>%
-                ggplot(aes(x = item, y = as.factor(cluster_ID), color = as.factor(cluster_ID))) + geom_point(size=geom.point.size) + 
-                scale_color_discrete(name = "Cluster") -> p
-            colorlegend <- get_legend(p)
-            V(element.network)$color <- ggplot_build(p)$data[[1]]$colour 
-        } else 
-        {
+
+        yesh.legend <- FALSE
         
-            if (color_element_by == "singlecolor" & color_mineral_by == "singlecolor")
-            {   
-                V(element.network)$color[i_element] <- elementcolor
-                V(element.network)$color[i_mineral] <- mineralcolor
-                tibble(x=1:10,y=1:10,z=c(rep("Element",5), rep("Mineral",5))) %>% 
-                    ggplot(aes(x = x,y=y,color=z)) + geom_point(size=geom.point.size) + 
-                    scale_color_manual(name = "Node Type", values=c(elementcolor, mineralcolor))  ->p
-                colorlegend <- get_legend(p)
-            }                
-                
-            if (color_element_by != "singlecolor")
-            {
-                vertex_information %>%
-                    ggplot(aes(x = item, y = network_degree_norm, color = network_degree_norm)) + geom_point(size=geom.point.size) + 
-                    scale_color_distiller(palette = elementpalette, name = "Normalized Network Degree", direction=1) + 
-                    theme(legend.position = "bottom") -> p
-                colorlegend <- get_legend(p)
-                V(element.network)$color[i_element] <- ggplot_build(p)$data[[1]]$colour[i_element]
-                V(element.network)$color[i_mineral] <- mineralcolor
-            }
-            if (color_mineral_by != "singlecolor")
-            {
-                theoptions <- list("mean_redox"     = "Mean mineral redox state",
-                                 "num_localities" = "Number of known localities",
-                                 "max_age"        = "Maximum age")
-                legend_label <- theoptions[color_mineral_by]
-                color_mineral_by <- as.symbol(color_mineral_by)
-                vertex_information %>%
-                    ggplot(aes(x = item, y = !!color_mineral_by, color = !!color_mineral_by)) + geom_point(size=geom.point.size) + 
-                    scale_color_distiller(palette = mineralpalette, name = legend_label, direction=1) + 
-                    theme(legend.position = "bottom") -> p
-                colorlegend <- get_legend(p)
-                V(element.network)$color[i_mineral] <- ggplot_build(p)$data[[1]]$colour[i_mineral]
-                V(element.network)$color[i_element] <- elementcolor
-            }
-        }
-            
-        
-        ################################### Node shapes ###################################
-        V(element.network)$shape[i_element] <- shape_element_by 
-        V(element.network)$shape[i_mineral] <- shape_mineral_by 
         
 
-        #################################### Node size ####################################
-        V(element.network)$size[i_mineral] <- mineralsize
-        if(element_size_type == "singlesize"){  V(element.network)$size[i_element] <- elementsize }
-        if(element_size_type == "degree") 
-        {
-            vertex_information %>%
-                ggplot(aes(x = item, y = network_degree_norm, size = network_degree_norm)) + geom_point() +
-                scale_size("Normalized network degree for elements", range = c(5, 25)) + 
-                theme(legend.position = "bottom") -> p
-            sizelegend <- get_legend(p)
-            V(element.network)$size[i_element] <- ggplot_build(p)$data[[1]]$size[i_element]        
-        }
-        
-        ################################### Node labels ##################################
-        if (!(label_mineral)) { 
-            V(element.network)$label[i_mineral] <- ""
-        } else
-        {
-            V(element.network)$label[i_mineral] <- V(element.network)$name[i_mineral]
-            V(element.network)$label.color[i_mineral] <- minerallabelcolor
-        }
-        if (!(label_element)) { 
-            V(element.network)$label[i_element] <- ""
-        }  else
-        {
-            V(element.network)$label[i_element] <- V(element.network)$name[i_element]
-            V(element.network)$label.color[i_element] <- elementlabelcolor
-        }      
-                        
-        ############################# Edge colors ########################################
-        if(color_edge_by == "singlecolor"){ E(element.network)$color <- edgecolor }
-        if(color_edge_by == "redox")
-        {
-            mineral_element_information %>%
-                ungroup() %>%
-                mutate(n = 1:n()) %>%
-                ggplot(aes(x = n, y = redox, color = redox)) + geom_point(size=geom.point.size) + 
-                scale_color_distiller(palette = edgepalette, name = "Redox state", direction=1) + 
-                theme(legend.position = "bottom") -> p
-            colorlegend <- get_legend(p)
-            E(element.network)$color <- ggplot_build(p)$data[[1]]$colour
-           }
 
+#        
+#        ###################################### Determine all color palette values #########################################
+#        colorlegend <- FALSE
+#        sizelegend <- FALSE
+#
+#        ## color palette for cluster
+#        if (color_by_cluster)
+#        {
+#            vertex.information %>%
+#                ggplot(aes(x = item, y = as.factor(cluster_ID), color = as.factor(cluster_ID))) + geom_point(size=geom.point.size) + 
+#                scale_color_discrete(name = "Cluster") -> p
+#            colorlegend <- get_legend(p)
+#            V(element.network)$color <- ggplot_build(p)$data[[1]]$colour 
+#        } else 
+#        {
+#        
+#            if (color_element_by == "singlecolor" & color_mineral_by == "singlecolor")
+#            {   
+#                V(element.network)$color[i_element] <- elementcolor
+#                V(element.network)$color[i_mineral] <- mineralcolor
+#                tibble(x=1:10,y=1:10,z=c(rep("Element",5), rep("Mineral",5))) %>% 
+#                    ggplot(aes(x = x,y=y,color=z)) + geom_point(size=geom.point.size) + 
+#                    scale_color_manual(name = "Node Type", values=c(elementcolor, mineralcolor))  ->p
+#                colorlegend <- get_legend(p)
+#            }                
+#                
+#            if (color_element_by != "singlecolor")
+#            {
+#                vertex.information %>%
+#                    ggplot(aes(x = item, y = network_degree_norm, color = network_degree_norm)) + geom_point(size=geom.point.size) + 
+#                    scale_color_distiller(palette = elementpalette, name = "Normalized Network Degree", direction=1) + 
+#                    theme(legend.position = "bottom") -> p
+#                colorlegend <- get_legend(p)
+#                V(element.network)$color[i_element] <- ggplot_build(p)$data[[1]]$colour[i_element]
+#                V(element.network)$color[i_mineral] <- mineralcolor
+#            }
+#            if (color_mineral_by != "singlecolor")
+#            {
+#                theoptions <- list("mean_redox"     = "Mean mineral redox state",
+#                                 "num_localities" = "Number of known localities",
+#                                 "max_age"        = "Maximum age")
+#                legend_label <- theoptions[color_mineral_by]
+#                color_mineral_by <- as.symbol(color_mineral_by)
+#                vertex.information %>%
+#                    ggplot(aes(x = item, y = !!color_mineral_by, color = !!color_mineral_by)) + geom_point(size=geom.point.size) + 
+#                    scale_color_distiller(palette = mineralpalette, name = legend_label, direction=1) + 
+#                    theme(legend.position = "bottom") -> p
+#                colorlegend <- get_legend(p)
+#                V(element.network)$color[i_mineral] <- ggplot_build(p)$data[[1]]$colour[i_mineral]
+#                V(element.network)$color[i_element] <- elementcolor
+#            }
+#        }
+#            
+#
+#        #################################### Node size ####################################
+#        V(element.network)$size[i_mineral] <- mineralsize
+#        if(element_size_type == "singlesize"){  V(element.network)$size[i_element] <- elementsize }
+#        if(element_size_type == "degree") 
+#        {
+#            vertex.information %>%
+#                ggplot(aes(x = item, y = network_degree_norm, size = network_degree_norm)) + geom_point() +
+#                scale_size("Normalized network degree for elements", range = c(5, 25)) + 
+#                theme(legend.position = "bottom") -> p
+#            sizelegend <- get_legend(p)
+#            V(element.network)$size[i_element] <- ggplot_build(p)$data[[1]]$size[i_element]        
+#        }
+#        
+#        ################################### Node labels ##################################
+#        if (!(label_mineral)) { 
+#            V(element.network)$label[i_mineral] <- ""
+#        } else
+#        {
+#            V(element.network)$label[i_mineral] <- V(element.network)$name[i_mineral]
+#            V(element.network)$label.color[i_mineral] <- minerallabelcolor
+#        }
+#        if (!(label_element)) { 
+#            V(element.network)$label[i_element] <- ""
+#        }  else
+#        {
+#            V(element.network)$label[i_element] <- V(element.network)$name[i_element]
+#            V(element.network)$label.color[i_element] <- elementlabelcolor
+#        }      
+#                        
+#        ############################# Edge colors ########################################
+#         if(color_edge_by == "singlecolor"){ E(element.network)$color <- edgecolor }
+#         if(color_edge_by == "redox")
+#         {
+#            mineral.element.information %>%
+#                 ungroup() %>%
+#                 mutate(n = 1:n()) %>%
+#                 ggplot(aes(x = n, y = redox, color = redox)) + geom_point(size=geom.point.size) + 
+#                 scale_color_distiller(palette = edgepalette, name = "Redox state", direction=1) + 
+#                 theme(legend.position = "bottom") -> p
+#             colorlegend <- get_legend(p)
+#             edgecolor <- ggplot_build(p)$data[[1]]$colour
+#           }
           ##################################################
 
         plot_legend <- function(colorlegend, sizelegend)
@@ -417,56 +411,89 @@ server <- function(input, output) {
             l
         }
 
+ #     nodes %>%  mutate(font.size = ifelse(type == "element", 40, 15 )) -> nodes 
+#                        color.background = ifelse(type == TRUE, elementcolor, mineralcolor),
+#                        shape            = ifelse(type == TRUE, elementshape, mineralshape),
+#                        value            = ifelse(type == TRUE, elementsize, mineralsize)) -> nodes
+#            
+#            
+#            edges %>%
+#                 mutate(color = edgecolor,
+#                        value = edgeweight) -> edges   
+#                 # visGroups(groupname = "A", color = "red", shape = "database") %>%
 
-        output$networkplot <- renderPlot({ 
-            plot(element.network, layout = layout_with_fr) ## todo, hard to give this as argument???
-        })   
-       
-         output$networklegend <- renderPlot({ 
-            print( plot_legend(colorlegend, sizelegend) )
-         })   
+
+        ### Font size MUST be set in nodes, not in visGroups, for reasons I do not understand.
         
-        #### todo: export the legend
-        output$downloadp <- renderUI({
-            downloadButton('download_plot', 'Download network image (excluding legend)')
-        })
-        output$download_plot <- downloadHandler(
-            filename = function() {
-                "network.pdf"
-            },
-            content = function(file) {
-                pdf(file)
-                plot(element.network, layout = layout_with_fr, width=8, height=8)
-                dev.off()
-            }
-        )
+        #print(names(nodes)) 
+        #"id" "type"  "label"  "cluster_ID"  "network_degree" "network_degree_norm" "redox" "num_localities" "max_age"            
+        #print(names(edges))
+        #"from" "to" "mineral_name"   "element"  "max_age"        "num_localities" "redox"       
+
+        nodes <- nodes %>%
+                    rename(group = type) %>%
+                    mutate(font.size = ifelse(group == "element", element.fontsize, mineral.fontsize))
         
-        output$downloadl <- renderUI({
-            downloadButton('download_legend', 'Download network legend')
-        })
-        output$download_legend <- downloadHandler(
-            filename = function() {
-                "network_legend.pdf"
-            },
-            content = function(file) {
-                save_plot(file, plot_legend(colorlegend, sizelegend), base_width=8, base_height=3)
-            }
-        )
 
-        output$downloaddata <- renderUI({
-            downloadButton('download_data', 'Download network data')
-        })
-        output$download_data <- downloadHandler(
-            filename = function() {
-                "network.gml"
-            },
-            content = function(file) {
-                V(element.network)$label.color[V(element.network)$label.color == "NA"] <- ""
-                write_graph(element.network, file, format = "gml") 
-            }
-        )
+        ## This is much cleaner code but you also lose the entire legend scale
+        edgepalette <- "Greens"
+        edges <- edges %>%
+                    mutate(color = colour_values(num_localities, palette = edgepalette))
+        
+        
+        output$networkplot <- renderVisNetwork({
+            visNetwork(nodes, edges) %>%
+                visGroups(groupname = "element",   ### nodes scale with shape
+                          color     = elementcolor, 
+                          shape     = elementshape) %>%
+                visGroups(groupname = "mineral", ## nodes are independent of shape
+                          shape     = mineralshape, 
+                          value     = mineralsize) %>%
+                visIgraphLayout(layout = network_layout) %>%## stabilizes
+                visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE)
 
-    
+        })
+
+#         output$downloadp <- renderUI({
+#             downloadButton('download_plot', 'Download network image (excluding legend)')
+#         })
+#         output$download_plot <- downloadHandler(
+#             filename = function() {
+#                 "network.pdf"
+#             },
+#             content = function(file) {
+#                 pdf(file)
+#                 plot(element.network, layout = layout_with_fr, width=8, height=8)
+#                 dev.off()
+#             }
+#         )
+#         
+#         output$downloadl <- renderUI({
+#             downloadButton('download_legend', 'Download network legend')
+#         })
+#         output$download_legend <- downloadHandler(
+#             filename = function() {
+#                 "network_legend.pdf"
+#             },
+#             content = function(file) {
+#                 save_plot(file, plot_legend(colorlegend, sizelegend), base_width=8, base_height=3)
+#             }
+#         )
+# 
+#         output$downloaddata <- renderUI({
+#             downloadButton('download_data', 'Download network data')
+#         })
+#         output$download_data <- downloadHandler(
+#             filename = function() {
+#                 "network.gml"
+#             },
+#             content = function(file) {
+#                 V(element.network)$label.color[V(element.network)$label.color == "NA"] <- ""
+#                 write_graph(element.network, file, format = "gml") 
+#             }
+#         )
+# 
+#     
     
 
    })  
