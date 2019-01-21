@@ -5,7 +5,8 @@ library(colourpicker)
 library(shinyWidgets)
 library(RColorBrewer)
 library(visNetwork)
-
+library(shinydashboard)
+library(DT)
 
 #################################################################################################
 ### Code to setup a palette picker, modified from https://dreamrs.github.io/shinyWidgets/articles/palette_picker.html
@@ -40,7 +41,7 @@ ui <- fluidPage(theme = shinytheme("simplex"),
 
   # App title
   titlePanel("Exploring Mineral Chemistry Networks using the rruff database"),
-    helpText("Written by Stephanie J. Spielman.", (a("Source code and instructions",
+    helpText("Written by Stephanie J. Spielman, PhD", (a("Source code and instructions",
         href="https://github.com/spielmanlab/shinymineral"))),
         
   # Sidebar layout with input and output definitions
@@ -55,62 +56,46 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     selectInput("element_of_interest", tags$b("Select the element whose mineral network you'd like to analyze"),
         c("Ag" = "Ag", "Al" = "Al", "As" = "As", "Au" = "Au", "B" = "B", "Ba" = "Ba", "Be" = "Be", "Bi" = "Bi", "Br" = "Br", "C" = "C", "Ca" = "Ca", "Cd" = "Cd", "Ce" = "Ce", "Cl" = "Cl", "Co" = "Co", "Cr" = "Cr", "Cs" = "Cs", "Cu" = "Cu", "Dy" = "Dy", "Er" = "Er", "F" = "F", "Fe" = "Fe", "Ga" = "Ga", "Gd" = "Gd", "Ge" = "Ge", "H" = "H", "Hf" = "Hf", "Hg" = "Hg", "I" = "I", "In" = "In", "Ir" = "Ir", "K" = "K", "La" = "La", "Li" = "Li", "Mg" = "Mg", "Mn" = "Mn", "Mo" = "Mo", "N" = "N", "Na" = "Na", "Nb" = "Nb", "Nd" = "Nd", "Ni" = "Ni", "O" = "O", "Os" = "Os", "P" = "P", "Pb" = "Pb", "Pd" = "Pd", "Pt" = "Pt", "Rb" = "Rb", "Re" = "Re", "REE" = "REE", "Rh" = "Rh", "Ru" = "Ru", "S" = "S", "Sb" = "Sb", "Sc" = "Sc", "Se" = "Se", "Si" = "Si", "Sm" = "Sm", "Sn" = "Sn", "Sr" = "Sr", "Ta" = "Ta", "Te" = "Te", "Th" = "Th", "Ti" = "Ti", "Tl" = "Tl", "U" = "U", "V" = "V", "W" = "W", "Y" = "Y", "Yb" = "Yb", "Zn" = "Zn", "Zr" = "Zr")
     ),
+    helpText("To analyze the network of a different focal element, you must refresh the site."), 
     
-    
+    #######################################################################################
+
+    #######################################################################################
+    br(),
+    h3("Mineral preferences"),
+    hr(),
     selectInput("include_age", tags$b("Choose a starting eon for earliest minerals to include in the network:"),
           c("Include all known minerals"  = "present",
             "Paleoproteozoic (>= 1.6 Ga)" = "paleo",
             "Archean (>= 2.5 Ga)"         = "archean",
             "Hadean (>= 4 Ga)"            = "hadean")
-         ),
-    # causes buggyness:
-    #sliderInput("include_localities","Choose the _minimum_ number of localities needed to include a mineral in the network",value=1,min=1,max=50),
-    ### TODO: Other selection for minerals?
-    #######################################################################################
-
-    #######################################################################################
-    br(),
-    h3("Network options"),
-    hr(),
-    
-    h4("Node Size"),
-    
-    sliderInput("mineral_size",tags$b("Size for mineral nodes"),value=5,min=1,max=15), 
-    
-    fluidRow(
-        column(6,
-            radioButtons("element_size_type", tags$b("Size scheme for elements"), 
-                         c("Select a single size" = "singlesize",
-                           "Size elements by degree" = "degree",
-                           "Size elements by redox"  = "redox"), selected = "singlesize")
-        ),
-        column(6,    
-            conditionalPanel(condition = "input.element_size_type == 'singlesize'", 
-                {sliderInput("element_size",tags$b("Size for element nodes"),value=15,min=5,max=20)})
-        )   
     ),
 
-           
-    br(),h4("Node Color"),
-    ####### Element node color ##########
     
-    checkboxInput("colorbycluster",tags$b("Color all nodes by cluster"),value = FALSE), ## Use default ggplot colors.
+    
+    br(), h3("Network options"),
+    hr(),
+    helpText("NOTE: Only one", tags$i("attribute color scale"), ", including both nodes and edges, is allowed for the network. Once a single color scale has been selected, other color options default to single color selection."),
+
+           
+    br(),h4("Node Colors"),
+    checkboxInput("color_by_cluster",tags$b("Click to color all nodes by network cluster"),value = FALSE), ## Use default ggplot colors.
     #  TODO: palette selection for color by cluster (use the qualitative brewer scales)
     
-    ## if colorbycluster is FALSE, reveal element/mineral selections
+    ## if color_by_cluster is FALSE, reveal element/mineral selections
     conditionalPanel(condition = "output.not_color_by_cluster", 
         fluidRow(
-                column(6,
+                column(8,
                    uiOutput("color_element_by")
                 ),
-                column(6,
+                column(4,
                     conditionalPanel(condition = "output.singlecolor_element",   
-                        {colourInput("elementcolor", tags$b("Select color:"), value = "dodgerblue3")}
+                        {colourInput("elementcolor", tags$b("Select element color:"), value = "skyblue")}
                     ),
 
                     conditionalPanel(condition = "output.palette_element",   
-                        {pickerInput("elementpalette", label = tags$b("Select palette:"),
-                        choices = divseq.list, selected = "Blues", width = "80%",
+                        {pickerInput("elementpalette", label = tags$b("Element palette:"),
+                        choices = divseq.list, selected = "Blues", width = "90%",
                         choicesOpt = list(
                             content = sprintf(
                                 "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
@@ -122,16 +107,16 @@ ui <- fluidPage(theme = shinytheme("simplex"),
                 )
           ),
         fluidRow(
-             column(6,
+             column(8,
                 uiOutput("color_mineral_by")
              ),
-             column(6,
+             column(4,
                  conditionalPanel(condition = "output.singlecolor_mineral",   
-                     {colourInput("mineralcolor", tags$b("Select color:"), value = "firebrick3")}
+                     {colourInput("mineralcolor", tags$b("Select mineral color:"), value = "firebrick3")}
                  ),
                  conditionalPanel(condition = "output.palette_mineral && input.color_element_by == 'singlecolor'",   
-                     {pickerInput("mineralpalette", label = tags$b("Select palette:"),
-                         choices = divseq.list, selected = "Blues", width = "80%",
+                     {pickerInput("mineralpalette", label = tags$b("Mineral palette:"),
+                         choices = divseq.list, selected = "Blues", width = "90%",
                          choicesOpt = list(
                              content = sprintf(
                                  "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
@@ -144,58 +129,20 @@ ui <- fluidPage(theme = shinytheme("simplex"),
        ) ## fluidrow
     ),  ## conditional
     
-        
-        
-    br(),h4("Node Label and Shape"),
+    br(),h4("Edge Attributes"),  
     fluidRow(
-        column(6, checkboxInput("label_element",tags$b("Show element labels"),value = TRUE)),
-        column(6, 
-            conditionalPanel(condition = "input.label_element", 
-                colourInput("elementlabelcolor",tags$b("Element label color"),value = "navy"))
-        )
-    ),
-    fluidRow(
-        column(6, checkboxInput("label_mineral",tags$b("Show mineral labels"),value = FALSE)),
-        column(6, 
-            conditionalPanel(condition = "input.label_mineral", 
-                colourInput("minerallabelcolor",tags$b("Mineral label color"),value = "forestgreen"))
-        )
-    ),
-    fluidRow(
-       column(6,
-           selectInput("elementshape", tags$b("Element node shape"), ## shapes that scale with font
-                c("Circle"   = "circle",
-                  "Ellipse"  = "ellipse",
-                  "Box"      = "box", 
-                  "Text only"     = "text"), selected = "Circle" 
-            )
-        ),
-        column(6, 
-            selectInput("mineralshape", tags$b("Mineral node shape"),
-                        c("Circle"   = "dot", #### !!!!!!
-                          "Square"   = "square",
-                          "Dot"      = "dot", 
-                          "Star"     = "star",
-                          "Triangle" = "triangle",
-                          "Diamond"  = "diamond"), selected = "Circle"    
-            )
-        )
-    ),
-
-    br(),h4("Edge Color"),  
-    fluidRow(
-      column(6,
+      column(8,
         uiOutput("show_color_edge") 
       ),
     
-      column(6,
+      column(4,
           conditionalPanel(condition = "output.singlecolor_edge",   
-              {colourInput("edgecolor", tags$b("Select edge color:"), value = "#5E5E5E")}
+              {colourInput("edgecolor", tags$b("Edge color:"), value = "#5E5E5E")}
           ),
 
           conditionalPanel(condition = "output.palette_edge",   
-              {pickerInput("edgepalette", label = tags$b("Edge color palette:"),
-              choices = divseq.list, selected = "Blues", width = "80%",
+              {pickerInput("edgepalette", label = tags$b("Edge palette:"),
+              choices = divseq.list, selected = "Blues", width = "90%",
               choicesOpt = list(
                   content = sprintf(
                       "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
@@ -205,7 +152,65 @@ ui <- fluidPage(theme = shinytheme("simplex"),
             )}        
           )
         )),
+    fluidRow(
+      column(8, sliderInput("edge_weight",tags$b("Weight for edges"),value=5,min=1,max=10)
+    )),
     
+    br(), h4("Node Size"),
+    fluidRow(
+        column(8,
+            radioButtons("element_size_type", tags$b("How should element nodes be sized?"), 
+                         c("Single size for all element nodes" = "singlesize",
+                           "Size element nodes by network degree" = "network_degree_norm")
+                       ), selected = "singlesize"
+        ),
+        column(4,    
+            conditionalPanel(condition = "input.element_size_type == 'singlesize'", 
+                {sliderInput("element_label_size",tags$b("Element node size"),value=50,min=10,max=100, step=10)}) #### !!!!!!! label size!!!!!!!
+        )   
+    ),
+     fluidRow(
+        column(8, htmlOutput("mineral_size_statement")), 
+        column(4, sliderInput("mineral_size",tags$b("Mineral node size"),value=10,min=0,max=50, step = 5))
+    ),   
+    
+    br(),h4("Node Labels"),
+    helpText("Element label size is automatically determined based on element node size."),
+    fluidRow(
+            column(6, colourInput("element_label_color",tags$b("Element label color"),value = "#000000"))
+    ),
+       fluidRow( 
+            column(6, checkboxInput("label_mineral",tags$b("Click to show mineral labels"),value = FALSE))
+        ),
+    conditionalPanel(condition = "input.label_mineral", {
+        fluidRow(
+            column(6, sliderInput("mineral_label_size",tags$b("Mineral label font size"),value=10,min=1,max=100)),
+            column(6, colourInput("mineral_label_color",tags$b("Mineral label color"),value = "#000000"))
+        )
+    }),
+
+    br(),h4("Node Shapes"),
+    fluidRow(
+       column(6,
+           selectInput("element_shape", tags$b("Element node shape"), ## shapes that scale with font
+                c("Circle"     = "circle",
+                  "Ellipse"    = "ellipse",
+                  "Box"        = "box", 
+                  "Text only (no shape)"  = "text"), selected = "Circle" 
+            )
+        ),
+        column(6, 
+            selectInput("mineral_shape", tags$b("Mineral node shape"),  ## shapes that DO NOT scale with font
+                        c("Circle"   = "dot", #### !!!!!!
+                          "Square"   = "square",
+                          "Star"     = "star",
+                          "Triangle" = "triangle",
+                          "Diamond"  = "diamond"), selected = "Circle"    
+            )
+        )
+    ),
+        
+    br(),h4("Display"),
     selectInput("network_layout", tags$br("Select a layout algorithm for the network:"),
         c("Nicely"               = "layout_nicely",
           "Fruchterman Reingold" =  "layout_with_fr",
@@ -217,28 +222,30 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     #######################################################################################
     
     br(),br(),
-    actionButton("go","Build Network",width="100%")),   
+    actionButton("go","Initialize Network",width="100%")),   
     
     
     ## To Do: Export network file
     ## Display network
     
+    
     # Main panel for displaying outputs
     mainPanel(
-         div(style = "height: 600px; width = 600px;outline: 1px solid black;",
+        #div(style ="text-align:center;",
+        #    h2("Network Display")
+        #),
+        #br(),
+         div(style = "height:650px; width = 650px; outline: 1px solid black; overflow: hidden; margin-right: 10px; margin-left: 10px;", 
             visNetworkOutput("networkplot", height = "100%")
-        ) #,
-       #div(style = "height: 200px;",
-       #     plotOutput("networklegend", height = "75%")
-       #),
-#         div(style = "float:right",
-#             uiOutput("downloadp"),
-#             br(),
-#             uiOutput("downloadl"),
-#             br(),br(),
-#             uiOutput("downloaddata")
-#         )
-#  
+        ), 
+        div(style = "float:right; padding-top:10px; padding-right:10px",
+            downloadButton('downloadNetwork', 'Export network as HTML')
+        ),
+        plotOutput("networklegend", width = "100%", height = "80px"),
+      #  br(),br(),
+        div(style = "display: block; padding-top: 5em; margin-left: auto; margin-right: auto;width:75%;",
+            DT::dataTableOutput("nodeTable")
+        )
     )
   )
 )
