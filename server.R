@@ -28,96 +28,11 @@ variable_to_title <- list("redox" = "Mean Redox State",
     
 server <- function(input, output, session) {
     
-    
-    ####################################### Conditional Panel variables ##########################################
-
-    ###################### THREE DEPENDENT UIS COMMENTED OUT. NO LONGER DEPENDENT. ########################################
-    ##################### coordinating color schemes so users can only select one palette for a given network ########
-    ############### these three renderUI elements DEPEND ON ONE ANOTHER. ######################
-#     output$color_element_by <- renderUI({
-#         if(is.null(input$color_mineral_by)) {
-#             which_panel <- "alloptions"
-#         } else if (input$color_mineral_by == "singlecolor") {
-#             which_panel <- "alloptions"
-#         }  else {
-#             which_panel <- "singlecolor"
-#         }
-#         switch(which_panel, 
-#             "alloptions" = selectInput("color_element_by", tags$b("Select a color scheme for elements"),
-#                                 c("Use a single color for all elements"    = "singlecolor",  
-#                                   "Color elements based on network degree" = "network_degree_norm")
-#                     ),
-#             "singlecolor" = selectInput("color_element_by", tags$b("Select color scheme for elements"), c("Use a single color for all elements" = "singlecolor")),
-#         )
-#     })
-#     output$color_mineral_by <- renderUI({
-#         if(is.null(input$color_element_by)) {
-#             which_panel <- "alloptions"
-#         } else if (input$color_element_by == "singlecolor") {
-#             which_panel <- "alloptions"
-#         }  else {
-#             which_panel <- "singlecolor"
-#         }
-#             
-#         
-#         switch(which_panel, 
-#             "alloptions" = selectInput("color_mineral_by", tags$b("Select a color scheme for minerals"),
-#                                 c("Use a single color for all minerals"    = "singlecolor",  
-#                                   "Color minerals based on mean redox state"      = "redox",        
-#                                   "Color minerals based on maximum age"           = "max_age",      
-#                                   "Color minerals based on number of localities"  = "num_localities")
-#                     ),
-#             "singlecolor" = selectInput("color_mineral_by", tags$b("Select color scheme for minerals"), c("Use a single color for all minerals" = "singlecolor"))
-#         )
-#     })
-#     output$show_color_edge <- renderUI({
-#     
-#         if(is.null(input$color_element_by)) {
-#             e <- "singlecolor"
-#         } else {
-#             e <- input$color_element_by
-#         }  
-#         if(is.null(input$color_mineral_by)) {
-#             m <- "singlecolor"
-#         } else {
-#             m <- input$color_mineral_by
-#         }
-#         allow_palette <- ifelse(e == "singlecolor" & m == "singlecolor", "yes", "no")
-#         switch(allow_palette, 
-#             "yes" = selectInput("color_edge_by", tags$b("Select a color scheme for edges"),
-#                                 c("Use a single color for all edges" = "singlecolor",  
-#                                   "Color edges based on mean element redox state" = "redox")
-#                     ),
-#             "no" = selectInput("color_edge_by", tags$b("Select a color scheme for edges"),
-#                                 c("Use a single color for all edges" = "singlecolor")
-#                     )
-#         )
-#     })
-#     output$singlecolor_mineral <- reactive( input$color_mineral_by == "singlecolor" )
-#     outputOptions(output, "singlecolor_mineral", suspendWhenHidden = FALSE)
-# 
-#     output$palette_mineral <- reactive( input$color_mineral_by != "singlecolor" & input$color_mineral_by != "cluster" )
-#     outputOptions(output, "palette_mineral", suspendWhenHidden = FALSE)
-#     
-#     output$singlecolor_element <- reactive( input$color_element_by == "singlecolor" )
-#     outputOptions(output, "singlecolor_element", suspendWhenHidden = FALSE)
-# 
-#     output$palette_element <- reactive( input$color_element_by != "singlecolor" & input$color_element_by != "cluster" )
-#     outputOptions(output, "palette_element", suspendWhenHidden = FALSE)     
-#     
-#     output$singlecolor_edge <- reactive( input$color_edge_by == "singlecolor" )
-#     outputOptions(output, "singlecolor_edge", suspendWhenHidden = FALSE)
-# 
-#     output$palette_edge <- reactive( input$color_edge_by != "singlecolor" & input$color_edge_by != "cluster" )
-#     outputOptions(output, "palette_edge", suspendWhenHidden = FALSE)        
-# 
-####################################################################################################
 
 
     output$mineral_size_statement <- renderText({ "<b>There is no size scheme available for minerals. All mineral nodes will have the same selected size.</b>" }) 
     
-        
-  
+    
     
     
     #####################################################################################################    
@@ -370,53 +285,8 @@ server <- function(input, output, session) {
                        "Element redox state in mineral" = redox) %>%
                 arrange(`Maximum age (mya)`, Mineral)
         })
-    
-    
-    
+
     })     
-
-
-
-
-
-#         output$download_plot <- downloadHandler(
-#             filename = function() {
-#                 "network.pdf"
-#             },
-#             content = function(file) {
-#                 pdf(file)
-#                 plot(element.network, layout = layout_with_fr, width=8, height=8)
-#                 dev.off()
-#             }
-#         )
-#         
-#         output$downloadl <- renderUI({
-#             downloadButton('download_legend', 'Download network legend')
-#         })
-#         output$download_legend <- downloadHandler(
-#             filename = function() {
-#                 "network_legend.pdf"
-#             },
-#             content = function(file) {
-#                 save_plot(file, plot_legend(colorlegend, sizelegend), base_width=8, base_height=3)
-#             }
-#         )
-# 
-#         output$downloaddata <- renderUI({
-#             downloadButton('download_data', 'Download network data')
-#         })
-#         output$download_data <- downloadHandler(
-#             filename = function() {
-#                 "network.gml"
-#             },
-#             content = function(file) {
-#                 V(element.network)$label.color[V(element.network)$label.color == "NA"] <- ""
-#                 write_graph(element.network, file, format = "gml") 
-#             }
-#         )
-# 
-#     
-    
 
  
 }

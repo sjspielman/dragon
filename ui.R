@@ -89,7 +89,6 @@ ui <- fluidPage(theme = shinytheme("simplex"),
                    selectInput("color_element_by", tags$b("Select a color scheme for elements"),
                                 c("Use a single color for all elements"    = "singlecolor",  
                                   "Color elements based on network degree" = "network_degree_norm"))
-                   #uiOutput("color_element_by")
                 
                 ),
                 column(4,
@@ -117,14 +116,12 @@ ui <- fluidPage(theme = shinytheme("simplex"),
                                   "Color minerals based on mean redox state"      = "redox",        
                                   "Color minerals based on maximum age"           = "max_age",      
                                   "Color minerals based on number of localities"  = "num_localities"))
-                #uiOutput("color_mineral_by")
              ),
              column(4,
                  conditionalPanel(condition = "input.color_mineral_by == 'singlecolor'",   
                      {colourInput("mineralcolor", tags$b("Select mineral color:"), value = "firebrick3")}
                  ),
                  conditionalPanel(condition = "input.color_mineral_by != 'singlecolor'",   
-                 #conditionalPanel(condition = "output.palette_mineral && input.color_element_by == 'singlecolor'",   
                      {pickerInput("mineralpalette", label = tags$b("Mineral palette:"),
                          choices = divseq.list, selected = "Reds", width = "90%",
                          choicesOpt = list(
@@ -145,7 +142,6 @@ ui <- fluidPage(theme = shinytheme("simplex"),
         selectInput("color_edge_by", tags$b("Select a color scheme for edges"),
                                 c("Use a single color for all edges" = "singlecolor",  
                                   "Color edges by mean element redox state" = "redox"))
-        #uiOutput("show_color_edge") 
       ),
     
       column(4,
@@ -237,9 +233,7 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     br(),br(),
     actionButton("go","Initialize Network",width="100%")),   
     
-    
-    ## To Do: Export network file
-    ## Display network
+
     
     
     # Main panel for displaying outputs
@@ -255,7 +249,7 @@ ui <- fluidPage(theme = shinytheme("simplex"),
             downloadButton('downloadNetwork', 'Export network as HTML')
         ),
         plotOutput("networklegend", width = "100%", height = "80px"),
-      #  br(),br(),
+
         div(style = "display: block; padding-top: 5em; margin-left: auto; margin-right: auto;width:75%;",
             DT::dataTableOutput("nodeTable")
         )
