@@ -75,25 +75,29 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     
     br(), h3("Network options"),
     hr(),
-    helpText("NOTE: Only one", tags$i("attribute color scale"), ", including both nodes and edges, is allowed for the network. Once a single color scale has been selected, other color options default to single color selection."),
+    # Currently user's choice. 
+    #helpText("NOTE: Only one", tags$i("attribute color scale"), ", including both nodes and edges, is allowed for the network. Once a single color scale has been selected, other color options default to single color selection."),
 
            
     br(),h4("Node Colors"),
     checkboxInput("color_by_cluster",tags$b("Click to color all nodes by network cluster"),value = FALSE), ## Use default ggplot colors.
-    #  TODO: palette selection for color by cluster (use the qualitative brewer scales)
     
     ## if color_by_cluster is FALSE, reveal element/mineral selections
-    conditionalPanel(condition = "output.not_color_by_cluster", 
-        fluidRow(
+    conditionalPanel(condition = "input.color_by_cluster == false", 
+    fluidRow(
                 column(8,
-                   uiOutput("color_element_by")
+                   selectInput("color_element_by", tags$b("Select a color scheme for elements"),
+                                c("Use a single color for all elements"    = "singlecolor",  
+                                  "Color elements based on network degree" = "network_degree_norm"))
+                   #uiOutput("color_element_by")
+                
                 ),
                 column(4,
-                    conditionalPanel(condition = "output.singlecolor_element",   
+                    conditionalPanel(condition = "input.color_element_by == 'singlecolor'",   
                         {colourInput("elementcolor", tags$b("Select element color:"), value = "skyblue")}
                     ),
 
-                    conditionalPanel(condition = "output.palette_element",   
+                    conditionalPanel(condition = "input.color_element_by != 'singlecolor'",   
                         {pickerInput("elementpalette", label = tags$b("Element palette:"),
                         choices = divseq.list, selected = "Blues", width = "90%",
                         choicesOpt = list(
@@ -108,15 +112,21 @@ ui <- fluidPage(theme = shinytheme("simplex"),
           ),
         fluidRow(
              column(8,
-                uiOutput("color_mineral_by")
+                selectInput("color_mineral_by", tags$b("Select a color scheme for minerals"),
+                                c("Use a single color for all minerals"    = "singlecolor",  
+                                  "Color minerals based on mean redox state"      = "redox",        
+                                  "Color minerals based on maximum age"           = "max_age",      
+                                  "Color minerals based on number of localities"  = "num_localities"))
+                #uiOutput("color_mineral_by")
              ),
              column(4,
-                 conditionalPanel(condition = "output.singlecolor_mineral",   
+                 conditionalPanel(condition = "input.color_mineral_by == 'singlecolor'",   
                      {colourInput("mineralcolor", tags$b("Select mineral color:"), value = "firebrick3")}
                  ),
-                 conditionalPanel(condition = "output.palette_mineral && input.color_element_by == 'singlecolor'",   
+                 conditionalPanel(condition = "input.color_mineral_by != 'singlecolor'",   
+                 #conditionalPanel(condition = "output.palette_mineral && input.color_element_by == 'singlecolor'",   
                      {pickerInput("mineralpalette", label = tags$b("Mineral palette:"),
-                         choices = divseq.list, selected = "Blues", width = "90%",
+                         choices = divseq.list, selected = "Reds", width = "90%",
                          choicesOpt = list(
                              content = sprintf(
                                  "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
@@ -132,17 +142,20 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     br(),h4("Edge Attributes"),  
     fluidRow(
       column(8,
-        uiOutput("show_color_edge") 
+        selectInput("color_edge_by", tags$b("Select a color scheme for edges"),
+                                c("Use a single color for all edges" = "singlecolor",  
+                                  "Color edges by mean element redox state" = "redox"))
+        #uiOutput("show_color_edge") 
       ),
     
       column(4,
-          conditionalPanel(condition = "output.singlecolor_edge",   
+          conditionalPanel(condition = "input.color_edge_by == 'singlecolor'",   
               {colourInput("edgecolor", tags$b("Edge color:"), value = "#5E5E5E")}
           ),
 
-          conditionalPanel(condition = "output.palette_edge",   
+          conditionalPanel(condition = "input.color_edge_by != 'singlecolor'",   
               {pickerInput("edgepalette", label = tags$b("Edge palette:"),
-              choices = divseq.list, selected = "Blues", width = "90%",
+              choices = divseq.list, selected = "Greens", width = "90%",
               choicesOpt = list(
                   content = sprintf(
                       "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",

@@ -4,23 +4,25 @@ library(tidyverse)
 library(cowplot)
 library(igraph)
 library(visNetwork)
-library(colourvalues) #!
+#library(colourvalues) #!
 library(magrittr)
 library(DT)
+library(scales)
 
 source("build_network.R")
 ################ Prepare database information for use #############################
-ages <- tibble("eon" = c("hadean", "archean", "paleo", "present"), "mya" = c(4000, 2500, 1600, 0))
-rruff <- read_csv("data/rruff_minerals.csv")    
+ages <- tibble("eon" = c("hadean", "archean", "paleo", "present"), "mya" = c(4, 2.5, 1.6, 0))
+rruff <- read_csv("data/rruff_minerals.csv") %>% mutate(max_age = max_age / 1000)
+ 
 # > names(rruff)
 #    [1] "mineral_name"       "mineral_id"         "mindat_id"         
 #    [4] "at_locality"        "is_remote"          "rruff_chemistry"   
 #    [7] "max_age"            "chemistry_elements"
 ## is_remote = is the age actually associated with the locality (1) or was is ported from another locality (0)
 variable_to_title <- list("redox" = "Mean Redox State", 
-                          "max_age" = "Maximum Age", 
+                          "max_age" = "Maximum Age (gya)", 
                           "num_localities" = "Number of known localities", 
-                          "network_degree_norm" = "Network degree (normalized)")   
+                          "network_degree_norm" = "Normalized network degree")   
 
 
     
@@ -29,105 +31,92 @@ server <- function(input, output, session) {
     
     ####################################### Conditional Panel variables ##########################################
 
+    ###################### THREE DEPENDENT UIS COMMENTED OUT. NO LONGER DEPENDENT. ########################################
     ##################### coordinating color schemes so users can only select one palette for a given network ########
     ############### these three renderUI elements DEPEND ON ONE ANOTHER. ######################
-    output$color_element_by <- renderUI({
-        if(is.null(input$color_mineral_by)) {
-            which_panel <- "alloptions"
-        } else if (input$color_mineral_by == "singlecolor") {
-            which_panel <- "alloptions"
-        }  else {
-            which_panel <- "singlecolor"
-        }
-        switch(which_panel, 
-            "alloptions" = selectInput("color_element_by", tags$b("Select a color scheme for elements"),
-                                c("Use a single color for all elements"    = "singlecolor",  
-                                  "Color elements based on network degree" = "network_degree_norm")
-                    ),
-            "singlecolor" = selectInput("color_element_by", tags$b("Select color scheme for elements"), c("Use a single color for all elements" = "singlecolor")),
-        )
-    })
-    output$color_mineral_by <- renderUI({
-        if(is.null(input$color_element_by)) {
-            which_panel <- "alloptions"
-        } else if (input$color_element_by == "singlecolor") {
-            which_panel <- "alloptions"
-        }  else {
-            which_panel <- "singlecolor"
-        }
-            
-        
-        switch(which_panel, 
-            "alloptions" = selectInput("color_mineral_by", tags$b("Select a color scheme for minerals"),
-                                c("Use a single color for all minerals"    = "singlecolor",  
-                                  "Color minerals based on mean redox state"      = "redox",        
-                                  "Color minerals based on maximum age"           = "max_age",      
-                                  "Color minerals based on number of localities"  = "num_localities")
-                    ),
-            "singlecolor" = selectInput("color_mineral_by", tags$b("Select color scheme for minerals"), c("Use a single color for all minerals" = "singlecolor"))
-        )
-    })
-    output$show_color_edge <- renderUI({
-    
-        if(is.null(input$color_element_by)) {
-            e <- "singlecolor"
-        } else {
-            e <- input$color_element_by
-        }  
-        if(is.null(input$color_mineral_by)) {
-            m <- "singlecolor"
-        } else {
-            m <- input$color_mineral_by
-        }
-        allow_palette <- ifelse(e == "singlecolor" & m == "singlecolor", "yes", "no")
-        switch(allow_palette, 
-            "yes" = selectInput("color_edge_by", tags$b("Select a color scheme for edges"),
-                                c("Use a single color for all edges" = "singlecolor",  
-                                  "Color edges based on mean element redox state" = "redox")
-                    ),
-            "no" = selectInput("color_edge_by", tags$b("Select a color scheme for edges"),
-                                c("Use a single color for all edges" = "singlecolor")
-                    )
-        )
-    })
+#     output$color_element_by <- renderUI({
+#         if(is.null(input$color_mineral_by)) {
+#             which_panel <- "alloptions"
+#         } else if (input$color_mineral_by == "singlecolor") {
+#             which_panel <- "alloptions"
+#         }  else {
+#             which_panel <- "singlecolor"
+#         }
+#         switch(which_panel, 
+#             "alloptions" = selectInput("color_element_by", tags$b("Select a color scheme for elements"),
+#                                 c("Use a single color for all elements"    = "singlecolor",  
+#                                   "Color elements based on network degree" = "network_degree_norm")
+#                     ),
+#             "singlecolor" = selectInput("color_element_by", tags$b("Select color scheme for elements"), c("Use a single color for all elements" = "singlecolor")),
+#         )
+#     })
+#     output$color_mineral_by <- renderUI({
+#         if(is.null(input$color_element_by)) {
+#             which_panel <- "alloptions"
+#         } else if (input$color_element_by == "singlecolor") {
+#             which_panel <- "alloptions"
+#         }  else {
+#             which_panel <- "singlecolor"
+#         }
+#             
+#         
+#         switch(which_panel, 
+#             "alloptions" = selectInput("color_mineral_by", tags$b("Select a color scheme for minerals"),
+#                                 c("Use a single color for all minerals"    = "singlecolor",  
+#                                   "Color minerals based on mean redox state"      = "redox",        
+#                                   "Color minerals based on maximum age"           = "max_age",      
+#                                   "Color minerals based on number of localities"  = "num_localities")
+#                     ),
+#             "singlecolor" = selectInput("color_mineral_by", tags$b("Select color scheme for minerals"), c("Use a single color for all minerals" = "singlecolor"))
+#         )
+#     })
+#     output$show_color_edge <- renderUI({
+#     
+#         if(is.null(input$color_element_by)) {
+#             e <- "singlecolor"
+#         } else {
+#             e <- input$color_element_by
+#         }  
+#         if(is.null(input$color_mineral_by)) {
+#             m <- "singlecolor"
+#         } else {
+#             m <- input$color_mineral_by
+#         }
+#         allow_palette <- ifelse(e == "singlecolor" & m == "singlecolor", "yes", "no")
+#         switch(allow_palette, 
+#             "yes" = selectInput("color_edge_by", tags$b("Select a color scheme for edges"),
+#                                 c("Use a single color for all edges" = "singlecolor",  
+#                                   "Color edges based on mean element redox state" = "redox")
+#                     ),
+#             "no" = selectInput("color_edge_by", tags$b("Select a color scheme for edges"),
+#                                 c("Use a single color for all edges" = "singlecolor")
+#                     )
+#         )
+#     })
+#     output$singlecolor_mineral <- reactive( input$color_mineral_by == "singlecolor" )
+#     outputOptions(output, "singlecolor_mineral", suspendWhenHidden = FALSE)
+# 
+#     output$palette_mineral <- reactive( input$color_mineral_by != "singlecolor" & input$color_mineral_by != "cluster" )
+#     outputOptions(output, "palette_mineral", suspendWhenHidden = FALSE)
+#     
+#     output$singlecolor_element <- reactive( input$color_element_by == "singlecolor" )
+#     outputOptions(output, "singlecolor_element", suspendWhenHidden = FALSE)
+# 
+#     output$palette_element <- reactive( input$color_element_by != "singlecolor" & input$color_element_by != "cluster" )
+#     outputOptions(output, "palette_element", suspendWhenHidden = FALSE)     
+#     
+#     output$singlecolor_edge <- reactive( input$color_edge_by == "singlecolor" )
+#     outputOptions(output, "singlecolor_edge", suspendWhenHidden = FALSE)
+# 
+#     output$palette_edge <- reactive( input$color_edge_by != "singlecolor" & input$color_edge_by != "cluster" )
+#     outputOptions(output, "palette_edge", suspendWhenHidden = FALSE)        
+# 
+####################################################################################################
 
 
-
-
-
-
-    ######################### single color vs palette #######################
-    output$not_color_by_cluster <- reactive( input$color_by_cluster == FALSE )
-    outputOptions(output, "not_color_by_cluster", suspendWhenHidden = FALSE)
-
-    output$singlecolor_mineral <- reactive( input$color_mineral_by == "singlecolor" )
-    outputOptions(output, "singlecolor_mineral", suspendWhenHidden = FALSE)
-
-    output$palette_mineral <- reactive( input$color_mineral_by != "singlecolor" & input$color_mineral_by != "cluster" )
-    outputOptions(output, "palette_mineral", suspendWhenHidden = FALSE)
-    
-    output$singlecolor_element <- reactive( input$color_element_by == "singlecolor" )
-    outputOptions(output, "singlecolor_element", suspendWhenHidden = FALSE)
-
-    output$palette_element <- reactive( input$color_element_by != "singlecolor" & input$color_element_by != "cluster" )
-    outputOptions(output, "palette_element", suspendWhenHidden = FALSE)     
-    
-    output$singlecolor_edge <- reactive( input$color_edge_by == "singlecolor" )
-    outputOptions(output, "singlecolor_edge", suspendWhenHidden = FALSE)
-
-    output$palette_edge <- reactive( input$color_edge_by != "singlecolor" & input$color_edge_by != "cluster" )
-    outputOptions(output, "palette_edge", suspendWhenHidden = FALSE)        
-    ###########################################################################
-    
-    
     output$mineral_size_statement <- renderText({ "<b>There is no size scheme available for minerals. All mineral nodes will have the same selected size.</b>" }) 
     
         
-    ################### sizes ###############################
-    output$selectsize_element <- reactive( input$size_element_type == "singlesize" )
-    outputOptions(output, "selectsize_element", suspendWhenHidden = FALSE)
-    #########################################################################    
-
   
     
     
@@ -149,20 +138,27 @@ server <- function(input, output, session) {
             
         size_scale <- 20   ## ggplot vs visnetwork 
         geom.point.size <- 8
+        legend.title.size.short <- 13
+        legend.title.size.long <- 15
+
+        legend.text.size.single <- 16
+        legend.text.size.scale <- 12
         theme_set(theme_cowplot() + theme(legend.position = "bottom", 
-                                          legend.text = element_text(size=15),
+                                          legend.text = element_text(size=legend.text.size.single),
                                           legend.key.size = unit(1.25, "cm"),
-                                          legend.title = element_text(size=16),
+                                          legend.title = element_text(size=legend.title.size.short),
                                           legend.box.background = element_rect(color = "white")))
                                                   
-        obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, legendtitle, return_color_tibble = TRUE)
+        obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, legendtitle, legendtitle.size = legend.title.size.short, legendtext.size = legend.text.size.single, return_color_tibble = TRUE)
         {
             
             cvar <- as.symbol(color_variable)
             dat %>% mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
 
-            if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = as.factor(!!cvar), color = as.factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) 
-            if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1)
+
+            if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = as.factor(!!cvar), color = as.factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) + theme(legend.title = element_text(size = legendtitle.size), legend.text = element_text(size = legendtext.size)) 
+            if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename) + theme(legend.title = element_text(size = legendtitle.size), legend.text = element_text(size = legendtext.size)) 
+            print.data.frame(dat2)
             if (return_color_tibble)
             {
                 data.colors <- ggplot_build(p)$data[[1]] %>% 
@@ -185,18 +181,20 @@ server <- function(input, output, session) {
         
         
         
+        
+
 
     
-        colorlegend_single <- NA   ## when there is only 1 ("single") legend to reveal - used for color by cluster.
-        colorlegend_edge   <- NA   ## when edges are scaled by a color
-        colorlegend_mineral <- NA  ## always qqch unless single
-        colorlegend_element <- NA  ## always qqch unless single
+        colorlegend_minel <- NA    ## when elements, minerals follow same coloring (cluster)
+        colorlegend_edge   <- NA   ## edge legend
+        colorlegend_mineral <- NA  ## mineral legend
+        colorlegend_element <- NA  ## element legend
         ######################################## Edge color ############################################
         ################################################################################################
         if (input$color_edge_by == "singlecolor") edges %<>% mutate(color = input$edgecolor)
         if (input$color_edge_by != "singlecolor")
         {
-            out <- obtain_colors_legend(edges, input$color_edge_by, "c", input$edgepalette, "Mean element redox state", FALSE)
+            out <- obtain_colors_legend(edges, input$color_edge_by, "c", input$edgepalette, paste0("Edge color scale:\n",variable_to_title[[input$color_edge_by]]), legend.title.size.long, legend.text.size.scale, FALSE)
             edges %<>% mutate(color = out$cols)
             colorlegend_edge <- out$leg
         }
@@ -204,8 +202,8 @@ server <- function(input, output, session) {
         ################################################################################################
         if (input$color_by_cluster) 
         {        
-            out <- obtain_colors_legend(nodes, "cluster_ID", "d", "NA", "Network cluster identity", FALSE)
-            colorlegend_single <- out$leg
+            out <- obtain_colors_legend(nodes, "cluster_ID", "d", "NA", "Network cluster identity", legend.title.size.short, legend.text.size.single, FALSE)
+            colorlegend_minel <- out$leg
             nodes %<>% mutate(color.background = out$cols)      
         } else 
         {
@@ -220,8 +218,8 @@ server <- function(input, output, session) {
                 
             } else
             {  
-                legtitle <- paste("Mineral color scale:",variable_to_title[[input$color_mineral_by]])
-                out <- obtain_colors_legend(nodes %>% filter(type == "mineral"), input$color_mineral_by, "c", input$mineralpalette, legtitle)
+                legtitle <- paste("Mineral color scale:\n",variable_to_title[[input$color_mineral_by]])
+                out <- obtain_colors_legend(nodes %>% filter(type == "mineral"), input$color_mineral_by, "c", input$mineralpalette, legtitle, legend.title.size.long, legend.text.size.scale)
                 colorlegend_mineral <- out$leg
                 background_colors <- bind_rows(background_colors, out$cols)
             }
@@ -237,8 +235,8 @@ server <- function(input, output, session) {
 
             } else
             {  
-                legtitle <- paste("Element color scale:",variable_to_title[[input$color_element_by]])
-                out <- obtain_colors_legend(nodes %>% filter(type == "element"), input$color_element_by, "c", input$elementpalette, legtitle)
+                legtitle <- paste("Element color scale:\n",variable_to_title[[input$color_element_by]])
+                out <- obtain_colors_legend(nodes %>% filter(type == "element"), input$color_element_by, "c", input$elementpalette, legtitle, legend.title.size.long, legend.text.size.scale)
                 colorlegend_element <- out$leg
                 background_colors <- bind_rows(background_colors, out$cols)   
             } 
@@ -246,8 +244,13 @@ server <- function(input, output, session) {
          }       
  
         ###################################### Finalize legend #####################################
-        if (!is.na(colorlegend_single)) {
-            finallegend <- plot_grid(colorlegend_single)
+        if (!is.na(colorlegend_minel)) {
+            if (is.na(colorlegend_edge)){
+                finallegend <- plot_grid(colorlegend_minel, nrow = 1)
+            }
+            else {
+                finallegend <- plot_grid(colorlegend_minel, colorlegend_edge, nrow = 1)
+            }
         } else 
         {
             if (is.na(colorlegend_edge)) { 
@@ -257,7 +260,6 @@ server <- function(input, output, session) {
             }
         
         }                
-        
                                         
         ###################################### Sizing for ELEMENTS #####################################
         ################################################################################################
@@ -291,7 +293,7 @@ server <- function(input, output, session) {
         }
         
         
-        
+
         nodes %<>%
           mutate(font.color = ifelse(type == "element", input$element_label_color, "NA"),
                  shape      = ifelse(type == "element", input$element_shape, input$mineral_shape),
@@ -300,7 +302,6 @@ server <- function(input, output, session) {
                 )
    
         edges %<>% mutate(width = input$edge_weight)
-       
         if (input$label_mineral) 
         { 
             nodes$font.color[nodes$type == "mineral"] <- input$mineral_label_color
@@ -315,9 +316,6 @@ server <- function(input, output, session) {
         return (list("nodes" = nodes, "edges" = edges, "finallegend" = finallegend))
     })
        
-       
-    # TODO: https://datastorm-open.github.io/visNetwork/shiny.html
-
     observe({
         
         req(input$go > 0) ## will automatically update once this has been clicked once. 
@@ -364,13 +362,13 @@ server <- function(input, output, session) {
             edges %>% 
                 filter(element == input$networkplot_selected) %>% 
                 select(element, mineral_name, max_age, num_localities, redox) %>%
+                mutate(max_age = max_age * 1000) %>% 
                 rename("Element"                        = element,
                        "Mineral"                        = mineral_name, 
-                       "Maximum age (mya)"                    = max_age, 
+                       "Maximum age (mya)"              = max_age, 
                        "Number of known localities"     = num_localities, 
                        "Element redox state in mineral" = redox) %>%
-                arrange(`Maximum age (mya)`, Mineral) %>%
-                print.data.frame()
+                arrange(`Maximum age (mya)`, Mineral)
         })
     
     
