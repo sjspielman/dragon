@@ -37,7 +37,7 @@ palette.label.colors <- ifelse(brewer.palettes$category == "seq", "black", "whit
 #################################################################################################
 
 
-ui <- fluidPage(theme = shinytheme("simplex"),
+ui <- fluidPage(theme = shinytheme("united"),
 
   # App title
   titlePanel("Exploring Mineral Chemistry Networks using the rruff database"),
@@ -53,9 +53,13 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     # Element of interest?
     #textInput("element_of_interest","Enter the 1-2 letter symbol for the element you'd like to analyze",value="O"),
     
-    selectInput("element_of_interest", tags$b("Select the element whose mineral network you'd like to analyze"),
-        c("Ag" = "Ag", "Al" = "Al", "As" = "As", "Au" = "Au", "B" = "B", "Ba" = "Ba", "Be" = "Be", "Bi" = "Bi", "Br" = "Br", "C" = "C", "Ca" = "Ca", "Cd" = "Cd", "Ce" = "Ce", "Cl" = "Cl", "Co" = "Co", "Cr" = "Cr", "Cs" = "Cs", "Cu" = "Cu", "Dy" = "Dy", "Er" = "Er", "F" = "F", "Fe" = "Fe", "Ga" = "Ga", "Gd" = "Gd", "Ge" = "Ge", "H" = "H", "Hf" = "Hf", "Hg" = "Hg", "I" = "I", "In" = "In", "Ir" = "Ir", "K" = "K", "La" = "La", "Li" = "Li", "Mg" = "Mg", "Mn" = "Mn", "Mo" = "Mo", "N" = "N", "Na" = "Na", "Nb" = "Nb", "Nd" = "Nd", "Ni" = "Ni", "O" = "O", "Os" = "Os", "P" = "P", "Pb" = "Pb", "Pd" = "Pd", "Pt" = "Pt", "Rb" = "Rb", "Re" = "Re", "REE" = "REE", "Rh" = "Rh", "Ru" = "Ru", "S" = "S", "Sb" = "Sb", "Sc" = "Sc", "Se" = "Se", "Si" = "Si", "Sm" = "Sm", "Sn" = "Sn", "Sr" = "Sr", "Ta" = "Ta", "Te" = "Te", "Th" = "Th", "Ti" = "Ti", "Tl" = "Tl", "U" = "U", "V" = "V", "W" = "W", "Y" = "Y", "Yb" = "Yb", "Zn" = "Zn", "Zr" = "Zr")
+    selectInput("element_of_interest", tags$b("Select the element(s) whose mineral network you'd like to analyze"),
+        c("Ag" = "Ag", "Al" = "Al", "As" = "As", "Au" = "Au", "B" = "B", "Ba" = "Ba", "Be" = "Be", "Bi" = "Bi", "Br" = "Br", "C" = "C", "Ca" = "Ca", "Cd" = "Cd", "Ce" = "Ce", "Cl" = "Cl", "Co" = "Co", "Cr" = "Cr", "Cs" = "Cs", "Cu" = "Cu", "Dy" = "Dy", "Er" = "Er", "F" = "F", "Fe" = "Fe", "Ga" = "Ga", "Gd" = "Gd", "Ge" = "Ge", "H" = "H", "Hf" = "Hf", "Hg" = "Hg", "I" = "I", "In" = "In", "Ir" = "Ir", "K" = "K", "La" = "La", "Li" = "Li", "Mg" = "Mg", "Mn" = "Mn", "Mo" = "Mo", "N" = "N", "Na" = "Na", "Nb" = "Nb", "Nd" = "Nd", "Ni" = "Ni", "O" = "O", "Os" = "Os", "P" = "P", "Pb" = "Pb", "Pd" = "Pd", "Pt" = "Pt", "Rb" = "Rb", "Re" = "Re", "REE" = "REE", "Rh" = "Rh", "Ru" = "Ru", "S" = "S", "Sb" = "Sb", "Sc" = "Sc", "Se" = "Se", "Si" = "Si", "Sm" = "Sm", "Sn" = "Sn", "Sr" = "Sr", "Ta" = "Ta", "Te" = "Te", "Th" = "Th", "Ti" = "Ti", "Tl" = "Tl", "U" = "U", "V" = "V", "W" = "W", "Y" = "Y", "Yb" = "Yb", "Zn" = "Zn", "Zr" = "Zr"),
+        multiple=TRUE
     ),
+    ##### TODO: ADD A SELECT ALL BUTTON ####
+    ## modify network building code for several elements
+    
     helpText("To analyze the network of a different focal element, you must refresh the site."), 
     
     #######################################################################################
@@ -176,6 +180,10 @@ ui <- fluidPage(theme = shinytheme("simplex"),
         column(4,    
             conditionalPanel(condition = "input.element_size_type == 'singlesize'", 
                 {sliderInput("element_label_size",tags$b("Element node size"),value=50,min=10,max=100, step=10)}) #### !!!!!!! label size!!!!!!!
+        ),
+        column(4,    
+            conditionalPanel(condition = "input.element_size_type != 'singlesize'", 
+                {sliderInput("size_scale",tags$b("Scale factor for element node size"),value=50,min=10,max=150,step=10)}) 
         )   
     ),
      fluidRow(

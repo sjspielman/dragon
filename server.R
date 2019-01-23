@@ -40,6 +40,9 @@ server <- function(input, output, session) {
     #observeEvent(input$go,  {
     mynetwork <- reactive({ 
      
+     
+        print(input$element_of_interest)
+        stop()
         
         element_of_interest <- isolate(input$element_of_interest)
         include_age         <- input$include_age
@@ -51,7 +54,6 @@ server <- function(input, output, session) {
         mineral_names <- nodes$label[nodes$type == "mineral"]
         element_names <- nodes$label[nodes$type == "element"]
             
-        size_scale <- 20   ## ggplot vs visnetwork 
         geom.point.size <- 8
         legend.title.size.short <- 13
         legend.title.size.long <- 15
@@ -73,7 +75,7 @@ server <- function(input, output, session) {
 
             if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = as.factor(!!cvar), color = as.factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) + theme(legend.title = element_text(size = legendtitle.size), legend.text = element_text(size = legendtext.size)) 
             if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename) + theme(legend.title = element_text(size = legendtitle.size), legend.text = element_text(size = legendtext.size)) 
-            print.data.frame(dat2)
+            #print.data.frame(dat2)
             if (return_color_tibble)
             {
                 data.colors <- ggplot_build(p)$data[[1]] %>% 
@@ -191,7 +193,7 @@ server <- function(input, output, session) {
                                     as.tibble() %>% 
                                     bind_cols(n2) %>%  
                                     select(size, label, type) %>%
-                                    mutate(size = size * size_scale) %>% 
+                                    mutate(size = size * input$size_scale) %>% 
                                     rename(font.size = size)
            
             nodes %<>% 
@@ -201,7 +203,7 @@ server <- function(input, output, session) {
                 bind_rows(final_element_size) %>% 
                 right_join(nodes) %>%
                 mutate(font.size = ifelse(type == "element", font.size, "NA"))
-            print.data.frame(nodes %>% filter(type == "element"))
+            #print.data.frame(nodes %>% filter(type == "element"))
         } else 
         { 
             nodes %<>% mutate(font.size = ifelse(type == "element", input$element_label_size, "NA"))
@@ -277,13 +279,12 @@ server <- function(input, output, session) {
             edges %>% 
                 filter(element == input$networkplot_selected) %>% 
                 select(element, mineral_name, max_age, num_localities, redox) %>%
-                mutate(max_age = max_age * 1000) %>% 
                 rename("Element"                        = element,
                        "Mineral"                        = mineral_name, 
-                       "Maximum age (mya)"              = max_age, 
+                       "Maximum age (gya)"              = max_age, 
                        "Number of known localities"     = num_localities, 
                        "Element redox state in mineral" = redox) %>%
-                arrange(`Maximum age (mya)`, Mineral)
+                arrange(`Maximum age (gya)`, Mineral)
         })
 
     })     
