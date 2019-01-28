@@ -1,38 +1,45 @@
 library(shiny)
+library(shinythemes)
+library(shinyWidgets)
 library(colourpicker)
+library(DT)
+library(RColorBrewer)
 library(tidyverse)
+library(visNetwork)
+library(magrittr)
 library(cowplot)
 library(igraph)
-library(visNetwork)
-#library(colourvalues) #!
-library(magrittr)
-library(DT)
-library(scales)
 
 source("build_network.R")
 ################ Prepare database information for use #############################
 ages <- tibble("eon" = c("hadean", "archean", "paleo", "present"), "mya" = c(4, 2.5, 1.6, 0))
-rruff <- read_csv("data/rruff_minerals.csv") %>% mutate(max_age = max_age / 1000)
- 
+rruff <- read_csv("data/rruff_minerals.csv") %>% mutate(max_age = max_age/1000)   
 # > names(rruff)
 #    [1] "mineral_name"       "mineral_id"         "mindat_id"         
 #    [4] "at_locality"        "is_remote"          "rruff_chemistry"   
 #    [7] "max_age"            "chemistry_elements"
 ## is_remote = is the age actually associated with the locality (1) or was is ported from another locality (0)
 variable_to_title <- list("redox" = "Mean Redox State", 
-                          "max_age" = "Maximum Age (gya)", 
+                          "max_age" = "Maximum Age (Gya)", 
                           "num_localities" = "Number of known localities", 
-                          "network_degree_norm" = "Normalized network degree")   
+                          "network_degree_norm" = "Network degree (normalized)")   
 
+## mediocre matching here.
+vis_to_gg_shape <- list("circle"  = 19,
+                        "dot"     = 19,
+                        "ellipse" = 19,
+                        "box"     = 15,
+                        "text"    = 19,
+                        "square"  = 15,
+                        "star"    = 8,
+                        "diamond" = 18,
+                        "triangle" = 17)
 
     
 server <- function(input, output, session) {
     
-
-
+    
     output$mineral_size_statement <- renderText({ "<b>There is no size scheme available for minerals. All mineral nodes will have the same selected size.</b>" }) 
-    
-    
     
     
     #####################################################################################################    
@@ -40,9 +47,6 @@ server <- function(input, output, session) {
     #observeEvent(input$go,  {
     mynetwork <- reactive({ 
      
-     
-        print(input$element_of_interest)
-        stop()
         
         element_of_interest <- isolate(input$element_of_interest)
         include_age         <- input$include_age
@@ -54,28 +58,26 @@ server <- function(input, output, session) {
         mineral_names <- nodes$label[nodes$type == "mineral"]
         element_names <- nodes$label[nodes$type == "element"]
             
+        size_scale <- 20   ## ggplot vs visnetwork 
         geom.point.size <- 8
-        legend.title.size.short <- 13
-        legend.title.size.long <- 15
-
-        legend.text.size.single <- 16
-        legend.text.size.scale <- 12
         theme_set(theme_cowplot() + theme(legend.position = "bottom", 
-                                          legend.text = element_text(size=legend.text.size.single),
+                                          legend.text = element_text(size=14),
                                           legend.key.size = unit(1.25, "cm"),
-                                          legend.title = element_text(size=legend.title.size.short),
+                                          legend.title = element_text(size=15),
                                           legend.box.background = element_rect(color = "white")))
                                                   
-        obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, legendtitle, legendtitle.size = legend.title.size.short, legendtext.size = legend.text.size.single, return_color_tibble = TRUE)
+        obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, legendtitle, return_color_tibble = TRUE)
         {
             
             cvar <- as.symbol(color_variable)
             dat %>% mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
 
-
-            if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = as.factor(!!cvar), color = as.factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) + theme(legend.title = element_text(size = legendtitle.size), legend.text = element_text(size = legendtext.size)) 
-            if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename) + theme(legend.title = element_text(size = legendtitle.size), legend.text = element_text(size = legendtext.size)) 
-            #print.data.frame(dat2)
+            if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = as.factor(!!cvar), color = as.factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) +
+  guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5),
+         size = guide_legend(title.position="top", title.hjust = 0.5))
+            if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1)+
+  guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5),
+         size = guide_legend(title.position="top", title.hjust = 0.5))
             if (return_color_tibble)
             {
                 data.colors <- ggplot_build(p)$data[[1]] %>% 
@@ -92,26 +94,19 @@ server <- function(input, output, session) {
         }
 
         ##################################################
-        
-        
-        
-        
-        
-        
-        
-
+                
 
     
-        colorlegend_minel <- NA    ## when elements, minerals follow same coloring (cluster)
-        colorlegend_edge   <- NA   ## edge legend
-        colorlegend_mineral <- NA  ## mineral legend
-        colorlegend_element <- NA  ## element legend
+        colorlegend_single <- NA   ## when there is only 1 ("single") legend to reveal - used for color by cluster.
+        colorlegend_edge   <- NA   ## when edges are scaled by a color
+        colorlegend_mineral <- NA  ## always qqch unless single
+        colorlegend_element <- NA  ## always qqch unless single
         ######################################## Edge color ############################################
         ################################################################################################
         if (input$color_edge_by == "singlecolor") edges %<>% mutate(color = input$edgecolor)
         if (input$color_edge_by != "singlecolor")
         {
-            out <- obtain_colors_legend(edges, input$color_edge_by, "c", input$edgepalette, paste0("Edge color scale:\n",variable_to_title[[input$color_edge_by]]), legend.title.size.long, legend.text.size.scale, FALSE)
+            out <- obtain_colors_legend(edges, input$color_edge_by, "c", input$edgepalette, "Mean element redox state:", FALSE)
             edges %<>% mutate(color = out$cols)
             colorlegend_edge <- out$leg
         }
@@ -119,8 +114,8 @@ server <- function(input, output, session) {
         ################################################################################################
         if (input$color_by_cluster) 
         {        
-            out <- obtain_colors_legend(nodes, "cluster_ID", "d", "NA", "Network cluster identity", legend.title.size.short, legend.text.size.single, FALSE)
-            colorlegend_minel <- out$leg
+            out <- obtain_colors_legend(nodes, "cluster_ID", "d", "NA", "Network cluster identity", FALSE)
+            colorlegend_single <- out$leg
             nodes %<>% mutate(color.background = out$cols)      
         } else 
         {
@@ -130,13 +125,13 @@ server <- function(input, output, session) {
             {
                 background_colors <- bind_rows(background_colors, tibble("color.background" = input$mineralcolor, "label" = mineral_names))
                 p <- tibble(x = 1, y = 1, type = "Mineral") %>%
-                    ggplot(aes(x=x,y=y,color=type)) + geom_point(size = geom.point.size) + scale_color_manual(name = "", values=c(input$mineralcolor)) 
+                    ggplot(aes(x=x,y=y,color=type)) + geom_point(size = geom.point.size, shape = vis_to_gg_shape[input$mineral_shape]) + scale_color_manual(name = "", values=c(input$mineralcolor)) 
                 colorlegend_mineral <- get_legend(p)
                 
             } else
             {  
-                legtitle <- paste("Mineral color scale:\n",variable_to_title[[input$color_mineral_by]])
-                out <- obtain_colors_legend(nodes %>% filter(type == "mineral"), input$color_mineral_by, "c", input$mineralpalette, legtitle, legend.title.size.long, legend.text.size.scale)
+                legtitle <- paste("Minerals:\n",variable_to_title[[input$color_mineral_by]])
+                out <- obtain_colors_legend(nodes %>% filter(type == "mineral"), input$color_mineral_by, "c", input$mineralpalette, legtitle)
                 colorlegend_mineral <- out$leg
                 background_colors <- bind_rows(background_colors, out$cols)
             }
@@ -147,13 +142,13 @@ server <- function(input, output, session) {
                 background_colors <- bind_rows(background_colors, tibble("color.background" = input$elementcolor, "label" = element_names))
                  
                 p <- tibble(x = 1, y = 1, type = "Element") %>%
-                        ggplot(aes(x=x,y=y,color=type)) + geom_point(size = geom.point.size) + scale_color_manual(name = "", values=c(input$elementcolor)) 
+                        ggplot(aes(x=x,y=y,color=type)) + geom_point(size = geom.point.size, shape = vis_to_gg_shape[input$element_shape]) + scale_color_manual(name = "", values=c(input$elementcolor)) 
                 colorlegend_element <- get_legend(p)  ### SIZE IS NOT IN HERE
 
             } else
             {  
-                legtitle <- paste("Element color scale:\n",variable_to_title[[input$color_element_by]])
-                out <- obtain_colors_legend(nodes %>% filter(type == "element"), input$color_element_by, "c", input$elementpalette, legtitle, legend.title.size.long, legend.text.size.scale)
+                legtitle <- paste("Elements:\n",variable_to_title[[input$color_element_by]])
+                out <- obtain_colors_legend(nodes %>% filter(type == "element"), input$color_element_by, "c", input$elementpalette, legtitle)
                 colorlegend_element <- out$leg
                 background_colors <- bind_rows(background_colors, out$cols)   
             } 
@@ -161,13 +156,8 @@ server <- function(input, output, session) {
          }       
  
         ###################################### Finalize legend #####################################
-        if (!is.na(colorlegend_minel)) {
-            if (is.na(colorlegend_edge)){
-                finallegend <- plot_grid(colorlegend_minel, nrow = 1)
-            }
-            else {
-                finallegend <- plot_grid(colorlegend_minel, colorlegend_edge, nrow = 1)
-            }
+        if (!is.na(colorlegend_single)) {
+            finallegend <- plot_grid(colorlegend_single)
         } else 
         {
             if (is.na(colorlegend_edge)) { 
@@ -177,6 +167,7 @@ server <- function(input, output, session) {
             }
         
         }                
+        
                                         
         ###################################### Sizing for ELEMENTS #####################################
         ################################################################################################
@@ -203,22 +194,24 @@ server <- function(input, output, session) {
                 bind_rows(final_element_size) %>% 
                 right_join(nodes) %>%
                 mutate(font.size = ifelse(type == "element", font.size, "NA"))
-            #print.data.frame(nodes %>% filter(type == "element"))
         } else 
         { 
             nodes %<>% mutate(font.size = ifelse(type == "element", input$element_label_size, "NA"))
         }
         
         
-
+        element_label_color <- input$element_label_color
+        if(input$element_shape == "text" && input$color_element_by == "singlecolor"){ element_label_color <- input$elementcolor }
+        
         nodes %<>%
-          mutate(font.color = ifelse(type == "element", input$element_label_color, "NA"),
+            mutate(font.color = ifelse(type == "element", element_label_color, "NA"),
                  shape      = ifelse(type == "element", input$element_shape, input$mineral_shape),
                  size       = input$mineral_size,   ### does not control elements
                  color.border =  "black"
                 )
    
         edges %<>% mutate(width = input$edge_weight)
+       
         if (input$label_mineral) 
         { 
             nodes$font.color[nodes$type == "mineral"] <- input$mineral_label_color
@@ -229,10 +222,16 @@ server <- function(input, output, session) {
         nodes %<>% mutate(label = ifelse(type == "element" & nchar(label) == 1, paste0(" ", label, " "), paste0(label, " ")),  ## 2/1 
                           font.face = "courier")
 
+        
+        
+   
 
         return (list("nodes" = nodes, "edges" = edges, "finallegend" = finallegend))
     })
        
+       
+    # TODO: https://datastorm-open.github.io/visNetwork/shiny.html
+
     observe({
         
         req(input$go > 0) ## will automatically update once this has been clicked once. 
@@ -284,10 +283,56 @@ server <- function(input, output, session) {
                        "Maximum age (gya)"              = max_age, 
                        "Number of known localities"     = num_localities, 
                        "Element redox state in mineral" = redox) %>%
-                arrange(`Maximum age (gya)`, Mineral)
+                arrange(`Maximum age (gya)`, Mineral)  -> outtab
+                outtab
         })
-
+    
+    
+    
     })     
+
+
+
+
+
+#         output$download_plot <- downloadHandler(
+#             filename = function() {
+#                 "network.pdf"
+#             },
+#             content = function(file) {
+#                 pdf(file)
+#                 plot(element.network, layout = layout_with_fr, width=8, height=8)
+#                 dev.off()
+#             }
+#         )
+#         
+#         output$downloadl <- renderUI({
+#             downloadButton('download_legend', 'Download network legend')
+#         })
+#         output$download_legend <- downloadHandler(
+#             filename = function() {
+#                 "network_legend.pdf"
+#             },
+#             content = function(file) {
+#                 save_plot(file, plot_legend(colorlegend, sizelegend), base_width=8, base_height=3)
+#             }
+#         )
+# 
+#         output$downloaddata <- renderUI({
+#             downloadButton('download_data', 'Download network data')
+#         })
+#         output$download_data <- downloadHandler(
+#             filename = function() {
+#                 "network.gml"
+#             },
+#             content = function(file) {
+#                 V(element.network)$label.color[V(element.network)$label.color == "NA"] <- ""
+#                 write_graph(element.network, file, format = "gml") 
+#             }
+#         )
+# 
+#     
+    
 
  
 }

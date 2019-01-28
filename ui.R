@@ -1,12 +1,15 @@
 library(shiny)
-library(tidyverse)
 library(shinythemes)
-library(colourpicker)
 library(shinyWidgets)
-library(RColorBrewer)
-library(visNetwork)
-library(shinydashboard)
+library(colourpicker)
 library(DT)
+library(RColorBrewer)
+library(tidyverse)
+library(visNetwork)
+library(magrittr)
+library(cowplot)
+library(igraph)
+
 
 #################################################################################################
 ### Code to setup a palette picker, modified from https://dreamrs.github.io/shinyWidgets/articles/palette_picker.html
@@ -37,14 +40,14 @@ palette.label.colors <- ifelse(brewer.palettes$category == "seq", "black", "whit
 #################################################################################################
 
 
-ui <- fluidPage(theme = shinytheme("united"),
+ui <- fluidPage(theme = shinytheme("simplex"),
 
   # App title
   titlePanel("Exploring Mineral Chemistry Networks using the rruff database"),
     helpText("Written by Stephanie J. Spielman, PhD", (a("Source code and instructions",
         href="https://github.com/spielmanlab/shinymineral"))),
         
-  # Sidebar layout with input and output definitions
+ # Sidebar layout with input and output definitions
   sidebarLayout(
 
     # Sidebar panel for inputs
@@ -53,13 +56,13 @@ ui <- fluidPage(theme = shinytheme("united"),
     # Element of interest?
     #textInput("element_of_interest","Enter the 1-2 letter symbol for the element you'd like to analyze",value="O"),
     
-    selectInput("element_of_interest", tags$b("Select the element(s) whose mineral network you'd like to analyze"),
+   selectInput("element_of_interest", tags$b("Select the element(s) whose mineral network you'd like to analyze"),
         c("Ag" = "Ag", "Al" = "Al", "As" = "As", "Au" = "Au", "B" = "B", "Ba" = "Ba", "Be" = "Be", "Bi" = "Bi", "Br" = "Br", "C" = "C", "Ca" = "Ca", "Cd" = "Cd", "Ce" = "Ce", "Cl" = "Cl", "Co" = "Co", "Cr" = "Cr", "Cs" = "Cs", "Cu" = "Cu", "Dy" = "Dy", "Er" = "Er", "F" = "F", "Fe" = "Fe", "Ga" = "Ga", "Gd" = "Gd", "Ge" = "Ge", "H" = "H", "Hf" = "Hf", "Hg" = "Hg", "I" = "I", "In" = "In", "Ir" = "Ir", "K" = "K", "La" = "La", "Li" = "Li", "Mg" = "Mg", "Mn" = "Mn", "Mo" = "Mo", "N" = "N", "Na" = "Na", "Nb" = "Nb", "Nd" = "Nd", "Ni" = "Ni", "O" = "O", "Os" = "Os", "P" = "P", "Pb" = "Pb", "Pd" = "Pd", "Pt" = "Pt", "Rb" = "Rb", "Re" = "Re", "REE" = "REE", "Rh" = "Rh", "Ru" = "Ru", "S" = "S", "Sb" = "Sb", "Sc" = "Sc", "Se" = "Se", "Si" = "Si", "Sm" = "Sm", "Sn" = "Sn", "Sr" = "Sr", "Ta" = "Ta", "Te" = "Te", "Th" = "Th", "Ti" = "Ti", "Tl" = "Tl", "U" = "U", "V" = "V", "W" = "W", "Y" = "Y", "Yb" = "Yb", "Zn" = "Zn", "Zr" = "Zr"),
-        multiple=TRUE
+        multiple=FALSE
     ),
     ##### TODO: ADD A SELECT ALL BUTTON ####
     ## modify network building code for several elements
-    
+
     helpText("To analyze the network of a different focal element, you must refresh the site."), 
     
     #######################################################################################
@@ -93,6 +96,7 @@ ui <- fluidPage(theme = shinytheme("united"),
                    selectInput("color_element_by", tags$b("Select a color scheme for elements"),
                                 c("Use a single color for all elements"    = "singlecolor",  
                                   "Color elements based on network degree" = "network_degree_norm"))
+                   #uiOutput("color_element_by")
                 
                 ),
                 column(4,
@@ -120,12 +124,14 @@ ui <- fluidPage(theme = shinytheme("united"),
                                   "Color minerals based on mean redox state"      = "redox",        
                                   "Color minerals based on maximum age"           = "max_age",      
                                   "Color minerals based on number of localities"  = "num_localities"))
+                #uiOutput("color_mineral_by")
              ),
              column(4,
                  conditionalPanel(condition = "input.color_mineral_by == 'singlecolor'",   
                      {colourInput("mineralcolor", tags$b("Select mineral color:"), value = "firebrick3")}
                  ),
                  conditionalPanel(condition = "input.color_mineral_by != 'singlecolor'",   
+                 #conditionalPanel(condition = "output.palette_mineral && input.color_element_by == 'singlecolor'",   
                      {pickerInput("mineralpalette", label = tags$b("Mineral palette:"),
                          choices = divseq.list, selected = "Reds", width = "90%",
                          choicesOpt = list(
@@ -140,12 +146,23 @@ ui <- fluidPage(theme = shinytheme("united"),
        ) ## fluidrow
     ),  ## conditional
     
+    fluidRow(
+        column(8, checkboxInput("highlight_my_element",tags$b("Highlight element(s) of interest"),value = FALSE)),
+        column(4,
+        conditionalPanel(condition = "input.highlight_my_element == true",   
+                     {colourInput("elementhighlight", tags$b("Select highlight color:"), value = "lightgoldenrod1")}
+                 )
+        )
+    ),
+    
+
     br(),h4("Edge Attributes"),  
     fluidRow(
       column(8,
         selectInput("color_edge_by", tags$b("Select a color scheme for edges"),
                                 c("Use a single color for all edges" = "singlecolor",  
                                   "Color edges by mean element redox state" = "redox"))
+        #uiOutput("show_color_edge") 
       ),
     
       column(4,
@@ -155,7 +172,7 @@ ui <- fluidPage(theme = shinytheme("united"),
 
           conditionalPanel(condition = "input.color_edge_by != 'singlecolor'",   
               {pickerInput("edgepalette", label = tags$b("Edge palette:"),
-              choices = divseq.list, selected = "Greens", width = "90%",
+              choices = divseq.list, selected = "BrBG", width = "90%",
               choicesOpt = list(
                   content = sprintf(
                       "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
@@ -184,7 +201,7 @@ ui <- fluidPage(theme = shinytheme("united"),
         column(4,    
             conditionalPanel(condition = "input.element_size_type != 'singlesize'", 
                 {sliderInput("size_scale",tags$b("Scale factor for element node size"),value=50,min=10,max=150,step=10)}) 
-        )   
+        )     
     ),
      fluidRow(
         column(8, htmlOutput("mineral_size_statement")), 
@@ -233,15 +250,15 @@ ui <- fluidPage(theme = shinytheme("united"),
           "Fruchterman Reingold" =  "layout_with_fr",
           "Kamada-Kawai"         = "layout_with_kk")
     ),
-          
-        
-    
+
     #######################################################################################
     
     br(),br(),
     actionButton("go","Initialize Network",width="100%")),   
     
-
+    
+    ## To Do: Export network file
+    ## Display network
     
     
     # Main panel for displaying outputs
@@ -256,8 +273,8 @@ ui <- fluidPage(theme = shinytheme("united"),
         div(style = "float:right; padding-top:10px; padding-right:10px",
             downloadButton('downloadNetwork', 'Export network as HTML')
         ),
-        plotOutput("networklegend", width = "100%", height = "80px"),
-
+        plotOutput("networklegend", width = "100%", height = "100px"),
+      #  br(),br(),
         div(style = "display: block; padding-top: 5em; margin-left: auto; margin-right: auto;width:75%;",
             DT::dataTableOutput("nodeTable")
         )

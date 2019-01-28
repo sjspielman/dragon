@@ -1,10 +1,13 @@
 library(shiny)
-library(igraph)
+library(shinythemes)
+library(shinyWidgets)
+library(colourpicker)
+library(DT)
+library(RColorBrewer)
 library(tidyverse)
-library(cowplot)
-library(broom)
-library(viridis)
 library(visNetwork)
-
+library(magrittr)
+library(cowplot)
+library(igraph)
 
 shinyApp(ui = ui, server = server)
