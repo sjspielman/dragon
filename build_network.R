@@ -23,7 +23,6 @@ subset.rruff <- function(rruff, elements_of_interest, force_all_elements, select
                 select(-has_element, -mineral_id, -mindat_id)
         } else 
         { ## Has at least one element
-
             elements_only <- rruff %>% 
                 mutate(has_element = if_else(  sum(str_detect(rruff_chemistry, elements_of_interest)) > 0, TRUE, FALSE)) %>% 
                 filter(has_element == TRUE) %>% 

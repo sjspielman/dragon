@@ -53,7 +53,7 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
     if (return_color_tibble)
     {
         data.colors <- ggplot_build(p)$data[[1]] %>% 
-                          as.tibble() %>% 
+                          as_tibble() %>% 
                           bind_cols(dat2) %>% 
                           select(colour, label) %>%
                           rename(color.background = colour)
@@ -71,33 +71,36 @@ server <- function(input, output, session) {
     
     output$mineral_size_statement <- renderText({ "<b>There is no size scheme available for minerals. All mineral nodes will have the same selected size.</b>" }) 
     
-    elements_only <- NULL
-    makeReactiveBinding("elements_only")
-    observeEvent(input$element_selection_go, {
-
-        elements_of_interest <- isolate(input$element_of_interest)
-        force_all_elements   <- isolate(input$force_all_elements)
-        select_all_elements  <- isolate(input$select_all_elements)
-                
-        elements_only        <<- subset.rruff(rruff, elements_of_interest, force_all_elements, select_all_elements)
+    #####################################################################################################    
+    ################################# Build network with reactivity #####################################
+    mynetwork <- reactive({ 
     
+        ## no more isolating, it's not that slow.
+        elements_of_interest <- input$element_of_interest
+        force_all_elements   <- input$force_all_elements
+        select_all_elements  <- input$select_all_elements
+
+        if (is.null(elements_of_interest)) {
+            showModal(modalDialog(
+                title = "No elements were selected.",
+                "Please refresh the page and try again.",
+                easyClose = TRUE,
+                size = "l"
+            ))
+        }
+        
+        elements_only  <- subset.rruff(rruff, elements_of_interest, force_all_elements, select_all_elements)
+    
+
         if (nrow(elements_only) == 0) {
             showModal(modalDialog(
                 title = "There is no network that contains the selected elements as specified.",
-                "Please select different elements, or do not force all elements to be present in all minerals.",
+                "Please refresh the page and try again.",
                 easyClose = TRUE,
-                footer = NULL
+                size = "l"
             ))
         }
-    })
-    
-    #####################################################################################################    
-    ################################# Build network with reactivity #####################################
-    #observeEvent(input$go,  {
-    mynetwork <- reactive({ 
-     
-        req(input$element_selection_go > 0)
-        elements_only
+        
 
         include_age  <- input$include_age
         age_limit <- ages$mya[ages$eon == include_age]
@@ -114,15 +117,16 @@ server <- function(input, output, session) {
             select(mineral_name, num_localities, max_age, rruff_chemistry, chemistry_elements) %>%
             unique() %>%
             separate_rows(chemistry_elements,sep=" ") 
+
         
-        if (nrow(elements_only) == 0) {
-            showModal(modalDialog(
-                title = "There is no network at this eon specification.",
-                "Please select a different eon or select different elements.",
-                easyClose = TRUE,
-                footer = NULL
-            ))
-        }
+#         if (nrow(elements_only) == 0) {
+#             showModal(modalDialog(
+#                 title = "There is no network at this eon specification.",
+#                 "Please refresh the page to try again.",
+#                 easyClose = TRUE,
+#                 footer = NULL
+#             ))
+#         }
         
         
         ###### todo, show all ages on a page. will require a new tab eventually #####
@@ -139,7 +143,6 @@ server <- function(input, output, session) {
         mineral_names <- nodes$label[nodes$type == "mineral"]
         element_names <- nodes$label[nodes$type == "element"]
             
-
         ##################################################
                 
 
@@ -228,7 +231,7 @@ server <- function(input, output, session) {
             psize <- ggplot(n2, aes(x = label, y = !!sizevar, size = !!sizevar)) + geom_point() + scale_size(range = c(1,4))
 
             final_element_size <- ggplot_build(psize)$data[[1]] %>% 
-                                    as.tibble() %>% 
+                                    as_tibble() %>% 
                                     bind_cols(n2) %>%  
                                     select(size, label, type) %>%
                                     mutate(size = size * input$size_scale) %>% 
@@ -246,6 +249,23 @@ server <- function(input, output, session) {
             nodes %<>% mutate(font.size = ifelse(type == "element", input$element_label_size, "NA"))
         }
         
+        if (input$mineral_size_type != "singlesize") {
+            #legtitle <- paste("Element size scale:",variable_to_title[[input$element_size_type]])
+            sizevar <- as.symbol(input$mineral_size_type)
+
+            n2 <- nodes %>% filter(type == "mineral")
+            psize <- ggplot(n2, aes(x = label, y = !!sizevar, size = !!sizevar)) + geom_point() + scale_size(range = c(5,30))
+
+            ggplot_build(psize)$data[[1]] %>% 
+                                    as_tibble() %>% 
+                                    bind_cols(n2) %>%  
+                                    select(size, label, type) %>%
+                                    right_join(nodes) -> nodes
+
+        } else 
+        {
+            nodes %<>% mutate(size = input$mineral_size)
+        }
         
         element_label_color <- input$element_label_color
         if(input$element_shape == "text" && input$color_element_by == "singlecolor"){ element_label_color <- input$elementcolor }
@@ -253,10 +273,20 @@ server <- function(input, output, session) {
         nodes %<>%
             mutate(font.color = ifelse(type == "element", element_label_color, "NA"),
                  shape      = ifelse(type == "element", input$element_shape, input$mineral_shape),
-                 size       = input$mineral_size,   ### does not control elements
                  color.border =  "black"
                 )
    
+   
+        if(input$highlight_my_element)
+        {
+            if (input$element_shape == "text") {
+                nodes %<>% mutate(font.color = ifelse(type == "element" & label %in% elements_of_interest, input$elementhighlight, font.color))
+                
+            } else{
+                nodes %<>% mutate(color.background = ifelse(type == "element" & label %in% elements_of_interest, input$elementhighlight, color.background))
+            }
+        }
+        
         edges %<>% mutate(width = input$edge_weight)
        
         if (input$label_mineral) 

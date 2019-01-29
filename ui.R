@@ -58,12 +58,13 @@ ui <- fluidPage(theme = shinytheme("simplex"),
         c("Ag" = "Ag", "Al" = "Al", "As" = "As", "Au" = "Au", "B" = "B", "Ba" = "Ba", "Be" = "Be", "Bi" = "Bi", "Br" = "Br", "C" = "C", "Ca" = "Ca", "Cd" = "Cd", "Ce" = "Ce", "Cl" = "Cl", "Co" = "Co", "Cr" = "Cr", "Cs" = "Cs", "Cu" = "Cu", "Dy" = "Dy", "Er" = "Er", "F" = "F", "Fe" = "Fe", "Ga" = "Ga", "Gd" = "Gd", "Ge" = "Ge", "H" = "H", "Hf" = "Hf", "Hg" = "Hg", "I" = "I", "In" = "In", "Ir" = "Ir", "K" = "K", "La" = "La", "Li" = "Li", "Mg" = "Mg", "Mn" = "Mn", "Mo" = "Mo", "N" = "N", "Na" = "Na", "Nb" = "Nb", "Nd" = "Nd", "Ni" = "Ni", "O" = "O", "Os" = "Os", "P" = "P", "Pb" = "Pb", "Pd" = "Pd", "Pt" = "Pt", "Rb" = "Rb", "Re" = "Re", "REE" = "REE", "Rh" = "Rh", "Ru" = "Ru", "S" = "S", "Sb" = "Sb", "Sc" = "Sc", "Se" = "Se", "Si" = "Si", "Sm" = "Sm", "Sn" = "Sn", "Sr" = "Sr", "Ta" = "Ta", "Te" = "Te", "Th" = "Th", "Ti" = "Ti", "Tl" = "Tl", "U" = "U", "V" = "V", "W" = "W", "Y" = "Y", "Yb" = "Yb", "Zn" = "Zn", "Zr" = "Zr"),
         multiple=TRUE
     ),
+    #helpText("To select different element(s), you must refresh the page."),
+    #br(),
     checkboxInput("force_all_elements",tags$b("Click to force minerals included in the network to contain all selected elements."),value = FALSE), 
     checkboxInput("select_all_elements",tags$b("Click to select all elements"),value = FALSE), 
     helpText("Note: When selecting all elements, this application may slow down substantially."), 
     
-    actionButton("element_selection_go","Confirm element selection",width="100%"),   
-    
+   
 
 
     #######################################################################################
@@ -204,10 +205,27 @@ ui <- fluidPage(theme = shinytheme("simplex"),
                 {sliderInput("size_scale",tags$b("Scale factor for element node size"),value=50,min=10,max=150,step=10)}) 
         )     
     ),
-     fluidRow(
-        column(8, htmlOutput("mineral_size_statement")), 
-        column(4, sliderInput("mineral_size",tags$b("Mineral node size"),value=10,min=0,max=50, step = 5))
-    ),   
+    fluidRow(
+     column(8,
+            selectInput("mineral_size_type", tags$b("Select a size scheme for mineral nodes"), 
+                         c("Single size for all mineral nodes" = "singlesize",
+                           "Size mineral nodes based on mean redox state" = "redox",
+                           "Size mineral nodes based on maximum age"           = "max_age",      
+                           "Size mineral nodes based on number of localities"  = "num_localities"
+                           )
+                       ), selected = "singlesize"
+            ),
+        column(4,    
+            conditionalPanel(condition = "input.mineral_size_type == 'singlesize'", 
+                { sliderInput("mineral_size",tags$b("Mineral node size"),value=10,min=0,max=50, step = 5)}
+            )
+        )
+    ),
+        
+    #fluidRow(
+    #   column(8, htmlOutput("mineral_size_statement")), 
+    #   column(4, sliderInput("mineral_size",tags$b("Mineral node size"),value=10,min=0,max=50, step = 5))
+    #),   
     
     br(),h4("Node Labels"),
     helpText("Element label size is automatically determined based on element node size."),
