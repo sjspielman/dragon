@@ -53,22 +53,23 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     # Sidebar panel for inputs
     sidebarPanel(
     
-    # Element of interest?
-    #textInput("element_of_interest","Enter the 1-2 letter symbol for the element you'd like to analyze",value="O"),
     
    selectInput("element_of_interest", tags$b("Select the element(s) whose mineral network you'd like to analyze"),
         c("Ag" = "Ag", "Al" = "Al", "As" = "As", "Au" = "Au", "B" = "B", "Ba" = "Ba", "Be" = "Be", "Bi" = "Bi", "Br" = "Br", "C" = "C", "Ca" = "Ca", "Cd" = "Cd", "Ce" = "Ce", "Cl" = "Cl", "Co" = "Co", "Cr" = "Cr", "Cs" = "Cs", "Cu" = "Cu", "Dy" = "Dy", "Er" = "Er", "F" = "F", "Fe" = "Fe", "Ga" = "Ga", "Gd" = "Gd", "Ge" = "Ge", "H" = "H", "Hf" = "Hf", "Hg" = "Hg", "I" = "I", "In" = "In", "Ir" = "Ir", "K" = "K", "La" = "La", "Li" = "Li", "Mg" = "Mg", "Mn" = "Mn", "Mo" = "Mo", "N" = "N", "Na" = "Na", "Nb" = "Nb", "Nd" = "Nd", "Ni" = "Ni", "O" = "O", "Os" = "Os", "P" = "P", "Pb" = "Pb", "Pd" = "Pd", "Pt" = "Pt", "Rb" = "Rb", "Re" = "Re", "REE" = "REE", "Rh" = "Rh", "Ru" = "Ru", "S" = "S", "Sb" = "Sb", "Sc" = "Sc", "Se" = "Se", "Si" = "Si", "Sm" = "Sm", "Sn" = "Sn", "Sr" = "Sr", "Ta" = "Ta", "Te" = "Te", "Th" = "Th", "Ti" = "Ti", "Tl" = "Tl", "U" = "U", "V" = "V", "W" = "W", "Y" = "Y", "Yb" = "Yb", "Zn" = "Zn", "Zr" = "Zr"),
-        multiple=FALSE
+        multiple=TRUE
     ),
-    ##### TODO: ADD A SELECT ALL BUTTON ####
-    ## modify network building code for several elements
-
-    helpText("To analyze the network of a different focal element, you must refresh the site."), 
+    checkboxInput("force_all_elements",tags$b("Click to force minerals included in the network to contain all selected elements."),value = FALSE), 
+    checkboxInput("select_all_elements",tags$b("Click to select all elements"),value = FALSE), 
+    helpText("Note: When selecting all elements, this application may slow down substantially."), 
     
+    actionButton("element_selection_go","Confirm element selection",width="100%"),   
+    
+
+
     #######################################################################################
 
     #######################################################################################
-    br(),
+    br(),br(),
     h3("Mineral preferences"),
     hr(),
     selectInput("include_age", tags$b("Choose a starting eon for earliest minerals to include in the network:"),

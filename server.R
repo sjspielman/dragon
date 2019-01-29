@@ -35,63 +35,110 @@ vis_to_gg_shape <- list("circle"  = 19,
                         "diamond" = 18,
                         "triangle" = 17)
 
+geom.point.size <- 12
+theme_set(theme_cowplot() + theme(legend.position = "bottom", 
+                                  legend.text = element_text(size=14),
+                                  legend.key.size = unit(1.25, "cm"),
+                                  legend.title = element_text(size=15),
+                                  legend.box.background = element_rect(color = "white")))
+                                               
+obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, legendtitle, return_color_tibble = TRUE)
+{
     
+    cvar <- as.symbol(color_variable)
+    dat %>% mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
+
+    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = as.factor(!!cvar), color = as.factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) + guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
+    if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1)+ guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
+    if (return_color_tibble)
+    {
+        data.colors <- ggplot_build(p)$data[[1]] %>% 
+                          as.tibble() %>% 
+                          bind_cols(dat2) %>% 
+                          select(colour, label) %>%
+                          rename(color.background = colour)
+    } else 
+    {
+        data.colors <- ggplot_build(p)$data[[1]]$colour
+    }
+    data.legend <- get_legend(p)
+    return (list("cols" = data.colors, "leg" = data.legend))
+}
+
+  
 server <- function(input, output, session) {
     
     
     output$mineral_size_statement <- renderText({ "<b>There is no size scheme available for minerals. All mineral nodes will have the same selected size.</b>" }) 
     
+    elements_only <- NULL
+    makeReactiveBinding("elements_only")
+    observeEvent(input$element_selection_go, {
+
+        elements_of_interest <- isolate(input$element_of_interest)
+        force_all_elements   <- isolate(input$force_all_elements)
+        select_all_elements  <- isolate(input$select_all_elements)
+                
+        elements_only        <<- subset.rruff(rruff, elements_of_interest, force_all_elements, select_all_elements)
+    
+        if (nrow(elements_only) == 0) {
+            showModal(modalDialog(
+                title = "There is no network that contains the selected elements as specified.",
+                "Please select different elements, or do not force all elements to be present in all minerals.",
+                easyClose = TRUE,
+                footer = NULL
+            ))
+        }
+    })
     
     #####################################################################################################    
     ################################# Build network with reactivity #####################################
     #observeEvent(input$go,  {
     mynetwork <- reactive({ 
      
-        
-        element_of_interest <- isolate(input$element_of_interest)
-        include_age         <- input$include_age
-        age_limit           <- ages$mya[ages$eon == include_age]   
+        req(input$element_selection_go > 0)
+        elements_only
 
-        net <- build.network(rruff, element_of_interest, age_limit)
+        include_age  <- input$include_age
+        age_limit <- ages$mya[ages$eon == include_age]
+
+        elements_only <- elements_only %>%
+            group_by(mineral_name) %>% 
+            summarize(num_localities = sum(at_locality)) %>%
+            left_join(elements_only) %>%
+            ungroup() %>% group_by(mineral_name) %>%
+            mutate(overall_max_age = max(max_age)) %>%
+            filter(max_age == overall_max_age) %>% 
+            ungroup() %>%
+            filter(max_age >= age_limit) %>%
+            select(mineral_name, num_localities, max_age, rruff_chemistry, chemistry_elements) %>%
+            unique() %>%
+            separate_rows(chemistry_elements,sep=" ") 
+        
+        if (nrow(elements_only) == 0) {
+            showModal(modalDialog(
+                title = "There is no network at this eon specification.",
+                "Please select a different eon or select different elements.",
+                easyClose = TRUE,
+                footer = NULL
+            ))
+        }
+        
+        
+        ###### todo, show all ages on a page. will require a new tab eventually #####
+        #if (include_age == "all")
+        #{
+        #    age_limit <- 0
+        #else {
+        #    age_limit <- ages$mya[ages$eon == include_age]
+        #}  
+
+        net <- build.network(elements_only)
         edges <- net$edges
         nodes <- net$nodes
         mineral_names <- nodes$label[nodes$type == "mineral"]
         element_names <- nodes$label[nodes$type == "element"]
             
-        size_scale <- 20   ## ggplot vs visnetwork 
-        geom.point.size <- 8
-        theme_set(theme_cowplot() + theme(legend.position = "bottom", 
-                                          legend.text = element_text(size=14),
-                                          legend.key.size = unit(1.25, "cm"),
-                                          legend.title = element_text(size=15),
-                                          legend.box.background = element_rect(color = "white")))
-                                                  
-        obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, legendtitle, return_color_tibble = TRUE)
-        {
-            
-            cvar <- as.symbol(color_variable)
-            dat %>% mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
-
-            if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = as.factor(!!cvar), color = as.factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) +
-  guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5),
-         size = guide_legend(title.position="top", title.hjust = 0.5))
-            if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1)+
-  guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5),
-         size = guide_legend(title.position="top", title.hjust = 0.5))
-            if (return_color_tibble)
-            {
-                data.colors <- ggplot_build(p)$data[[1]] %>% 
-                                  as.tibble() %>% 
-                                  bind_cols(dat2) %>% 
-                                  select(colour, label) %>%
-                                  rename(color.background = colour)
-            } else 
-            {
-                data.colors <- ggplot_build(p)$data[[1]]$colour
-            }
-            data.legend <- get_legend(p)
-            return (list("cols" = data.colors, "leg" = data.legend))
-        }
 
         ##################################################
                 

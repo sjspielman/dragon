@@ -1,27 +1,46 @@
-build.network <- function(rruff, element_of_interest, age_limit)
+
+subset.rruff <- function(rruff, elements_of_interest, force_all_elements, select_all_elements)
 {
-  # Subset database to element_of_interest with age and locality specifications applied
-  element_only <- rruff %>% 
-    mutate(has_element = if_else(str_detect(rruff_chemistry, element_of_interest), TRUE, FALSE)) %>% 
-    filter(has_element == TRUE) %>% 
-    select(-has_element, -mineral_id, -mindat_id)
-  
-  element_only <- element_only %>%
-    group_by(mineral_name) %>% 
-    summarize(num_localities = sum(at_locality)) %>%
-    left_join(element_only) %>%
-    ungroup() %>% group_by(mineral_name) %>%
-    mutate(overall_max_age = max(max_age)) %>%
-    filter(max_age == overall_max_age) %>% 
-    ungroup() %>%
-    filter(max_age >= age_limit) %>%
-    select(mineral_name, num_localities, max_age, rruff_chemistry, chemistry_elements) %>%
-    unique() %>%
-    separate_rows(chemistry_elements,sep=" ") 
-  
+    # nope: single element
+    #   elements_only <- rruff %>% 
+    #     mutate(has_element = if_else(str_detect(rruff_chemistry, elements_of_interest), TRUE, FALSE)) %>% 
+    #     mutate(has_element = if_else(  sum(str_detect(rruff_chemistry, elements_of_interest)) > 0, TRUE, FALSE)) %>% 
+    #     filter(has_element == TRUE) %>% 
+    #     select(-has_element, -mineral_id, -mindat_id)
+
+    if (select_all_elements)
+    {
+        elements_only <- rruff %>% select(-mineral_id, -mindat_id)
+    } else 
+    {
+        ## Must have all elements
+        if (force_all_elements)
+        {
+            n_elements <- length(elements_of_interest)
+            elements_only <- rruff %>% 
+                mutate(has_element = if_else(  sum(str_detect(rruff_chemistry, elements_of_interest)) == n_elements, TRUE, FALSE)) %>% 
+                filter(has_element == TRUE) %>% 
+                select(-has_element, -mineral_id, -mindat_id)
+        } else 
+        { ## Has at least one element
+
+            elements_only <- rruff %>% 
+                mutate(has_element = if_else(  sum(str_detect(rruff_chemistry, elements_of_interest)) > 0, TRUE, FALSE)) %>% 
+                filter(has_element == TRUE) %>% 
+                select(-has_element, -mineral_id, -mindat_id)        
+        }  
+   }
+  return (elements_only)
+
+}
+
+build.network <- function(elements_only)
+{
+    
+
   
   ####### Get element redox states
-  element_only %>% select(mineral_name, rruff_chemistry) %>% unique() -> mineral_chem
+  elements_only %>% select(mineral_name, rruff_chemistry) %>% unique() -> mineral_chem
   element_redox_states <- tibble("mineral_name" = as.character(), "element" = as.character(), "redox" = as.double(), "n" = as.integer())
   for (mineral in mineral_chem$mineral_name)
   {
@@ -47,7 +66,7 @@ build.network <- function(rruff, element_of_interest, age_limit)
     element_redox_states <- bind_rows( element_redox_states, temp2 )
   }
   ### 1 row per EDGE, to be joined with edges
-  mineral.element.information <- element_only %>% 
+  mineral.element.information <- elements_only %>% 
     rename(element = chemistry_elements) %>%
     left_join(element_redox_states) %>% 
     replace_na(list(redox = 0)) %>% 
