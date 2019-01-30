@@ -1,7 +1,9 @@
-rruff                <- read_csv("data/rruff_minerals.csv") %>% mutate(max_age = max_age/1000) %>% select(-mineral_id, -mindat_id, -rruff_chemistry)
+rruff                <- read_csv("data/rruff_minerals.csv") %>% mutate(max_age = max_age/1000) 
+rruff_sub            <- rruff %>% select(-mineral_id, -mindat_id, -rruff_chemistry)
 element_redox_states <- read_csv("data/rruff_redox_states.csv")
 rruff_separated      <- read_csv("data/rruff_separated_elements.csv")
 
+rruff_chemistry <- rruff_separated %>% select(-chemistry_elements) %>% unique()
 
 initialize_network <- function(elements_of_interest, force_all_elements, select_all_elements, age_limit){ 
 
@@ -26,7 +28,7 @@ subset.rruff <- function(elements_of_interest, force_all_elements, select_all_el
 {
     if (select_all_elements)
     {
-        elements_only <- rruff
+        elements_only <- rruff_sub
     } else 
     {
         ## Must have all elements
@@ -38,7 +40,7 @@ subset.rruff <- function(elements_of_interest, force_all_elements, select_all_el
                 mutate(has_element = if_else( sum(chemistry_elements %in% elements_of_interest) == n_elements, TRUE, FALSE)) %>% 
                 filter(has_element == TRUE) %>%
                 select(mineral_name) %>%
-                inner_join(rruff) -> elements_only
+                inner_join(rruff_sub) -> elements_only
         } else 
         { ## Has at least one element
             rruff_separated %>%
@@ -46,7 +48,7 @@ subset.rruff <- function(elements_of_interest, force_all_elements, select_all_el
                 mutate(has_element = if_else( chemistry_elements %in% elements_of_interest, TRUE, FALSE)) %>% 
                 filter(has_element == TRUE) %>%
                 select(mineral_name) %>%
-                inner_join(rruff) -> elements_only
+                inner_join(rruff_sub) -> elements_only
      
         }  
     }
@@ -91,7 +93,6 @@ subset.rruff <- function(elements_of_interest, force_all_elements, select_all_el
         unique() %>%
         ungroup()
     
-    print(nrow(mineral.element.information))
     return(mineral.element.information)
 
 }

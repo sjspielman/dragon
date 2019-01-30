@@ -14,11 +14,6 @@ source("build_network.R")
 ################ Prepare database information for use #############################
 ages <- tibble("eon" = c("hadean", "archean", "paleo", "present"), "ga" = c(4, 2.5, 1.6, 0))
 
-# > names(rruff)
-#    [1] "mineral_name"       "mineral_id"         "mindat_id"         
-#    [4] "at_locality"        "is_remote"          "rruff_chemistry"   
-#    [7] "max_age"            "chemistry_elements"
-
 
 
 ## is_remote = is the age actually associated with the locality (1) or was is ported from another locality (0)
@@ -257,10 +252,11 @@ server <- function(input, output, session) {
         finalnetwork <- create_network()
     
         nodes       <- finalnetwork$nodes
+        write_csv(nodes, "nodes.csv")
         edges       <- finalnetwork$edges
+        write_csv(edges, "edges.csv")
         finallegend <- finalnetwork$finallegend
         
-        print(names(nodes))
         output$networkplot <- renderVisNetwork({
             visNetwork(nodes, edges) %>%
                 visIgraphLayout(layout = input$network_layout, type = "full") %>% ## stabilizes
@@ -292,27 +288,39 @@ server <- function(input, output, session) {
 
         # make sure stays in observe
         visNetworkProxy("networkplot") %>% visGetSelectedNodes()
-  
-        ### TODO: FIX THIS
+
         output$nodeTable <- renderDT({
-        
-            mineral_names <- nodes$label[nodes$type == "mineral"]
+            mineral_names <- nodes$id[nodes$type == "mineral"]
             if (input$networkplot_selected %in% mineral_names){
-                nodes %>%
-                    filter(label == input$networkplot_selected) -> outtab
-               # outtab <- NULL
-            }
-            else{
+                edges %>% 
+                    filter(mineral_name == input$networkplot_selected) %>% 
+                     select(mineral_name) %>% 
+                     left_join(rruff) %>% 
+                     select(mineral_name, mineral_id, mindat_id, at_locality, is_remote, rruff_chemistry, max_age) %>%
+                     unique() %>% 
+                     mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
+                            is_remote   = ifelse(is_remote == 0, "No", "Yes")) %>%
+                    rename("Mineral" = mineral_name,
+                           "Mineral ID" = mineral_id,
+                           "Mindat ID"  = mindat_id,
+                           "At Locality?" = at_locality,
+                           "Is Remote?" = is_remote,
+                           "Chemistry"  = rruff_chemistry,
+                           "Maximum Age (Ga)" = max_age) %>%
+                    arrange(`Maximum Age (Ga)`, Mineral)  -> outtab
+            } else{
                 edges %>% 
                     filter(element == input$networkplot_selected) %>% 
-                    select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry) %>%
-                    rename("Element"                        = element,
-                           "Mineral"                        = mineral_name, 
-                           "Maximum age (Ga)"              = max_age, 
-                           "Number of known localities"     = num_localities, 
-                           "Element redox state in mineral" = redox,
-                           "Chemistry"                      = rruff_chemistry) %>%
-                    arrange(`Maximum age (Ga)`, Mineral)  -> outtab
+                     left_join(rruff) %>% 
+                     select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry) %>%
+                     unique() %>%
+                     rename("Element"                        = element,
+                            "Mineral"                        = mineral_name, 
+                            "Maximum age (Ga)"               = max_age, 
+                            "Number of known localities"     = num_localities, 
+                            "Element redox state in mineral" = redox,
+                            "Chemistry"                      = rruff_chemistry) %>%
+                     arrange(`Maximum age (Ga)`, Mineral)  -> outtab
             }
                 outtab
         })

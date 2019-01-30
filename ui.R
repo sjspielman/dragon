@@ -294,7 +294,7 @@ ui <- fluidPage(theme = shinytheme("simplex"),
         ),
         plotOutput("networklegend", width = "100%", height = "100px"),
       #  br(),br(),
-        div(style = "display: block; padding-top: 5em; margin-left: auto; margin-right: auto;width:75%;",
+        div(style = "display: block; padding-top: 5em; margin-left: auto; margin-right: auto;width:90%;",
             DT::dataTableOutput("nodeTable")
         )
     )
