@@ -7,6 +7,10 @@ rruff_chemistry <- rruff_separated %>% select(-chemistry_elements) %>% unique()
 
 initialize_network <- function(elements_of_interest, force_all_elements, select_all_elements, age_limit){ 
 
+
+    if(select_all_elements){
+        elements_of_interest <- unique(rruff_redox_states$element)
+    }
     if (is.null(elements_of_interest)) {
         showModal(modalDialog(
             title = "No elements were selected.",
@@ -17,7 +21,7 @@ initialize_network <- function(elements_of_interest, force_all_elements, select_
     }
     
     network_info <- subset.rruff(elements_of_interest, force_all_elements, select_all_elements, age_limit)
-    thenetwork   <- build.network(network_info)  ## <<- for global
+    thenetwork   <- build.network(network_info) 
     
     return (thenetwork)
 }

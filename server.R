@@ -45,9 +45,12 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
     
     cvar <- as.symbol(color_variable)
     dat %>% mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
-
-    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = as.factor(!!cvar), color = as.factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) + guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
+    pdfr(dat2)
+    print(color_variable)
+    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) + guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
     if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1)+ guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
+    print(p)
+    
     if (return_color_tibble)
     {
         data.colors <- ggplot_build(p)$data[[1]] %>% 
@@ -252,15 +255,13 @@ server <- function(input, output, session) {
         finalnetwork <- create_network()
     
         nodes       <- finalnetwork$nodes
-        write_csv(nodes, "nodes.csv")
         edges       <- finalnetwork$edges
-        write_csv(edges, "edges.csv")
         finallegend <- finalnetwork$finallegend
         
         output$networkplot <- renderVisNetwork({
             visNetwork(nodes, edges) %>%
                 visIgraphLayout(layout = input$network_layout, type = "full") %>% ## stabilizes
-                visOptions(highlightNearest = list(enabled =TRUE, degree = 2), 
+                visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
                            nodesIdSelection = list(enabled = TRUE, 
                                                    #values = nodes$id[nodes$type == "element"],
                                                    main    = "Select node to view",

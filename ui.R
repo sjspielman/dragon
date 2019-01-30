@@ -60,8 +60,8 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     ),
     #helpText("To select different element(s), you must refresh the page."),
     #br(),
-    checkboxInput("force_all_elements",tags$b("Click to force minerals included in the network to contain all selected elements."),value = FALSE), 
-    checkboxInput("select_all_elements",tags$b("Click to select all elements"),value = FALSE), 
+    checkboxInput("force_all_elements",tags$b("Every mineral included in the network contains all selected elements."),value = FALSE), 
+    checkboxInput("select_all_elements",tags$b("Select all elements"),value = FALSE), 
     helpText("Note: When selecting all elements, this application may slow down substantially."), 
     
    
@@ -84,9 +84,6 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     
     br(), h3("Network options"),
     hr(),
-    # Currently user's choice. 
-    #helpText("NOTE: Only one", tags$i("attribute color scale"), ", including both nodes and edges, is allowed for the network. Once a single color scale has been selected, other color options default to single color selection."),
-
            
     br(),h4("Node Colors"),
     checkboxInput("color_by_cluster",tags$b("Click to color all nodes by network cluster"),value = FALSE), ## Use default ggplot colors.
@@ -264,11 +261,17 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     ),
         
     br(),h4("Display"),
-    selectInput("network_layout", tags$br("Select a layout algorithm for the network:"),
-        c("Nicely"               = "layout_nicely",
-          "Fruchterman Reingold" =  "layout_with_fr",
-          "Kamada-Kawai"         = "layout_with_kk")
-    ),
+    fluidRow(
+       column(6,
+            selectInput("network_layout", tags$br("Select a layout algorithm for the network:"),
+                c("Nicely"               = "layout_nicely",
+                  "Fruchterman Reingold" =  "layout_with_fr",
+                  "Kamada-Kawai"         = "layout_with_kk")
+            )
+        ),
+        column(6,
+        numericInput("selected_degree", tags$br("Degree for highlighting network node connections:"), 2, min = 1, max = 5, step = 1)
+    )),
 
     #######################################################################################
     
