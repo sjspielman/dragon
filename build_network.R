@@ -1,79 +1,104 @@
+rruff                <- read_csv("data/rruff_minerals.csv") %>% mutate(max_age = max_age/1000) %>% select(-mineral_id, -mindat_id, -rruff_chemistry)
+element_redox_states <- read_csv("data/rruff_redox_states.csv")
+rruff_separated      <- read_csv("data/rruff_separated_elements.csv")
 
-subset.rruff <- function(rruff, elements_of_interest, force_all_elements, select_all_elements)
+
+initialize_network <- function(elements_of_interest, force_all_elements, select_all_elements, age_limit){ 
+
+    if (is.null(elements_of_interest)) {
+        showModal(modalDialog(
+            title = "No elements were selected.",
+            "Please refresh the page and try again.",
+            easyClose = TRUE,
+            size = "l"
+        ))
+    }
+    
+    network_info <- subset.rruff(elements_of_interest, force_all_elements, select_all_elements, age_limit)
+    thenetwork   <- build.network(network_info)  ## <<- for global
+    
+    return (thenetwork)
+}
+
+  
+  
+subset.rruff <- function(elements_of_interest, force_all_elements, select_all_elements, age_limit)
 {
-    # nope: single element
-    #   elements_only <- rruff %>% 
-    #     mutate(has_element = if_else(str_detect(rruff_chemistry, elements_of_interest), TRUE, FALSE)) %>% 
-    #     mutate(has_element = if_else(  sum(str_detect(rruff_chemistry, elements_of_interest)) > 0, TRUE, FALSE)) %>% 
-    #     filter(has_element == TRUE) %>% 
-    #     select(-has_element, -mineral_id, -mindat_id)
-
     if (select_all_elements)
     {
-        elements_only <- rruff %>% select(-mineral_id, -mindat_id)
+        elements_only <- rruff
     } else 
     {
         ## Must have all elements
         if (force_all_elements)
         {
             n_elements <- length(elements_of_interest)
-            elements_only <- rruff %>% 
-                mutate(has_element = if_else(  sum(str_detect(rruff_chemistry, elements_of_interest)) == n_elements, TRUE, FALSE)) %>% 
-                filter(has_element == TRUE) %>% 
-                select(-has_element, -mineral_id, -mindat_id)
+            rruff_separated %>%
+                group_by(mineral_name) %>%
+                mutate(has_element = if_else( sum(chemistry_elements %in% elements_of_interest) == n_elements, TRUE, FALSE)) %>% 
+                filter(has_element == TRUE) %>%
+                select(mineral_name) %>%
+                inner_join(rruff) -> elements_only
         } else 
         { ## Has at least one element
-            elements_only <- rruff %>% 
-                mutate(has_element = if_else(  sum(str_detect(rruff_chemistry, elements_of_interest)) > 0, TRUE, FALSE)) %>% 
-                filter(has_element == TRUE) %>% 
-                select(-has_element, -mineral_id, -mindat_id)        
+            rruff_separated %>%
+                group_by(mineral_name) %>%
+                mutate(has_element = if_else( chemistry_elements %in% elements_of_interest, TRUE, FALSE)) %>% 
+                filter(has_element == TRUE) %>%
+                select(mineral_name) %>%
+                inner_join(rruff) -> elements_only
+     
         }  
-   }
-  return (elements_only)
+    }
+#     if (nrow(elements_only) == 0) {
+#         showModal(modalDialog(
+#             title = "There is no network that contains the selected elements as specified.",
+#             "Please refresh the page and try again.",
+#             easyClose = TRUE,
+#             size = "l"
+#         ))
+#     }
+#     
+    elements_only %<>% 
+        group_by(mineral_name) %>% 
+        summarize(num_localities = sum(at_locality)) %>%
+        left_join(elements_only) %>%
+        ungroup() %>% group_by(mineral_name) %>%
+        mutate(overall_max_age = max(max_age)) %>%
+        filter(max_age == overall_max_age) %>% 
+        ungroup() %>%
+        filter(max_age >= age_limit) %>%
+        select(mineral_name, num_localities, max_age, chemistry_elements) %>%
+        unique() %>%
+        separate_rows(chemistry_elements,sep=" ") 
+        
+    if (nrow(elements_only) == 0) {
+        showModal(modalDialog(
+            title = "There is no network that contains the selected elements as specified.",
+            "Please refresh the page to try again.",
+            easyClose = TRUE,
+            footer = NULL
+        ))
+    }
+    ### 1 row per EDGE, to be joined with edges
+    mineral.element.information <- elements_only %>% 
+        rename(element = chemistry_elements) %>%
+        left_join(element_redox_states) %>% 
+        replace_na(list(redox = 0)) %>% 
+        select(-n) %>%
+        group_by(mineral_name, element, max_age, num_localities) %>%
+        summarize(redox = mean(redox)) %>%   ##  some minerals have a few states
+        unique() %>%
+        ungroup()
+    
+    print(nrow(mineral.element.information))
+    return(mineral.element.information)
 
 }
 
-build.network <- function(elements_only)
+build.network <- function(mineral.element.information)
 {
     
-
-  
-  ####### Get element redox states
-  elements_only %>% select(mineral_name, rruff_chemistry) %>% unique() -> mineral_chem
-  element_redox_states <- tibble("mineral_name" = as.character(), "element" = as.character(), "redox" = as.double(), "n" = as.integer())
-  for (mineral in mineral_chem$mineral_name)
-  {
-    mineral_chem %>%
-      filter(mineral_name == mineral) -> mindat
-    
-    
-    temp <- as.tibble(as.data.frame(str_match_all(mindat$rruff_chemistry, "([A-Z][a-z]*)\\^(\\d)([+-])\\^"), stringsAsFactors=FALSE))
-    if(nrow(temp) == 0)
-    {
-      temp2 <- tibble("mineral_name" = mineral, "element" = NA, "redox" = NA, "n" = 1)
-    } else
-    {
-      temp$X3 <- as.double(temp$X3)
-      temp %>% mutate(thesign = if_else(X4 == "+", 1, -1), 
-                      redox   = X3 * thesign) %>% 
-        select(redox, X2) %>%
-        mutate(mineral_name = mineral, n=1:n()) -> temp2
-      temp2 <- temp2[c(3, 2, 1, 4)]
-      names(temp2) <- c("mineral_name", "element", "redox", "n")
-    }
-    
-    element_redox_states <- bind_rows( element_redox_states, temp2 )
-  }
-  ### 1 row per EDGE, to be joined with edges
-  mineral.element.information <- elements_only %>% 
-    rename(element = chemistry_elements) %>%
-    left_join(element_redox_states) %>% 
-    replace_na(list(redox = 0)) %>% 
-    group_by(mineral_name, element, max_age, num_localities) %>%
-    summarize(redox = mean(redox)) %>%   ##  some minerals have a few states
-    unique() %>%
-    ungroup()
-  
   ## Build the network here so can obtain information for cluster, degree (save in separate tibble since both minerals and elements need a row)
   network.data <- mineral.element.information %>% select(mineral_name, element)
   element.network <- graph.data.frame(network.data, directed=FALSE)
@@ -101,10 +126,10 @@ build.network <- function(elements_only)
 
   net <- toVisNetworkData(element.network)
   
-  edges <- as.tibble(net$edges) %>% 
+  edges <- as_tibble(net$edges) %>% 
     bind_cols(mineral.element.information)
   
-  nodes <- as.tibble(net$nodes) %>%
+  nodes <- as_tibble(net$nodes) %>%
     mutate(type = ifelse(type == FALSE, "mineral", "element")) %>% 
     left_join(vertex.information)
   

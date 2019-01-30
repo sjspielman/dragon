@@ -9,19 +9,11 @@ library(visNetwork)
 library(magrittr)
 library(cowplot)
 library(igraph)
-library(pdfr)
+
 source("build_network.R")
-################ Prepare database information for use #############################
+
 ages <- tibble("eon" = c("hadean", "archean", "paleo", "present"), "ga" = c(4, 2.5, 1.6, 0))
-
-# > names(rruff)
-#    [1] "mineral_name"       "mineral_id"         "mindat_id"         
-#    [4] "at_locality"        "is_remote"          "rruff_chemistry"   
-#    [7] "max_age"            "chemistry_elements"
-
-
-
-## is_remote = is the age actually associated with the locality (1) or was is ported from another locality (0)
+rruff <- read_csv("data/rruff_minerals.csv") %>% mutate(max_age = max_age/1000)   
 variable_to_title <- list("redox" = "Mean Redox State", 
                           "max_age" = "Maximum Age (Ga)", 
                           "num_localities" = "Number of known localities", 
@@ -69,26 +61,84 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
 }
 
   
-server <- function(input, output, session) {
     
     
     output$mineral_size_statement <- renderText({ "<b>There is no size scheme available for minerals. All mineral nodes will have the same selected size.</b>" }) 
     
-    
     #####################################################################################################    
     ################################# Build network with reactivity #####################################
-  
+    mynetwork <- reactive({ 
     
-    create_network <- reactive({
+        ## no more isolating, it's not that slow.
+        elements_of_interest <- input$element_of_interest
+        force_all_elements   <- input$force_all_elements
+        select_all_elements  <- input$select_all_elements
+
+        if (is.null(elements_of_interest)) {
+            showModal(modalDialog(
+                title = "No elements were selected.",
+                "Please refresh the page and try again.",
+                easyClose = TRUE,
+                size = "l"
+            ))
+        }
         
-        include_age  <- input$include_age
-        age_limit    <- ages$ga[ages$eon == include_age] 
-        thenetwork   <- initialize_network(input$elements_of_interest, input$force_all_elements, input$select_all_elements, age_limit)
-        nodes        <- thenetwork$nodes
-        edges        <- thenetwork$edges
+        elements_only  <- subset.rruff(rruff, elements_of_interest, force_all_elements, select_all_elements)
+    
+
+        if (nrow(elements_only) == 0) {
+            showModal(modalDialog(
+                title = "There is no network that contains the selected elements as specified.",
+                "Please refresh the page and try again.",
+                easyClose = TRUE,
+                size = "l"
+            ))
+        }
         
+
+        include_age  <- 2.5
+        age_limit <- ages$ga[ages$eon == include_age]
+
+        elements_only <- elements_only %>%
+            group_by(mineral_name) %>% 
+            summarize(num_localities = sum(at_locality)) %>%
+            left_join(elements_only) %>%
+            ungroup() %>% group_by(mineral_name) %>%
+            mutate(overall_max_age = max(max_age)) %>%
+            filter(max_age == overall_max_age) %>% 
+            ungroup() %>%
+            filter(max_age >= age_limit) %>%
+            select(mineral_name, num_localities, max_age, rruff_chemistry, chemistry_elements) %>%
+            unique() %>%
+            separate_rows(chemistry_elements,sep=" ") 
+
+        
+#         if (nrow(elements_only) == 0) {
+#             showModal(modalDialog(
+#                 title = "There is no network at this eon specification.",
+#                 "Please refresh the page to try again.",
+#                 easyClose = TRUE,
+#                 footer = NULL
+#             ))
+#         }
+        
+        
+        ###### todo, show all ages on a page. will require a new tab eventually #####
+        #if (include_age == "all")
+        #{
+        #    age_limit <- 0
+        #else {
+        #    age_limit <- ages$mya[ages$eon == include_age]
+        #}  
+
+        net <- build.network(elements_only)
+        edges <- net$edges
+        nodes <- net$nodes
         mineral_names <- nodes$label[nodes$type == "mineral"]
         element_names <- nodes$label[nodes$type == "element"]
+            
+        ##################################################
+                
 
     
         colorlegend_single <- NA   ## when there is only 1 ("single") legend to reveal - used for color by cluster.
@@ -224,10 +274,10 @@ server <- function(input, output, session) {
         if(input$highlight_my_element)
         {
             if (input$element_shape == "text") {
-                nodes %<>% mutate(font.color = ifelse(type == "element" & label %in% input$elements_of_interest, input$elementhighlight, font.color))
+                nodes %<>% mutate(font.color = ifelse(type == "element" & label %in% elements_of_interest, input$elementhighlight, font.color))
                 
             } else{
-                nodes %<>% mutate(color.background = ifelse(type == "element" & label %in% input$elements_of_interest, input$elementhighlight, color.background))
+                nodes %<>% mutate(color.background = ifelse(type == "element" & label %in% elements_of_interest, input$elementhighlight, color.background))
             }
         }
         
@@ -243,31 +293,32 @@ server <- function(input, output, session) {
         nodes %<>% mutate(label = ifelse(type == "element" & nchar(label) == 1, paste0(" ", label, " "), paste0(label, " ")),  ## 2/1 
                           font.face = "courier")
 
+        
+        
+   
+
         return (list("nodes" = nodes, "edges" = edges, "finallegend" = finallegend))
     })
        
        
-        
-        
+    # TODO: https://datastorm-open.github.io/visNetwork/shiny.html
+
     observe({
-
-
+        
         req(input$go > 0) ## will automatically update once this has been clicked once. 
+        net         <- mynetwork()
+        nodes       <- net$nodes
+        edges       <- net$edges
+        finallegend <- net$finallegend
         
-        finalnetwork <- create_network()
-    
-        nodes       <- finalnetwork$nodes
-        edges       <- finalnetwork$edges
-        finallegend <- finalnetwork$finallegend
         
-        print(names(nodes))
         output$networkplot <- renderVisNetwork({
             visNetwork(nodes, edges) %>%
                 visIgraphLayout(layout = input$network_layout, type = "full") %>% ## stabilizes
                 visOptions(highlightNearest = list(enabled =TRUE, degree = 2), 
                            nodesIdSelection = list(enabled = TRUE, 
-                                                   #values = nodes$id[nodes$type == "element"],
-                                                   main    = "Select node to view",
+                                                   values = nodes$id[nodes$type == "element"],
+                                                   main    = "Select element to view",
                                                    style   = "width: 200px; font-size: 16px; height: 26px; margin: 0.5em 0.5em 0em 0.5em;")  ##t r b l 
                        ) 
         })
@@ -293,77 +344,21 @@ server <- function(input, output, session) {
         # make sure stays in observe
         visNetworkProxy("networkplot") %>% visGetSelectedNodes()
   
-        ### TODO: FIX THIS
+    
         output$nodeTable <- renderDT({
-        
-            mineral_names <- nodes$label[nodes$type == "mineral"]
-            if (input$networkplot_selected %in% mineral_names){
-                nodes %>%
-                    filter(label == input$networkplot_selected) -> outtab
-               # outtab <- NULL
-            }
-            else{
-                edges %>% 
-                    filter(element == input$networkplot_selected) %>% 
-                    select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry) %>%
-                    rename("Element"                        = element,
-                           "Mineral"                        = mineral_name, 
-                           "Maximum age (Ga)"              = max_age, 
-                           "Number of known localities"     = num_localities, 
-                           "Element redox state in mineral" = redox,
-                           "Chemistry"                      = rruff_chemistry) %>%
-                    arrange(`Maximum age (Ga)`, Mineral)  -> outtab
-            }
+            edges %>% 
+                filter(element == input$networkplot_selected) %>% 
+                select(element, mineral_name, max_age, num_localities, redox) %>%
+                rename("Element"                        = element,
+                       "Mineral"                        = mineral_name, 
+                       "Maximum age (Ga)"              = max_age, 
+                       "Number of known localities"     = num_localities, 
+                       "Element redox state in mineral" = redox) %>%
+                arrange(`Maximum age (Ga)`, Mineral)  -> outtab
                 outtab
         })
     
     
     
     })     
-
-
-
-
-
-#         output$download_plot <- downloadHandler(
-#             filename = function() {
-#                 "network.pdf"
-#             },
-#             content = function(file) {
-#                 pdf(file)
-#                 plot(element.network, layout = layout_with_fr, width=8, height=8)
-#                 dev.off()
-#             }
-#         )
-#         
-#         output$downloadl <- renderUI({
-#             downloadButton('download_legend', 'Download network legend')
-#         })
-#         output$download_legend <- downloadHandler(
-#             filename = function() {
-#                 "network_legend.pdf"
-#             },
-#             content = function(file) {
-#                 save_plot(file, plot_legend(colorlegend, sizelegend), base_width=8, base_height=3)
-#             }
-#         )
-# 
-#         output$downloaddata <- renderUI({
-#             downloadButton('download_data', 'Download network data')
-#         })
-#         output$download_data <- downloadHandler(
-#             filename = function() {
-#                 "network.gml"
-#             },
-#             content = function(file) {
-#                 V(element.network)$label.color[V(element.network)$label.color == "NA"] <- ""
-#                 write_graph(element.network, file, format = "gml") 
-#             }
-#         )
-# 
-#     
-    
-
- 
-}
 
