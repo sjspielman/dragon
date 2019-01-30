@@ -5,6 +5,6 @@ account: sjspielman
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 639805
-bundleId: 1832580
+bundleId: 1846702
 url: https://sjspielman.shinyapps.io/shinymineral/
-when: 1548273541.16607
+when: 1548880850.56144

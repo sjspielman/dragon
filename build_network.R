@@ -81,6 +81,7 @@ subset.rruff <- function(elements_of_interest, force_all_elements, select_all_el
             easyClose = TRUE,
             footer = NULL
         ))
+        Sys.sleep(10)
     }
     ### 1 row per EDGE, to be joined with edges
     mineral.element.information <- elements_only %>% 
