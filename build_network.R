@@ -5,7 +5,8 @@ rruff_separated      <- read_csv("data/rruff_separated_elements.csv")
 
 rruff_chemistry <- rruff_separated %>% select(-chemistry_elements) %>% unique()
 
-initialize_network <- function(elements_of_interest, force_all_elements, select_all_elements, age_limit){ 
+initialize_data <- function(elements_of_interest, force_all_elements, select_all_elements, age_limit)
+{ 
 
 
     if(select_all_elements){
@@ -20,20 +21,8 @@ initialize_network <- function(elements_of_interest, force_all_elements, select_
             size = "l"
         ))
         Sys.sleep(3)
-#         updateSelectInput(session, "elements_of_interest", "Ag")
-#         elements_of_interest <- input$elements_of_interest 
     }
     
-    network_info <- subset.rruff(elements_of_interest, force_all_elements, select_all_elements, age_limit)   
-    thenetwork   <- build.network(network_info) 
-    
-    return (thenetwork)
-}
-
-  
-  
-subset.rruff <- function(elements_of_interest, force_all_elements, select_all_elements, age_limit)
-{
     if (select_all_elements)
     {
         elements_only <- rruff_sub
@@ -70,13 +59,8 @@ subset.rruff <- function(elements_of_interest, force_all_elements, select_all_el
 
         ))
         Sys.sleep(3)
- #        updateCheckboxInput(session, "force_all_elments", FALSE)
-#         updateSelectInput(session, "elements_of_interest", "Ag")
-#         force_all_elments <- input$force_all_elments
-#         elements_of_interest <- input$elements_of_interest
-#         
     }
-    
+
     elements_only %<>% 
         group_by(mineral_name) %>% 
         summarize(num_localities = sum(at_locality)) %>%
@@ -89,75 +73,55 @@ subset.rruff <- function(elements_of_interest, force_all_elements, select_all_el
         select(mineral_name, num_localities, max_age, chemistry_elements) %>%
         unique() %>%
         separate_rows(chemistry_elements,sep=" ") 
-    
-    if (nrow(elements_only) == 0) {
-        showModal(modalDialog(
-            title = "ERROR: There is no network that contains the selected element at the eon specified.",
-            "You must refresh the web page.",
-            easyClose = FALSE,
-            footer = NULL,
-            size = "l"
-        ))
-        Sys.sleep(3)
-#         updateCheckboxInput(session, "select_all_elments", FALSE)
-#         updateCheckboxInput(session, "force_all_elments", FALSE)
-#         updateSelectInput(session, "include_age", "present")
-#         updateSelectInput(session, "elements_of_interest", "Ag")
-    }
-    
-    
-    ### 1 row per EDGE, to be joined with edges
-    mineral.element.information <- elements_only %>%
+
+    elements_only %>%
         rename(element = chemistry_elements) %>%
         left_join(element_redox_states) %>% 
-        replace_na(list(redox = 0)) %>% 
-        select(-n) %>%
         group_by(mineral_name, element, max_age, num_localities) %>%
         summarize(redox = mean(redox)) %>%   ##  some minerals have a few states
         unique() %>%
-        ungroup()
+        ungroup() -> network_information    
     
-    return(mineral.element.information)
-
+    network_information    
 }
 
-build.network <- function(mineral.element.information)
+
+construct_network   <- function(network_information)
 {
-    
-  ## Build the network here so can obtain information for cluster, degree (save in separate tibble since both minerals and elements need a row)
-  network.data <- mineral.element.information %>% select(mineral_name, element)
-  element.network <- graph.data.frame(network.data, directed=FALSE)
-  V(element.network)$type <- bipartite_mapping(element.network)$type 
-  clustered.net <- cluster_louvain(element.network)
-  deg <- degree(element.network, mode="all")
 
-  ### 1 row per VERTEX, to be joined with nodes
-  minerals.as.item <- mineral.element.information %>% 
-    group_by(mineral_name) %>%
-    summarize(mean_redox = mean(redox)) %>%   
-    left_join(mineral.element.information) %>%
-    select(mineral_name, mean_redox, num_localities, max_age) %>%
-    rename(item = mineral_name) %>%
-    unique() 
-  
-   vertex.information <- left_join( tibble("item" = clustered.net$names, "cluster_ID"= as.numeric(clustered.net$membership)),
-                                   tibble("item" = names(deg), "network_degree"= as.numeric(deg)) ) %>%
-    mutate(type = ifelse(item %in% mineral.element.information$mineral_name, "mineral", "element")) %>%
-    group_by(type) %>%
-    mutate(network_degree_norm = network_degree / max(network_degree)) %>%
-    ungroup() %>%              
-    left_join(minerals.as.item) %>%
-    rename(id = item, redox = mean_redox)
+    network_data <- network_information %>% select(mineral_name, element)
+        element_network <- graph.data.frame(network_data, directed=FALSE)
+        V(element_network)$type <- bipartite_mapping(element_network)$type 
+        clustered_net <- cluster_louvain(element_network)
+        deg <- degree(element_network, mode="all")
 
-  net <- toVisNetworkData(element.network)
-  
-  edges <- as_tibble(net$edges) %>% 
-    bind_cols(mineral.element.information)
-  
-  nodes <- as_tibble(net$nodes) %>%
-    mutate(type = ifelse(type == FALSE, "mineral", "element")) %>% 
-    left_join(vertex.information)
-  
-  
-  return (list("nodes" = nodes, "edges" = edges))
+        ### 1 row per VERTEX, to be joined with nodes
+    minerals_as_item <- network_information %>% 
+        group_by(mineral_name) %>%
+        summarize(mean_redox = mean(redox)) %>%   
+        left_join(network_information) %>%
+        select(mineral_name, mean_redox, num_localities, max_age) %>%
+        rename(item = mineral_name) %>%
+        unique() 
+
+    vertex_information <- left_join( tibble("item" = clustered_net$names, "cluster_ID"= as.numeric(clustered_net$membership)),
+                                     tibble("item" = names(deg), "network_degree"= as.numeric(deg)) ) %>%
+        mutate(type = ifelse(item %in% network_information$mineral_name, "mineral", "element")) %>%
+        group_by(type) %>%
+        mutate(network_degree_norm = network_degree / max(network_degree)) %>%
+        ungroup() %>%              
+        left_join(minerals_as_item) %>%
+        rename(id = item, redox = mean_redox)
+
+    net <- toVisNetworkData(element_network)
+
+    edges <- as_tibble(net$edges) %>% bind_cols(network_information)
+
+    nodes <- as_tibble(net$nodes) %>%
+              mutate(type = ifelse(type == FALSE, "mineral", "element")) %>% 
+              left_join(vertex_information)
+
+    return (list("nodes" = nodes, "edges" = edges))
 }
+  
+  

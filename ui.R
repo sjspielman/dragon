@@ -40,7 +40,7 @@ palette.label.colors <- ifelse(brewer.palettes$category == "seq", "black", "whit
 #################################################################################################
 
 
-ui <- fluidPage(theme = shinytheme("simplex"),
+ui <- fluidPage(theme = shinytheme("united"),
 
   # App title
   titlePanel("Exploring Mineral Chemistry Networks using the rruff database"),
@@ -53,46 +53,34 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     # Sidebar panel for inputs
     sidebarPanel(
     
-    
-   selectInput("elements_of_interest", tags$b("Select the element(s) whose mineral network you'd like to analyze"),
-        c("Ag" = "Ag", "Al" = "Al", "As" = "As", "Au" = "Au", "B" = "B", "Ba" = "Ba", "Be" = "Be", "Bi" = "Bi", "Br" = "Br", "C" = "C", "Ca" = "Ca", "Cd" = "Cd", "Ce" = "Ce", "Cl" = "Cl", "Co" = "Co", "Cr" = "Cr", "Cs" = "Cs", "Cu" = "Cu", "Dy" = "Dy", "Er" = "Er", "F" = "F", "Fe" = "Fe", "Ga" = "Ga", "Gd" = "Gd", "Ge" = "Ge", "H" = "H", "Hf" = "Hf", "Hg" = "Hg", "I" = "I", "In" = "In", "Ir" = "Ir", "K" = "K", "La" = "La", "Li" = "Li", "Mg" = "Mg", "Mn" = "Mn", "Mo" = "Mo", "N" = "N", "Na" = "Na", "Nb" = "Nb", "Nd" = "Nd", "Ni" = "Ni", "O" = "O", "Os" = "Os", "P" = "P", "Pb" = "Pb", "Pd" = "Pd", "Pt" = "Pt", "Rb" = "Rb", "Re" = "Re", "REE" = "REE", "Rh" = "Rh", "Ru" = "Ru", "S" = "S", "Sb" = "Sb", "Sc" = "Sc", "Se" = "Se", "Si" = "Si", "Sm" = "Sm", "Sn" = "Sn", "Sr" = "Sr", "Ta" = "Ta", "Te" = "Te", "Th" = "Th", "Ti" = "Ti", "Tl" = "Tl", "U" = "U", "V" = "V", "W" = "W", "Y" = "Y", "Yb" = "Yb", "Zn" = "Zn", "Zr" = "Zr"),
-        multiple=TRUE
+    h3("Element and mineral selection"),
+    hr(),
+    selectInput("elements_of_interest", tags$b("Select the element(s) whose mineral network you'd like to analyze"),
+            c("Ag" = "Ag", "Al" = "Al", "As" = "As", "Au" = "Au", "B" = "B", "Ba" = "Ba", "Be" = "Be", "Bi" = "Bi", "Br" = "Br", "C" = "C", "Ca" = "Ca", "Cd" = "Cd", "Ce" = "Ce", "Cl" = "Cl", "Co" = "Co", "Cr" = "Cr", "Cs" = "Cs", "Cu" = "Cu", "Dy" = "Dy", "Er" = "Er", "F" = "F", "Fe" = "Fe", "Ga" = "Ga", "Gd" = "Gd", "Ge" = "Ge", "H" = "H", "Hf" = "Hf", "Hg" = "Hg", "I" = "I", "In" = "In", "Ir" = "Ir", "K" = "K", "La" = "La", "Li" = "Li", "Mg" = "Mg", "Mn" = "Mn", "Mo" = "Mo", "N" = "N", "Na" = "Na", "Nb" = "Nb", "Nd" = "Nd", "Ni" = "Ni", "O" = "O", "Os" = "Os", "P" = "P", "Pb" = "Pb", "Pd" = "Pd", "Pt" = "Pt", "Rb" = "Rb", "Re" = "Re", "REE" = "REE", "Rh" = "Rh", "Ru" = "Ru", "S" = "S", "Sb" = "Sb", "Sc" = "Sc", "Se" = "Se", "Si" = "Si", "Sm" = "Sm", "Sn" = "Sn", "Sr" = "Sr", "Ta" = "Ta", "Te" = "Te", "Th" = "Th", "Ti" = "Ti", "Tl" = "Tl", "U" = "U", "V" = "V", "W" = "W", "Y" = "Y", "Yb" = "Yb", "Zn" = "Zn", "Zr" = "Zr"),
+            multiple=TRUE
     ),
-    #helpText("To select different element(s), you must refresh the page."),
-    #br(),
-    helpText("Note: To change preferences for either of the check boxes below, you must refresh the application."), 
     checkboxInput("force_all_elements",tags$b("Every mineral included in the network contains all selected elements."),value = FALSE), 
     checkboxInput("select_all_elements",tags$b("Select all elements."),value = FALSE), 
-    
-   
-
-
-    #######################################################################################
-
-    #######################################################################################
-    br(),br(),
-    h3("Mineral preferences"),
-    hr(),
-    selectInput("include_age", tags$b("Choose a starting eon for earliest minerals to include in the network:"),
-          c("Include all known minerals"  = "present",
-            "Paleoproteozoic (>= 1.6 Ga)" = "paleo",
-            "Archean (>= 2.5 Ga)"         = "archean",
-            "Hadean (>= 4 Ga)"            = "hadean")
+        
+    selectInput("include_age", tags$b("Choose an eon for minerals to include in the network:"),
+                      c("Include all known minerals"  = "present",
+                        "Paleoproteozoic (>= 1.6 Ga)" = "paleo",
+                        "Archean (>= 2.5 Ga)"         = "archean",
+                        "Hadean (>= 4 Ga)"            = "hadean")
     ),
 
-    
-    
+    #######################################################################################
+
+    ####################################################################################### 
     br(), h3("Network options"),
     hr(),
            
-    br(),h4("Node Colors"),
-    checkboxInput("color_by_cluster",tags$b("Click to color all nodes by network cluster"),value = FALSE), ## Use default ggplot colors.
-    
+    h4("Node Colors"),br(),   
     ## if color_by_cluster is FALSE, reveal element/mineral selections
     conditionalPanel(condition = "input.color_by_cluster == false", 
     fluidRow(
                 column(8,
-                   selectInput("color_element_by", tags$b("Select a color scheme for elements"),
+                   selectInput("color_element_by", tags$b("Select a color scheme for elements:"),
                                 c("Use a single color for all elements"    = "singlecolor",  
                                   "Color elements based on network degree" = "network_degree_norm"))
                    #uiOutput("color_element_by")
@@ -100,7 +88,7 @@ ui <- fluidPage(theme = shinytheme("simplex"),
                 ),
                 column(4,
                     conditionalPanel(condition = "input.color_element_by == 'singlecolor'",   
-                        {colourpicker::colourInput("elementcolor", tags$b("Select element color:"), value = "skyblue")}
+                        {colourpicker::colourInput("elementcolor", tags$b("Element color:"), value = "skyblue")}
                     ),
 
                     conditionalPanel(condition = "input.color_element_by != 'singlecolor'",   
@@ -118,7 +106,7 @@ ui <- fluidPage(theme = shinytheme("simplex"),
           ),
         fluidRow(
              column(8,
-                selectInput("color_mineral_by", tags$b("Select a color scheme for minerals"),
+                selectInput("color_mineral_by", tags$b("Select a color scheme for minerals:"),
                                 c("Use a single color for all minerals"    = "singlecolor",  
                                   "Color minerals based on mean redox state"      = "redox",        
                                   "Color minerals based on maximum age"           = "max_age",      
@@ -144,15 +132,15 @@ ui <- fluidPage(theme = shinytheme("simplex"),
              ) ## column
        ) ## fluidrow
     ),  ## conditional
-    
+    checkboxInput("color_by_cluster",tags$b("Click to color all nodes by network cluster"),value = FALSE), ## Use default ggplot colors.
     fluidRow(
-        column(8, checkboxInput("highlight_my_element",tags$b("Highlight element(s) of interest"),value = FALSE)),
-        column(4,
-        conditionalPanel(condition = "input.highlight_my_element == true",   
-                     {colourpicker::colourInput("elementhighlight", tags$b("Select highlight color:"), value = "lightgoldenrod1")}
-                 )
-        )
-    ),
+            column(8, checkboxInput("highlight_my_element",tags$b("Highlight element(s) of interest"),value = FALSE)),
+            column(4,
+            conditionalPanel(condition = "input.highlight_my_element == true",   
+                         {colourpicker::colourInput("elementhighlight", tags$b("Select highlight color:"), value = "lightgoldenrod1")}
+                     )
+            )
+        ), 
     
 
     br(),h4("Edge Attributes"),  
@@ -188,18 +176,18 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     br(), h4("Node Size"),
     fluidRow(
         column(8,
-            radioButtons("element_size_type", tags$b("How should element nodes be sized?"), 
+            selectInput("element_size_type", tags$b("Select a size scheme for element nodes"), 
                          c("Single size for all element nodes" = "singlesize",
                            "Size element nodes by network degree" = "network_degree_norm")
                        ), selected = "singlesize"
         ),
         column(4,    
             conditionalPanel(condition = "input.element_size_type == 'singlesize'", 
-                {sliderInput("element_label_size",tags$b("Element node size"),value=50,min=10,max=100, step=10)}) #### !!!!!!! label size!!!!!!!
+                {sliderInput("element_label_size",tags$b("Element size"),value=50,min=10,max=100, step=10)}) #### !!!!!!! label size!!!!!!!
         ),
         column(4,    
             conditionalPanel(condition = "input.element_size_type != 'singlesize'", 
-                {sliderInput("size_scale",tags$b("Scale factor for element node size"),value=50,min=10,max=150,step=10)}) 
+                {sliderInput("size_scale",tags$b("Element size scaler"),value=50,min=10,max=150,step=10)}) 
         )     
     ),
     fluidRow(
@@ -214,7 +202,7 @@ ui <- fluidPage(theme = shinytheme("simplex"),
             ),
         column(4,    
             conditionalPanel(condition = "input.mineral_size_type == 'singlesize'", 
-                { sliderInput("mineral_size",tags$b("Mineral node size"),value=10,min=0,max=50, step = 5)}
+                { sliderInput("mineral_size",tags$b("Mineral size"),value=10,min=0,max=50, step = 5)}
             )
         )
     ),
@@ -223,22 +211,6 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     #   column(8, htmlOutput("mineral_size_statement")), 
     #   column(4, sliderInput("mineral_size",tags$b("Mineral node size"),value=10,min=0,max=50, step = 5))
     #),   
-    
-    br(),h4("Node Labels"),
-    helpText("Element label size is automatically determined based on element node size."),
-    fluidRow(
-            column(6, colourpicker::colourInput("element_label_color",tags$b("Element label color"),value = "#000000"))
-    ),
-       fluidRow( 
-            column(6, checkboxInput("label_mineral",tags$b("Click to show mineral labels"),value = FALSE))
-        ),
-    conditionalPanel(condition = "input.label_mineral", {
-        fluidRow(
-            column(6, sliderInput("mineral_label_size",tags$b("Mineral label font size"),value=10,min=1,max=100)),
-            column(6, colourpicker::colourInput("mineral_label_color",tags$b("Mineral label color"),value = "#000000"))
-        )
-    }),
-
     br(),h4("Node Shapes"),
     fluidRow(
        column(6,
@@ -259,14 +231,30 @@ ui <- fluidPage(theme = shinytheme("simplex"),
             )
         )
     ),
+    
+        
+    br(),h4("Node Labels"),
+    fluidRow(
+            column(6, p("Element labels are scaled to element node size.")),
+            column(6, colourpicker::colourInput("element_label_color",tags$b("Element label color"),value = "#000000"))
+    ),
+       fluidRow( 
+            column(6, checkboxInput("label_mineral",tags$b("Click to show mineral labels"),value = FALSE))
+        ),
+    conditionalPanel(condition = "input.label_mineral", {
+        fluidRow(
+            column(6, sliderInput("mineral_label_size",tags$b("Mineral label font size"),value=10,min=1,max=100)),
+            column(6, colourpicker::colourInput("mineral_label_color",tags$b("Mineral label color"),value = "#000000"))
+        )
+    }),
         
     br(),h4("Display"),
     fluidRow(
        column(6,
             selectInput("network_layout", tags$br("Select a layout algorithm for the network:"),
-                c("Nicely"               = "layout_nicely",
+                c("Kamada-Kawai"         = "layout_with_kk",
                   "Fruchterman Reingold" =  "layout_with_fr",
-                  "Kamada-Kawai"         = "layout_with_kk")
+                  "Circle"               = "layout_in_circle")
             )
         ),
         column(6,

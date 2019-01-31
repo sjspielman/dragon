@@ -65,26 +65,61 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
 }
 
   
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 server <- function(input, output, session) {
     
-    
-    #output$mineral_size_statement <- renderText({ "<b>There is no size scheme available for minerals. All mineral nodes will have the same selected size.</b>" }) 
-    
+
      
     #####################################################################################################    
     ################################# Build network with reactivity #####################################
-  
-    create_network <- reactive({
+
+
+    
+    chemistry_network <- reactive({
+    
+        req(input$elements_of_interest)
         
         elements_of_interest <- input$elements_of_interest
-        include_age          <- input$include_age
-        age_limit            <- ages$ga[ages$eon == include_age] 
         force_all_elements   <- input$force_all_elements
         select_all_elements  <- input$select_all_elements
+        include_age          <- input$include_age
+        age_limit            <- ages$ga[ages$eon == include_age]    
+             
+        network_information   <- initialize_data(elements_of_interest, force_all_elements, select_all_elements, age_limit)
+        network_parts         <- construct_network(network_information)
         
-        thenetwork   <- initialize_network(elements_of_interest, force_all_elements, select_all_elements, age_limit)
-        nodes        <- thenetwork$nodes
-        edges        <- thenetwork$edges
+        return (list("nodes" = network_parts$nodes, "edges" = network_parts$edges))
+        
+        
+    })
+
+
+    style_network <- reactive({
+        
+        
+        chemnet <- chemistry_network()
+        nodes <- chemnet$nodes
+        edges <- chemnet$edges
+        
         
         mineral_names <- nodes$label[nodes$type == "mineral"]
         element_names <- nodes$label[nodes$type == "element"]
@@ -240,22 +275,23 @@ server <- function(input, output, session) {
         }
         
         ### Enter: the hack from hell for element node sizing.
-        nodes %<>% mutate(label = ifelse(type == "element" & nchar(label) == 1, paste0(" ", label, " "), paste0(label, " ")),  ## 2/1 
+        nodes %<>% mutate(label = case_when(type == "element" & nchar(label) == 1 ~ paste0(" ", label, " "),
+                                            type == "element" & nchar(label) == 2 ~ paste0(label, " "),
+                                            type == "element" & nchar(label) == 3 ~ label),                        
                           font.face = "courier")
 
         return (list("nodes" = nodes, "edges" = edges, "finallegend" = finallegend))
     })
        
-       
-        
+              
         
     observe({
+  
 
-
-        req(input$go > 0) ## will automatically update once this has been clicked once. 
+        req(input$go > 0) 
         
-        finalnetwork <- create_network()
-    
+        finalnetwork <- style_network()
+        
         nodes       <- finalnetwork$nodes
         edges       <- finalnetwork$edges
         finallegend <- finalnetwork$finallegend
@@ -332,49 +368,9 @@ server <- function(input, output, session) {
     
     })     
 
-
-
-
-
-#         output$download_plot <- downloadHandler(
-#             filename = function() {
-#                 "network.pdf"
-#             },
-#             content = function(file) {
-#                 pdf(file)
-#                 plot(element.network, layout = layout_with_fr, width=8, height=8)
-#                 dev.off()
-#             }
-#         )
-#         
-#         output$downloadl <- renderUI({
-#             downloadButton('download_legend', 'Download network legend')
-#         })
-#         output$download_legend <- downloadHandler(
-#             filename = function() {
-#                 "network_legend.pdf"
-#             },
-#             content = function(file) {
-#                 save_plot(file, plot_legend(colorlegend, sizelegend), base_width=8, base_height=3)
-#             }
-#         )
-# 
-#         output$downloaddata <- renderUI({
-#             downloadButton('download_data', 'Download network data')
-#         })
-#         output$download_data <- downloadHandler(
-#             filename = function() {
-#                 "network.gml"
-#             },
-#             content = function(file) {
-#                 V(element.network)$label.color[V(element.network)$label.color == "NA"] <- ""
-#                 write_graph(element.network, file, format = "gml") 
-#             }
-#         )
-# 
-#     
+}
     
 
  
-}
+
 
