@@ -13,14 +13,18 @@ initialize_network <- function(elements_of_interest, force_all_elements, select_
     }
     if (is.null(elements_of_interest)) {
         showModal(modalDialog(
-            title = "No elements were selected.",
-            "Please refresh the page and try again.",
-            easyClose = TRUE,
+            title = "ERROR: No elements were selected.",
+            "You must refresh the web page",
+            easyClose = FALSE,
+            footer = NULL,
             size = "l"
         ))
+        Sys.sleep(3)
+#         updateSelectInput(session, "elements_of_interest", "Ag")
+#         elements_of_interest <- input$elements_of_interest 
     }
     
-    network_info <- subset.rruff(elements_of_interest, force_all_elements, select_all_elements, age_limit)
+    network_info <- subset.rruff(elements_of_interest, force_all_elements, select_all_elements, age_limit)   
     thenetwork   <- build.network(network_info) 
     
     return (thenetwork)
@@ -56,15 +60,23 @@ subset.rruff <- function(elements_of_interest, force_all_elements, select_all_el
      
         }  
     }
-#     if (nrow(elements_only) == 0) {
-#         showModal(modalDialog(
-#             title = "There is no network that contains the selected elements as specified.",
-#             "Please refresh the page and try again.",
-#             easyClose = TRUE,
-#             size = "l"
-#         ))
-#     }
-#     
+    if (nrow(elements_only) == 0) {
+        showModal(modalDialog(
+            title = "ERROR: There is no network that contains the selected elements as specified.",
+            "You must refresh the web page.",
+            easyClose = FALSE,
+            footer = NULL,
+            size = "l"
+
+        ))
+        Sys.sleep(3)
+ #        updateCheckboxInput(session, "force_all_elments", FALSE)
+#         updateSelectInput(session, "elements_of_interest", "Ag")
+#         force_all_elments <- input$force_all_elments
+#         elements_of_interest <- input$elements_of_interest
+#         
+    }
+    
     elements_only %<>% 
         group_by(mineral_name) %>% 
         summarize(num_localities = sum(at_locality)) %>%
@@ -77,18 +89,25 @@ subset.rruff <- function(elements_of_interest, force_all_elements, select_all_el
         select(mineral_name, num_localities, max_age, chemistry_elements) %>%
         unique() %>%
         separate_rows(chemistry_elements,sep=" ") 
-        
+    
     if (nrow(elements_only) == 0) {
         showModal(modalDialog(
-            title = "There is no network that contains the selected elements as specified.",
-            "Please refresh the page to try again.",
-            easyClose = TRUE,
-            footer = NULL
+            title = "ERROR: There is no network that contains the selected element at the eon specified.",
+            "You must refresh the web page.",
+            easyClose = FALSE,
+            footer = NULL,
+            size = "l"
         ))
-        Sys.sleep(10)
+        Sys.sleep(3)
+#         updateCheckboxInput(session, "select_all_elments", FALSE)
+#         updateCheckboxInput(session, "force_all_elments", FALSE)
+#         updateSelectInput(session, "include_age", "present")
+#         updateSelectInput(session, "elements_of_interest", "Ag")
     }
+    
+    
     ### 1 row per EDGE, to be joined with edges
-    mineral.element.information <- elements_only %>% 
+    mineral.element.information <- elements_only %>%
         rename(element = chemistry_elements) %>%
         left_join(element_redox_states) %>% 
         replace_na(list(redox = 0)) %>% 

@@ -60,9 +60,9 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     ),
     #helpText("To select different element(s), you must refresh the page."),
     #br(),
+    helpText("Note: To change preferences for either of the check boxes below, you must refresh the application."), 
     checkboxInput("force_all_elements",tags$b("Every mineral included in the network contains all selected elements."),value = FALSE), 
-    checkboxInput("select_all_elements",tags$b("Select all elements"),value = FALSE), 
-    helpText("Note: When selecting all elements, this application may slow down substantially."), 
+    checkboxInput("select_all_elements",tags$b("Select all elements."),value = FALSE), 
     
    
 
@@ -100,7 +100,7 @@ ui <- fluidPage(theme = shinytheme("simplex"),
                 ),
                 column(4,
                     conditionalPanel(condition = "input.color_element_by == 'singlecolor'",   
-                        {colourInput("elementcolor", tags$b("Select element color:"), value = "skyblue")}
+                        {colourpicker::colourInput("elementcolor", tags$b("Select element color:"), value = "skyblue")}
                     ),
 
                     conditionalPanel(condition = "input.color_element_by != 'singlecolor'",   
@@ -127,7 +127,7 @@ ui <- fluidPage(theme = shinytheme("simplex"),
              ),
              column(4,
                  conditionalPanel(condition = "input.color_mineral_by == 'singlecolor'",   
-                     {colourInput("mineralcolor", tags$b("Select mineral color:"), value = "firebrick3")}
+                     {colourpicker::colourInput("mineralcolor", tags$b("Select mineral color:"), value = "firebrick3")}
                  ),
                  conditionalPanel(condition = "input.color_mineral_by != 'singlecolor'",   
                  #conditionalPanel(condition = "output.palette_mineral && input.color_element_by == 'singlecolor'",   
@@ -149,7 +149,7 @@ ui <- fluidPage(theme = shinytheme("simplex"),
         column(8, checkboxInput("highlight_my_element",tags$b("Highlight element(s) of interest"),value = FALSE)),
         column(4,
         conditionalPanel(condition = "input.highlight_my_element == true",   
-                     {colourInput("elementhighlight", tags$b("Select highlight color:"), value = "lightgoldenrod1")}
+                     {colourpicker::colourInput("elementhighlight", tags$b("Select highlight color:"), value = "lightgoldenrod1")}
                  )
         )
     ),
@@ -166,7 +166,7 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     
       column(4,
           conditionalPanel(condition = "input.color_edge_by == 'singlecolor'",   
-              {colourInput("edgecolor", tags$b("Edge color:"), value = "#5E5E5E")}
+              {colourpicker::colourInput("edgecolor", tags$b("Edge color:"), value = "#5E5E5E")}
           ),
 
           conditionalPanel(condition = "input.color_edge_by != 'singlecolor'",   
@@ -227,7 +227,7 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     br(),h4("Node Labels"),
     helpText("Element label size is automatically determined based on element node size."),
     fluidRow(
-            column(6, colourInput("element_label_color",tags$b("Element label color"),value = "#000000"))
+            column(6, colourpicker::colourInput("element_label_color",tags$b("Element label color"),value = "#000000"))
     ),
        fluidRow( 
             column(6, checkboxInput("label_mineral",tags$b("Click to show mineral labels"),value = FALSE))
@@ -235,7 +235,7 @@ ui <- fluidPage(theme = shinytheme("simplex"),
     conditionalPanel(condition = "input.label_mineral", {
         fluidRow(
             column(6, sliderInput("mineral_label_size",tags$b("Mineral label font size"),value=10,min=1,max=100)),
-            column(6, colourInput("mineral_label_color",tags$b("Mineral label color"),value = "#000000"))
+            column(6, colourpicker::colourInput("mineral_label_color",tags$b("Mineral label color"),value = "#000000"))
         )
     }),
 

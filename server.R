@@ -9,7 +9,7 @@ library(visNetwork)
 library(magrittr)
 library(cowplot)
 library(igraph)
-library(pdfr)
+
 source("build_network.R")
 ################ Prepare database information for use #############################
 ages <- tibble("eon" = c("hadean", "archean", "paleo", "present"), "ga" = c(4, 2.5, 1.6, 0))
@@ -45,11 +45,9 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
     
     cvar <- as.symbol(color_variable)
     dat %>% mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
-    pdfr(dat2)
-    print(color_variable)
-    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) + guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
+
+    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) + guides(colour = guide_legend(title.position="top", title.hjust = 0.5))
     if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1)+ guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
-    print(p)
     
     if (return_color_tibble)
     {
@@ -70,18 +68,21 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
 server <- function(input, output, session) {
     
     
-    output$mineral_size_statement <- renderText({ "<b>There is no size scheme available for minerals. All mineral nodes will have the same selected size.</b>" }) 
+    #output$mineral_size_statement <- renderText({ "<b>There is no size scheme available for minerals. All mineral nodes will have the same selected size.</b>" }) 
     
-    
+     
     #####################################################################################################    
     ################################# Build network with reactivity #####################################
   
-    
     create_network <- reactive({
         
-        include_age  <- input$include_age
-        age_limit    <- ages$ga[ages$eon == include_age] 
-        thenetwork   <- initialize_network(input$elements_of_interest, input$force_all_elements, input$select_all_elements, age_limit)
+        elements_of_interest <- input$elements_of_interest
+        include_age          <- input$include_age
+        age_limit            <- ages$ga[ages$eon == include_age] 
+        force_all_elements   <- input$force_all_elements
+        select_all_elements  <- input$select_all_elements
+        
+        thenetwork   <- initialize_network(elements_of_interest, force_all_elements, select_all_elements, age_limit)
         nodes        <- thenetwork$nodes
         edges        <- thenetwork$edges
         
@@ -89,10 +90,10 @@ server <- function(input, output, session) {
         element_names <- nodes$label[nodes$type == "element"]
 
     
-        colorlegend_single <- NA   ## when there is only 1 ("single") legend to reveal - used for color by cluster.
-        colorlegend_edge   <- NA   ## when edges are scaled by a color
-        colorlegend_mineral <- NA  ## always qqch unless single
-        colorlegend_element <- NA  ## always qqch unless single
+        colorlegend_allnodes <- NA   ## shared for color by cluster.
+        colorlegend_edge     <- NA   ## when edges are scaled by a color
+        colorlegend_mineral  <- NA   ## always qqch unless single
+        colorlegend_element  <- NA   ## always qqch unless single
         ######################################## Edge color ############################################
         ################################################################################################
         if (input$color_edge_by == "singlecolor") edges %<>% mutate(color = input$edgecolor)
@@ -107,7 +108,7 @@ server <- function(input, output, session) {
         if (input$color_by_cluster) 
         {        
             out <- obtain_colors_legend(nodes, "cluster_ID", "d", "NA", "Network cluster identity", FALSE)
-            colorlegend_single <- out$leg
+            colorlegend_allnodes <- out$leg
             nodes %<>% mutate(color.background = out$cols)      
         } else 
         {
@@ -148,17 +149,18 @@ server <- function(input, output, session) {
          }       
  
         ###################################### Finalize legend #####################################
-        if (!is.na(colorlegend_single)) {
-            finallegend <- plot_grid(colorlegend_single)
-        } else 
+
+        if (is.na(colorlegend_allnodes)) 
         {
-            if (is.na(colorlegend_edge)) { 
-                finallegend <- plot_grid(colorlegend_element, colorlegend_mineral, nrow = 1)
-            } else {
-                finallegend <- plot_grid(colorlegend_element, colorlegend_mineral, colorlegend_edge, nrow = 1)
-            }
-        
-        }                
+            colorlegend_allnodes <- plot_grid(colorlegend_element, colorlegend_mineral, nrow=1)
+        } 
+        if (is.na(colorlegend_edge)) 
+        { 
+            finallegend <- plot_grid(colorlegend_allnodes)
+        } else {
+            finallegend <- plot_grid(colorlegend_allnodes, colorlegend_edge, nrow = 1)
+        }
+             
         
                                         
         ###################################### Sizing for ELEMENTS #####################################
