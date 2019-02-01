@@ -275,11 +275,13 @@ server <- function(input, output, session) {
         }
         
         ### Enter: the hack from hell for element node sizing.
-        nodes %<>% mutate(label = case_when(type == "element" & nchar(label) == 1 ~ paste0(" ", label, " "),
+        nodes %<>% mutate(label = case_when(type == "mineral"                     ~ label,
+                                            type == "element" & nchar(label) == 1 ~ paste0(" ", label, " "),
                                             type == "element" & nchar(label) == 2 ~ paste0(label, " "),
                                             type == "element" & nchar(label) == 3 ~ label),                        
                           font.face = "courier")
-
+        print(nodes$label)
+        
         return (list("nodes" = nodes, "edges" = edges, "finallegend" = finallegend))
     })
        
