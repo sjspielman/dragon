@@ -86,7 +86,7 @@ dashboardPage(
                         )
                     
                     ),
-            tabPanel("Node Coloration", 
+            tabPanel("Node Colors", 
                         checkboxInput("color_by_cluster",tags$b("Click to color all nodes by network cluster"),value = FALSE),
                         list(
                             fluidRow(
@@ -191,7 +191,7 @@ dashboardPage(
                     
                     list(
                         fluidRow(
-                            column(6, p("Element labels are scaled to element node size.")),
+                            column(6, p("Note that element labels are scaled to element node size and cannot be sized differently.")),
                             column(6, colourpicker::colourInput("element_label_color",tags$b("Element label color"),value = "#000000"))
                         )
                     ),
@@ -262,13 +262,20 @@ dashboardPage(
                 sliderInput("edge_weight",tags$b("Weight for edges"),value=5,min=1,max=10)      
             ), ## tabpanel,            
             
-            tabPanel("Network Preferences", 
-                selectInput("network_layout", tags$br("Select a layout algorithm for the network:"),
-                    c("Kamada-Kawai"         = "layout_with_kk",
-                      "Fruchterman Reingold" =  "layout_with_fr",
-                       "Circle"               = "layout_in_circle")
-                ),
-                numericInput("selected_degree", tags$br("Degree for highlighting network node connections:"), 2, min = 1, max = 5, step = 1)            
+            tabPanel("Display", 
+                list(
+                    fluidRow(
+                        column(6,
+                            selectInput("network_layout", tags$br("Select a layout algorithm for the network:"),
+                                c("Kamada-Kawai"         = "layout_with_kk",
+                                  "Fruchterman Reingold" =  "layout_with_fr",
+                                   "Circle"               = "layout_in_circle")
+                            )
+                        ),
+                        column(6, numericInput("selected_degree", tags$br("Degree for highlighting network node connections:"), 2, min = 1, max = 5, step = 1)    
+                        )
+                    )
+                )        
             )       
                                      
                                      

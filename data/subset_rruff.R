@@ -44,8 +44,10 @@ rruff_elements %>%
     rename(element = chemistry_elements) %>% 
     left_join(element_redox_states) %>% 
     select(-n) %>%
-    mutate(redox = if_else(element == "O", -2, redox),
-           redox = if_else(element == "H", 1, redox)) %>%
+    mutate(redox = if_else(element == "O", -2, redox),   ### fix, only sometimes
+           redox = if_else(element == "H", 1, redox),    ### fix, only sometimes
+           redox = if_else(element == "Cl", -1, redox),   ### fix, only sometimes
+           redox = if_else(element == "F", -1, redox)) %>%
     replace_na(list(redox = 0)) -> rruff_redox
 write_csv(rruff_redox, "rruff_redox_states.csv")
 
