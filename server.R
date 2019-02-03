@@ -2,6 +2,7 @@ library(shiny)
 library(shinythemes)
 library(shinyWidgets)
 library(colourpicker)
+library(colorspace)
 library(DT)
 library(RColorBrewer)
 library(tidyverse)
@@ -9,18 +10,15 @@ library(visNetwork)
 library(magrittr)
 library(cowplot)
 library(igraph)
+library(pdfr)
 
 source("build_network.R")
-################ Prepare database information for use #############################
-ages <- tibble("eon" = c("hadean", "archean", "paleo", "present"), "ga" = c(4, 2.5, 1.6, 0))
-
-
 
 ## is_remote = is the age actually associated with the locality (1) or was is ported from another locality (0)
 variable_to_title <- list("redox" = "Mean Redox State", 
                           "max_age" = "Maximum Age (Ga)", 
                           "num_localities" = "Number of known localities", 
-                          "network_degree_norm" = "Network degree (normalized)")   
+                          "network_degree_norm" = "Network degree\n(normalized)")   
 
 ## mediocre matching here.
 vis_to_gg_shape <- list("circle"  = 19,
@@ -33,38 +31,62 @@ vis_to_gg_shape <- list("circle"  = 19,
                         "diamond" = 18,
                         "triangle" = 17)
 
+
 geom.point.size <- 12
-theme_set(theme_cowplot() + theme(legend.position = "bottom", 
-                                  legend.text = element_text(size=14),
-                                  legend.key.size = unit(1.25, "cm"),
-                                  legend.title = element_text(size=15),
-                                  legend.box.background = element_rect(color = "white")))
-                                               
-obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, legendtitle, return_color_tibble = TRUE)
+theme_set(theme_cowplot() + theme(legend.position = "bottom",
+                                  legend.text = element_text(size=11),
+                                  legend.key.size = unit(1, "cm"),
+                                  legend.title = element_text(size=13),
+                                  legend.box.background = element_rect(color = "white")))                                  
+obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, legendtitle)
 {
     
     cvar <- as.symbol(color_variable)
     dat %>% mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
 
-    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) + guides(colour = guide_legend(title.position="top", title.hjust = 0.5))
+    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) + guides(colour = guide_legend(title.position="top", title.hjust = 0.5)) + theme(legend.position = "right")
     if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1)+ guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
     
-    if (return_color_tibble)
-    {
-        data.colors <- ggplot_build(p)$data[[1]] %>% 
-                          as_tibble() %>% 
-                          bind_cols(dat2) %>% 
-                          select(colour, label) %>%
-                          rename(color.background = colour)
-    } else 
-    {
-        data.colors <- ggplot_build(p)$data[[1]]$colour
-    }
+    data.colors <- ggplot_build(p)$data[[1]] %>% 
+                    as_tibble() %>% 
+                    bind_cols(dat2) %>%
+                    rename(color = colour) ## god help me, hadley.
+    data.legend <- get_legend(p)
+    return (list("cols" = data.colors, "leg" = data.legend))
+}
+
+obtain_colors_legend_single <- function(group, singleshape, singlecolor)
+{
+#     theme_set(theme_cowplot() + theme(legend.position = "bottom", 
+#                                   legend.text = element_text(size=16),
+#                                   legend.key.size = unit(0.75, "cm"),
+#                                   legend.title = element_text(size=16),
+#                                   legend.box.background = element_rect(color = "white")))
+
+    p <- tibble(x = 1, y = 1, type = group) %>% 
+        ggplot(aes(x=x,y=y,color=type)) + 
+            geom_point(size = geom.point.size, shape = singleshape) + scale_color_manual(name = "", values=c(singlecolor)) + theme(legend.text = element_text(size=16))
+    data.colors <- ggplot_build(p)$data[[1]]$colour
     data.legend <- get_legend(p)
     return (list("cols" = data.colors, "leg" = data.legend))
 }
 
   
+obtain_node_sizes <- function(dat, size_variable, lowsize, highsize, size_scale = 1)
+{
+    
+    svar <- as.symbol(size_variable)
+
+    dat %>% mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
+    p <- ggplot(dat2, aes(x = label, y = !!svar, size = !!svar)) + geom_point() + scale_size(range = c(lowsize,highsize))
+    
+    data.size <-  ggplot_build(p)$data[[1]] %>% 
+                    as_tibble() %>% 
+                    bind_cols(dat2) %>%
+                    mutate(size = size * size_scale)
+
+    return (data.size)
+}
   
   
   
@@ -89,284 +111,312 @@ server <- function(input, output, session) {
     
 
      
-    #####################################################################################################    
-    ################################# Build network with reactivity #####################################
-
-
     
+    ################################# Build network ####################################
     chemistry_network <- reactive({
-    
+        
         req(input$elements_of_interest)
         
         elements_of_interest <- input$elements_of_interest
         force_all_elements   <- input$force_all_elements
-        select_all_elements  <- input$select_all_elements
-        include_age          <- input$include_age
-        age_limit            <- ages$ga[ages$eon == include_age]    
-             
-        network_information   <- initialize_data(elements_of_interest, force_all_elements, select_all_elements, age_limit)
-        network_parts         <- construct_network(network_information)
+        age_limit            <- input$age_limit
+
+        network_information   <- initialize_data(elements_of_interest, force_all_elements, age_limit)
+        network               <- construct_network(network_information)
         
-        return (list("nodes" = network_parts$nodes, "edges" = network_parts$edges))
+        edges <- network$edges     
+        nodes <- network$nodes %>% 
+                     rename(group = type) %>% 
+                     mutate(label = case_when(group == "mineral"                     ~ label,
+                                              group == "element" & nchar(label) == 1 ~ paste0(" ", label, " "),
+                                              group == "element" & nchar(label) == 2 ~ paste0(label, " "),
+                                              group == "element" & nchar(label) == 3 ~ label),                        
+                            font.face = "courier")
         
+           
+        return (list("nodes" = nodes, 
+                     "edges" = edges, 
+                     "mineral_indices" = which(nodes$group == "mineral"),
+                     "element_indices" = which(nodes$group == "element"),
+                     "mineral_labels"  = nodes$label[nodes$group == "mineral"],
+                     "elements_of_interest" = input$elements_of_interest))
         
     })
-
-
-    style_network <- reactive({
-        
-        
-        chemnet <- chemistry_network()
-        nodes <- chemnet$nodes
-        edges <- chemnet$edges
-        
-        
-        mineral_names <- nodes$label[nodes$type == "mineral"]
-        element_names <- nodes$label[nodes$type == "element"]
-
     
-        colorlegend_allnodes <- NA   ## shared for color by cluster.
-        colorlegend_edge     <- NA   ## when edges are scaled by a color
-        colorlegend_mineral  <- NA   ## always qqch unless single
-        colorlegend_element  <- NA   ## always qqch unless single
-        ######################################## Edge color ############################################
-        ################################################################################################
-        if (input$color_edge_by == "singlecolor") edges %<>% mutate(color = input$edgecolor)
-        if (input$color_edge_by != "singlecolor")
-        {
-            out <- obtain_colors_legend(edges, input$color_edge_by, "c", input$edgepalette, "Mean element redox state:", FALSE)
-            edges %<>% mutate(color = out$cols)
-            colorlegend_edge <- out$leg
-        }
-        ################################# Node color and size ##########################################     
-        ################################################################################################
+    
+    
+
+    ######################### Node colors, shape, size, labels #########################
+    node_styler <- reactive({
+
+        node_attr <- list()
+        
+        ################ Colors ####################
         if (input$color_by_cluster) 
         {        
-            out <- obtain_colors_legend(nodes, "cluster_ID", "d", "NA", "Network cluster identity", FALSE)
-            colorlegend_allnodes <- out$leg
-            nodes %<>% mutate(color.background = out$cols)      
+            out <- obtain_colors_legend(chemistry_network()$nodes, "cluster_ID", "d", "NA", "Network cluster identity")
+            node_attr[["leg"]] <- out$leg
+            node_attr[["colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
         } else 
-        {
-            background_colors <- tibble("color.background" = as.character(), "label" = as.character())
-
+        { 
             if (input$color_mineral_by == "singlecolor")
             {
-                background_colors <- bind_rows(background_colors, tibble("color.background" = input$mineralcolor, "label" = mineral_names))
-                p <- tibble(x = 1, y = 1, type = "Mineral") %>%
-                    ggplot(aes(x=x,y=y,color=type)) + geom_point(size = geom.point.size, shape = vis_to_gg_shape[input$mineral_shape]) + scale_color_manual(name = "", values=c(input$mineralcolor)) 
-                colorlegend_mineral <- get_legend(p)
+                out <- obtain_colors_legend_single("Mineral", vis_to_gg_shape[input$mineral_shape], input$mineral_color)
+                colorlegend_mineral <- out$leg
+                node_attr[["mineral_colors"]] <- chemistry_network()$nodes %>% 
+                                                filter(group == "mineral") %>% 
+                                                select(label, id) %>%
+                                                mutate(color.background = input$mineral_color)
                 
             } else
             {  
-                legtitle <- paste("Minerals:\n",variable_to_title[[input$color_mineral_by]])
-                out <- obtain_colors_legend(nodes %>% filter(type == "mineral"), input$color_mineral_by, "c", input$mineralpalette, legtitle)
+                out <- obtain_colors_legend(chemistry_network()$nodes %>% filter(group == "mineral"), input$color_mineral_by, "c", input$mineralpalette, variable_to_title[[input$color_mineral_by]])
                 colorlegend_mineral <- out$leg
-                background_colors <- bind_rows(background_colors, out$cols)
-            }
-            
-            
+                node_attr[["mineral_colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
+            } 
+           
             if (input$color_element_by == "singlecolor")
             {
-                background_colors <- bind_rows(background_colors, tibble("color.background" = input$elementcolor, "label" = element_names))
-                 
-                p <- tibble(x = 1, y = 1, type = "Element") %>%
-                        ggplot(aes(x=x,y=y,color=type)) + geom_point(size = geom.point.size, shape = vis_to_gg_shape[input$element_shape]) + scale_color_manual(name = "", values=c(input$elementcolor)) 
-                colorlegend_element <- get_legend(p)  ### SIZE IS NOT IN HERE
-
+                if (input$element_shape == "text") { this_color <- input$element_label_color} else { this_color <- input$element_color}
+                out <- obtain_colors_legend_single("Element", vis_to_gg_shape[input$element_shape], this_color)
+                colorlegend_element <- out$leg
+                node_attr[["element_colors"]] <- chemistry_network()$nodes %>% 
+                                                filter(group == "element") %>% 
+                                                select(label, id) %>%
+                                                mutate(color.background = input$element_color)
+ 
             } else
             {  
-                legtitle <- paste("Elements:\n",variable_to_title[[input$color_element_by]])
-                out <- obtain_colors_legend(nodes %>% filter(type == "element"), input$color_element_by, "c", input$elementpalette, legtitle)
+                out <- obtain_colors_legend(chemistry_network()$nodes %>% filter(group == "element"), input$color_element_by, "c", input$elementpalette, variable_to_title[[input$color_element_by]])
                 colorlegend_element <- out$leg
-                background_colors <- bind_rows(background_colors, out$cols)   
+                node_attr[["element_colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
             } 
-            nodes %<>% left_join(background_colors)
-         }       
- 
-        ###################################### Finalize legend #####################################
-
-        if (is.na(colorlegend_allnodes)) 
-        {
-            colorlegend_allnodes <- plot_grid(colorlegend_element, colorlegend_mineral, nrow=1)
-        } 
-        if (is.na(colorlegend_edge)) 
-        { 
-            finallegend <- plot_grid(colorlegend_allnodes)
-        } else {
-            finallegend <- plot_grid(colorlegend_allnodes, colorlegend_edge, nrow = 1)
-        }
-             
+            node_attr[["leg"]] <- plot_grid(colorlegend_element, colorlegend_mineral, nrow=2)
+            node_attr[["colors"]] <- bind_rows(node_attr[["element_colors"]], node_attr[["mineral_colors"]]) 
+        }   
         
-                                        
-        ###################################### Sizing for ELEMENTS #####################################
-        ################################################################################################
-        ## note: Size in the legend is a problem due to radically different ggplot and visnetwork scales. Solution: node information on click rather than size in legend
+        ################ Sizes ####################
         if (input$element_size_type != "singlesize") 
         {
-            #legtitle <- paste("Element size scale:",variable_to_title[[input$element_size_type]])
-            sizevar <- as.symbol(input$element_size_type)
+            node_attr[["sizes"]] <- obtain_node_sizes(chemistry_network()$nodes %>% filter(group == "element"), 
+                                                            input$element_size_type, 1, 4, size_scale = input$size_scale) %>%
+                                                        select(label, id, size) %>%
+                                                        mutate(group = "element") 
 
-            n2 <- nodes %>% filter(type == "element")
-            psize <- ggplot(n2, aes(x = label, y = !!sizevar, size = !!sizevar)) + geom_point() + scale_size(range = c(1,4))
+        } else
+        {
+            node_attr[["sizes"]] <- chemistry_network()$nodes %>% 
+                                                filter(group == "element") %>% 
+                                                select(label, id, group) %>%
+                                                mutate(size = input$element_label_size)
 
-            final_element_size <- ggplot_build(psize)$data[[1]] %>% 
-                                    as_tibble() %>% 
-                                    bind_cols(n2) %>%  
-                                    select(size, label, type) %>%
-                                    mutate(size = size * input$size_scale) %>% 
-                                    rename(font.size = size)
-           
-            nodes %<>% 
-                filter(type == "mineral") %>%
-                select(label, type) %>%
-                mutate(font.size = 0) %>%
-                bind_rows(final_element_size) %>% 
-                right_join(nodes) %>%
-                mutate(font.size = ifelse(type == "element", font.size, "NA"))
-        } else 
-        { 
-            nodes %<>% mutate(font.size = ifelse(type == "element", input$element_label_size, "NA"))
-        }
-        
+        }                     
+         
         if (input$mineral_size_type != "singlesize") {
-            #legtitle <- paste("Element size scale:",variable_to_title[[input$element_size_type]])
-            sizevar <- as.symbol(input$mineral_size_type)
-
-            n2 <- nodes %>% filter(type == "mineral")
-            psize <- ggplot(n2, aes(x = label, y = !!sizevar, size = !!sizevar)) + geom_point() + scale_size(range = c(5,30))
-
-            ggplot_build(psize)$data[[1]] %>% 
-                                    as_tibble() %>% 
-                                    bind_cols(n2) %>%  
-                                    select(size, label, type) %>%
-                                    right_join(nodes) -> nodes
-
+             minsizes <- obtain_node_sizes(chemistry_network()$nodes %>% filter(group == "mineral"), 
+                                                            input$mineral_size_type, 5, 30) %>%
+                                                            select(label, id, size) %>%
+                                                            mutate(group = "mineral")
+ 
         } else 
         {
-            nodes %<>% mutate(size = input$mineral_size)
-        }
-        
-        element_label_color <- input$element_label_color
-        if(input$element_shape == "text" && input$color_element_by == "singlecolor"){ element_label_color <- input$elementcolor }
-        
-        nodes %<>%
-            mutate(font.color = ifelse(type == "element", element_label_color, "NA"),
-                 shape      = ifelse(type == "element", input$element_shape, input$mineral_shape),
-                 color.border =  "black"
-                )
-   
-   
-        if(input$highlight_my_element)
-        {
-            if (input$element_shape == "text") {
-                nodes %<>% mutate(font.color = ifelse(type == "element" & label %in% input$elements_of_interest, input$elementhighlight, font.color))
-                
-            } else{
-                nodes %<>% mutate(color.background = ifelse(type == "element" & label %in% input$elements_of_interest, input$elementhighlight, color.background))
-            }
-        }
-        
-        edges %<>% mutate(width = input$edge_weight)
-       
-        if (input$label_mineral) 
+            minsizes <- chemistry_network()$nodes %>% 
+                            filter(group == "mineral") %>% 
+                            mutate(size = input$mineral_size) %>%
+                            select(label, id, size, group)
+        }         
+        node_attr[["sizes"]] %<>% 
+             bind_rows(minsizes) %>% 
+             mutate(font.size = size)
+        if(input$label_mineral) 
         { 
-            nodes$font.color[nodes$type == "mineral"] <- input$mineral_label_color
-            nodes$font.size[nodes$type == "mineral"]  <- input$mineral_label_size
+            mineral_label_size <- input$mineral_label_size
+        } else {
+            mineral_label_size <- "NA"
         }
+        node_attr[["sizes"]] %<>%  mutate(font.size = ifelse(group == "element", font.size, mineral_label_size))
         
-        ### Enter: the hack from hell for element node sizing.
-        nodes %<>% mutate(label = case_when(type == "mineral"                     ~ label,
-                                            type == "element" & nchar(label) == 1 ~ paste0(" ", label, " "),
-                                            type == "element" & nchar(label) == 2 ~ paste0(label, " "),
-                                            type == "element" & nchar(label) == 3 ~ label),                        
-                          font.face = "courier")
-        print(nodes$label)
-        
-        return (list("nodes" = nodes, "edges" = edges, "finallegend" = finallegend))
-    })
-       
-              
-        
-    observe({
-  
 
-        req(input$go > 0) 
+
         
-        finalnetwork <- style_network()
+        ########## Finalize (including shape, highlight, label) #################
+        node_attr[["styled_nodes"]] <- chemistry_network()$nodes %>% 
+                                           left_join( node_attr[["colors"]] ) %>%
+                                           left_join( node_attr[["sizes"]]   ) %>% 
+                                           mutate(color.background = ifelse((id %in% chemistry_network()$elements_of_interest & input$highlight_element), input$highlight_color, color.background), 
+                                                  color.border = darken(color.background, 0.3),
+                                                  color.highlight = lighten(color.background, 0.3),
+                                                  label =  ifelse(group == "element", label, 
+                                                           ifelse(input$label_mineral, chemistry_network()$mineral_labels, NA)),
+                                                  font.color = ifelse(group == "element", input$element_label_color, input$mineral_label_color),
+                                                  font.color = ifelse((id %in% chemistry_network()$elements_of_interest & input$highlight_element & input$element_shape == "text"), input$highlight_color, font.color),
+                                                  shape = ifelse(group == "element", input$element_shape, input$mineral_shape)
+                                           )
+        return ( node_attr )
+    })
+    
+    
+    
+    
+    
+    
+    edge_styler <- reactive({
+
+        if (input$color_edge_by == "singlecolor") 
+        {
+            edge_colors <- chemistry_network()$edges %>% 
+                                mutate(color = input$edge_color)             
+            colorlegend_edge <- NA
+        } else 
+        {
+             out <- obtain_colors_legend(chemistry_network()$edges, input$color_edge_by, "c", input$edgepalette, "Mean element redox state:")
+
+             edge_colors <-  left_join(chemistry_network()$edges, out$cols)
+             colorlegend_edge <- out$leg
+         }
+         
+         edge_colors %<>% mutate(width = input$edge_weight)
+        return (list("leg" = colorlegend_edge, "styled_edges" = edge_colors) )
+    })
         
-        nodes       <- finalnetwork$nodes
-        edges       <- finalnetwork$edges
-        finallegend <- finalnetwork$finallegend
+
+
+    output$networkplot <- renderVisNetwork({
         
-        output$networkplot <- renderVisNetwork({
-            visNetwork(nodes, edges) %>%
+        req(input$go > 0)
+        nodes <- chemistry_network()$nodes
+        edges <- chemistry_network()$edges
+        #selected_element <- chemistry_network()$elements_of_interest[1]
+        
+        isolate({
+            starting_nodes <- node_styler()$styled_nodes
+            starting_edges <- edge_styler()$styled_edges
+
+                visNetwork(starting_nodes, starting_edges) %>%
                 visIgraphLayout(layout = input$network_layout, type = "full") %>% ## stabilizes
                 visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
                            nodesIdSelection = list(enabled = TRUE, 
+                                                   #selected = selected_element,
                                                    #values = nodes$id[nodes$type == "element"],
                                                    main    = "Select node to view",
                                                    style   = "width: 200px; font-size: 16px; height: 26px; margin: 0.5em 0.5em 0em 0.5em;")  ##t r b l 
-                       ) 
+                       ) %>%
+                
+                visGroups(groupname = "element", 
+                          color = input$element_color, 
+                          shape = input$element_shape,
+                          font  = list(size = input$element_label_size)) %>%
+                visGroups(groupname = "mineral", 
+                          color = input$mineral_color, 
+                          shape = input$mineral_shape,
+                          size  = input$mineral_size,
+                          font  = list(size = input$mineral_label_size)) %>%
+                visEdges(color = input$edge_color,
+                         width = input$edge_weight) 
+        })
+                 
+    })
+        
+        
+        
+    output$networklegend <- renderPlot({
+        
+        req(input$go > 0 )
+        if (is.na(edge_styler()$leg)) 
+        { 
+            finallegend <- plot_grid(node_styler()$leg)
+        } else {
+            finallegend <- plot_grid(node_styler()$leg, edge_styler()$leg, nrow = 2)
+        }
+        ggdraw(finallegend)
+    })          
+
+
+   
+
+    output$downloadNetwork_html <- downloadHandler(
+        #req(input$go > 0)
+        filename <- function() { paste0('mcnet-', Sys.Date(), '.html') },
+        content <- function(con) 
+        {
+            visNetwork(nodes = node_styler()$styled_nodes, edges = edge_styler()$styled_edges, height = "800px") %>%
+                visIgraphLayout(layout = input$network_layout, type = "full") %>% ## stabilizes
+                visExport(type = "png") %>% ## somehow pdf is worse resolution than png.......??
+                visSave(con)
         })
         
-        output$downloadNetwork <- downloadHandler(
-             filename = function() {
-               paste('network-', Sys.Date(), '.html', sep='')
-             },
-             content = function(con) 
-             {
-               visNetwork(nodes = nodes, edges = edges, height = "800px") %>%
-                    visIgraphLayout(layout = input$network_layout, type = "full") %>% ## stabilizes
-                    visExport() %>%
-                    visSave(con)
-             }
-           )
         
-        output$networklegend <- renderPlot({
-            ggdraw(finallegend)
-            #if (!is.na(colorlegend)) print(plot_grid(colorlegend, scale = 1))  ### using plot_grid gives white background      
+    output$exportNodes <- downloadHandler(
+        filename <- function() { paste0('mcnet-node_data', Sys.Date(), '.csv') },
+        content <- function(con) 
+        {
+            write_csv(node_styler()$styled_nodes, con)
+        })
+    output$exportEdges <- downloadHandler(
+        filename <- function() { paste0('mcnet-edge_data', Sys.Date(), '.csv') },
+        content <- function(con) 
+        {
+            write_csv(edge_styler()$styled_edges, con)
         })
 
-        # make sure stays in observe
-        visNetworkProxy("networkplot") %>% visGetSelectedNodes()
-
-        output$nodeTable <- renderDT({
-            mineral_names <- nodes$id[nodes$type == "mineral"]
-            if (input$networkplot_selected %in% mineral_names){
-                edges %>% 
-                    filter(mineral_name == input$networkplot_selected) %>% 
-                     select(mineral_name) %>% 
-                     left_join(rruff) %>% 
-                     select(mineral_name, mineral_id, mindat_id, at_locality, is_remote, rruff_chemistry, max_age) %>%
-                     unique() %>% 
-                     mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
-                            is_remote   = ifelse(is_remote == 0, "No", "Yes")) %>%
-                    rename("Mineral" = mineral_name,
-                           "Mineral ID" = mineral_id,
-                           "Mindat ID"  = mindat_id,
-                           "At Locality?" = at_locality,
-                           "Is Remote?" = is_remote,
-                           "Chemistry"  = rruff_chemistry,
-                           "Maximum Age (Ga)" = max_age) %>%
-                    arrange(`Maximum Age (Ga)`, Mineral)  -> outtab
-            } else{
-                edges %>% 
-                    filter(element == input$networkplot_selected) %>% 
-                     left_join(rruff) %>% 
-                     select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry) %>%
-                     unique() %>%
-                     rename("Element"                        = element,
-                            "Mineral"                        = mineral_name, 
-                            "Maximum age (Ga)"               = max_age, 
-                            "Number of known localities"     = num_localities, 
-                            "Element redox state in mineral" = redox,
-                            "Chemistry"                      = rruff_chemistry) %>%
-                     arrange(`Maximum age (Ga)`, Mineral)  -> outtab
-            }
+        
+       ## todo: Table reloads and flushes page resulting in shit UI
+       ## a solution is here - https://github.com/rstudio/DT/issues/168
+       ## or: https://stackoverflow.com/questions/38182261/shiny-for-r-dt-how-to-read-retain-page-length-and-column-visibility
+       observeEvent(input$networkplot_selected, {
+            output$nodeTable <- renderDT({
+                
+                mineral_names <- chemistry_network()$nodes$id[chemistry_network()$mineral_indices]
+                if (input$networkplot_selected %in% mineral_names){
+                    chemistry_network()$edges %>% 
+                        filter(mineral_name == input$networkplot_selected) %>% 
+                         select(mineral_name) %>% 
+                         left_join(rruff) %>% 
+                         select(mineral_name, mineral_id, mindat_id, at_locality, is_remote, rruff_chemistry, max_age) %>%
+                         unique() %>% 
+                         mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
+                                is_remote   = ifelse(is_remote == 0, "No", "Yes")) %>%
+                        rename("Mineral" = mineral_name,
+                               "Mineral ID" = mineral_id,
+                               "Mindat ID"  = mindat_id,
+                               "At Locality?" = at_locality,
+                               "Is Remote?" = is_remote,
+                               "Chemistry"  = rruff_chemistry,
+                               "Maximum Age (Ga)" = max_age) %>%
+                        arrange(`Maximum Age (Ga)`, Mineral)  -> outtab
+                } else{
+                    chemistry_network()$edges %>% 
+                        filter(element == input$networkplot_selected) %>% 
+                         left_join(rruff) %>% 
+                         select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry) %>%
+                         unique() %>%
+                         rename("Element"                        = element,
+                                "Mineral"                        = mineral_name, 
+                                "Maximum age (Ga)"               = max_age, 
+                                "Number of known localities"     = num_localities, 
+                                "Element redox state in mineral" = redox,
+                                "Chemistry"                      = rruff_chemistry) %>%
+                         arrange(`Maximum age (Ga)`, Mineral)  -> outtab
+                }
                 outtab
+            })
         })
+
+
+
+
+
     
-    
+    observe({
+
+        ## visGroups, visNodes, visEdges are global options shared among nodes/edges
+        ## Need to use visUpdateNodes and visUpdateEdges for changing individually. This applies to color schemes.
+        visNetworkProxy("networkplot") %>%
+                visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
+                visUpdateEdges(edges = edge_styler()$styled_edges) %>%
+                visGetSelectedNodes() %>%
+                visGetPositions() %>%
+                visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree))
     
     })     
 

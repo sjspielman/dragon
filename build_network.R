@@ -1,54 +1,34 @@
 rruff                <- read_csv("data/rruff_minerals.csv") %>% mutate(max_age = max_age/1000) 
-rruff_sub            <- rruff %>% select(-mineral_id, -mindat_id, -rruff_chemistry)
 element_redox_states <- read_csv("data/rruff_redox_states.csv")
 rruff_separated      <- read_csv("data/rruff_separated_elements.csv")
 
+all_elements  <- element_redox_states %>% select(element) %>% unique()
 rruff_chemistry <- rruff_separated %>% select(-chemistry_elements) %>% unique()
 
-initialize_data <- function(elements_of_interest, force_all_elements, select_all_elements, age_limit)
+initialize_data <- function(elements_of_interest, force_all_elements, age_limit)
 { 
 
-
-    if(select_all_elements){
-        elements_of_interest <- unique(rruff_redox_states$element)
-    }
-    if (is.null(elements_of_interest)) {
-        showModal(modalDialog(
-            title = "ERROR: No elements were selected.",
-            "You must refresh the web page",
-            easyClose = FALSE,
-            footer = NULL,
-            size = "l"
-        ))
-        Sys.sleep(3)
-    }
-    
-    if (select_all_elements)
+    ## Must have all elements
+    if (force_all_elements)
     {
-        elements_only <- rruff_sub
+        n_elements <- length(elements_of_interest)
+        rruff_separated %>%
+            group_by(mineral_name) %>%
+            mutate(has_element = if_else( sum(chemistry_elements %in% elements_of_interest) == n_elements, TRUE, FALSE)) %>% 
+            filter(has_element == TRUE) %>%
+            select(mineral_name) %>%
+            inner_join(rruff_sub) -> elements_only
     } else 
-    {
-        ## Must have all elements
-        if (force_all_elements)
-        {
-            n_elements <- length(elements_of_interest)
-            rruff_separated %>%
-                group_by(mineral_name) %>%
-                mutate(has_element = if_else( sum(chemistry_elements %in% elements_of_interest) == n_elements, TRUE, FALSE)) %>% 
-                filter(has_element == TRUE) %>%
-                select(mineral_name) %>%
-                inner_join(rruff_sub) -> elements_only
-        } else 
-        { ## Has at least one element
-            rruff_separated %>%
-                group_by(mineral_name) %>%
-                mutate(has_element = if_else( chemistry_elements %in% elements_of_interest, TRUE, FALSE)) %>% 
-                filter(has_element == TRUE) %>%
-                select(mineral_name) %>%
-                inner_join(rruff_sub) -> elements_only
-     
-        }  
-    }
+    { ## Has at least one element
+        rruff_separated %>%
+            group_by(mineral_name) %>%
+            mutate(has_element = if_else( chemistry_elements %in% elements_of_interest, TRUE, FALSE)) %>% 
+            filter(has_element == TRUE) %>%
+            select(mineral_name) %>%
+            inner_join(rruff_sub) -> elements_only
+ 
+    }  
+    
     if (nrow(elements_only) == 0) {
         showModal(modalDialog(
             title = "ERROR: There is no network that contains the selected elements as specified.",

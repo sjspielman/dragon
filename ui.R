@@ -44,7 +44,7 @@ palette.label.colors <- ifelse(brewer.palettes$category == "seq", "black", "whit
 
 
 
-dashboardPage(
+dashboardPage(skin="green",
   dashboardHeader(title = "MCNet: Visualizing Mineral Chemistry Networks using the rruff database", titleWidth = "700px",
   dropdownMenu(
         type = "notifications", 
@@ -61,39 +61,53 @@ dashboardPage(
   dashboardSidebar(disable = TRUE),
   dashboardBody(
   fluidRow(
-     tabBox(width = 8,
-            title = "Network Preferences",
+     tabBox(width = 10, height = "250px",
+            title = "",
             # The id lets us use input$elminselection on the server to find the current tab
-            tabPanel("Element and Mineral Selection",
+            tabPanel("Network Preferences",
                         list(
                             fluidRow(
-                                column(6,  
-                                    selectInput("elements_of_interest", tags$b("Select the element(s) whose mineral network you'd like to analyze"),
-                                                c("Ag" = "Ag", "Al" = "Al", "As" = "As", "Au" = "Au", "B" = "B", "Ba" = "Ba", "Be" = "Be", "Bi" = "Bi", "Br" = "Br", "C" = "C", "Ca" = "Ca", "Cd" = "Cd", "Ce" = "Ce", "Cl" = "Cl", "Co" = "Co", "Cr" = "Cr", "Cs" = "Cs", "Cu" = "Cu", "Dy" = "Dy", "Er" = "Er", "F" = "F", "Fe" = "Fe", "Ga" = "Ga", "Gd" = "Gd", "Ge" = "Ge", "H" = "H", "Hf" = "Hf", "Hg" = "Hg", "I" = "I", "In" = "In", "Ir" = "Ir", "K" = "K", "La" = "La", "Li" = "Li", "Mg" = "Mg", "Mn" = "Mn", "Mo" = "Mo", "N" = "N", "Na" = "Na", "Nb" = "Nb", "Nd" = "Nd", "Ni" = "Ni", "O" = "O", "Os" = "Os", "P" = "P", "Pb" = "Pb", "Pd" = "Pd", "Pt" = "Pt", "Rb" = "Rb", "Re" = "Re", "REE" = "REE", "Rh" = "Rh", "Ru" = "Ru", "S" = "S", "Sb" = "Sb", "Sc" = "Sc", "Se" = "Se", "Si" = "Si", "Sm" = "Sm", "Sn" = "Sn", "Sr" = "Sr", "Ta" = "Ta", "Te" = "Te", "Th" = "Th", "Ti" = "Ti", "Tl" = "Tl", "U" = "U", "V" = "V", "W" = "W", "Y" = "Y", "Yb" = "Yb", "Zn" = "Zn", "Zr" = "Zr"),
-                                                multiple=TRUE),
-                                    checkboxInput("force_all_elements",tags$b("Every mineral included in the network contains all selected elements."),value = FALSE),
-                                    checkboxInput("select_all_elements",tags$b("Select all elements."),value = FALSE)
+                                column(4,  
+                                    #selectInput("elements_of_interest", tags$b("Select the element(s) whose mineral network you'd like to analyze"),
+                                    #            c("Ag" = "Ag", "Al" = "Al", "As" = "As", "Au" = "Au", "B" = "B", "Ba" = "Ba", "Be" = "Be", "Bi" = "Bi", "Br" = "Br", "C" = "C", "Ca" = "Ca", "Cd" = "Cd", "Ce" = "Ce", "Cl" = "Cl", "Co" = "Co", "Cr" = "Cr", "Cs" = "Cs", "Cu" = "Cu", "Dy" = "Dy", "Er" = "Er", "F" = "F", "Fe" = "Fe", "Ga" = "Ga", "Gd" = "Gd", "Ge" = "Ge", "H" = "H", "Hf" = "Hf", "Hg" = "Hg", "I" = "I", "In" = "In", "Ir" = "Ir", "K" = "K", "La" = "La", "Li" = "Li", "Mg" = "Mg", "Mn" = "Mn", "Mo" = "Mo", "N" = "N", "Na" = "Na", "Nb" = "Nb", "Nd" = "Nd", "Ni" = "Ni", "O" = "O", "Os" = "Os", "P" = "P", "Pb" = "Pb", "Pd" = "Pd", "Pt" = "Pt", "Rb" = "Rb", "Re" = "Re", "REE" = "REE", "Rh" = "Rh", "Ru" = "Ru", "S" = "S", "Sb" = "Sb", "Sc" = "Sc", "Se" = "Se", "Si" = "Si", "Sm" = "Sm", "Sn" = "Sn", "Sr" = "Sr", "Ta" = "Ta", "Te" = "Te", "Th" = "Th", "Ti" = "Ti", "Tl" = "Tl", "U" = "U", "V" = "V", "W" = "W", "Y" = "Y", "Yb" = "Yb", "Zn" = "Zn", "Zr" = "Zr"),
+                                    #            multiple=TRUE),
+                                    pickerInput("elements_of_interest", tags$b("Select element(s):"),
+                                                    choices = c("Ag" = "Ag", "Al" = "Al", "As" = "As", "Au" = "Au", "B" = "B", "Ba" = "Ba", "Be" = "Be", "Bi" = "Bi", "Br" = "Br", "C" = "C", "Ca" = "Ca", "Cd" = "Cd", "Ce" = "Ce", "Cl" = "Cl", "Co" = "Co", "Cr" = "Cr", "Cs" = "Cs", "Cu" = "Cu", "Dy" = "Dy", "Er" = "Er", "F" = "F", "Fe" = "Fe", "Ga" = "Ga", "Gd" = "Gd", "Ge" = "Ge", "H" = "H", "Hf" = "Hf", "Hg" = "Hg", "I" = "I", "In" = "In", "Ir" = "Ir", "K" = "K", "La" = "La", "Li" = "Li", "Mg" = "Mg", "Mn" = "Mn", "Mo" = "Mo", "N" = "N", "Na" = "Na", "Nb" = "Nb", "Nd" = "Nd", "Ni" = "Ni", "O" = "O", "Os" = "Os", "P" = "P", "Pb" = "Pb", "Pd" = "Pd", "Pt" = "Pt", "Rb" = "Rb", "Re" = "Re", "REE" = "REE", "Rh" = "Rh", "Ru" = "Ru", "S" = "S", "Sb" = "Sb", "Sc" = "Sc", "Se" = "Se", "Si" = "Si", "Sm" = "Sm", "Sn" = "Sn", "Sr" = "Sr", "Ta" = "Ta", "Te" = "Te", "Th" = "Th", "Ti" = "Ti", "Tl" = "Tl", "U" = "U", "V" = "V", "W" = "W", "Y" = "Y", "Yb" = "Yb", "Zn" = "Zn", "Zr" = "Zr"),
+                                                    options = list(
+                                                        `actions-box` = TRUE, 
+                                                        size = 10
+                                                    ), 
+                                                    multiple = TRUE
+                                                ),
+                                    checkboxInput("force_all_elements",tags$b("Force element intersection?"),value = FALSE),
+                                    sliderInput("age_limit", tags$b("Choose an age (Ga) for the youngest minerals:"), min = 0, max = 4.5, step = 0.1, value = 0)
                                 ),
-                                column(6, 
-                                 selectInput("include_age", tags$b("Choose an eon for minerals to include in the network:"),
-                                            c("Include all known minerals"  = "present",
-                                            "Paleoproteozoic (>= 1.6 Ga)" = "paleo",
-                                            "Archean (>= 2.5 Ga)"         = "archean",
-                                            "Hadean (>= 4 Ga)"            = "hadean")
-                                            )
+                                column(4, 
+                                    selectInput("network_layout", tags$b("Network layout algorithm:"),
+                                        c("Kamada-Kawai"         = "layout_with_kk",
+                                          "Fruchterman Reingold" =  "layout_with_fr",
+                                          "Circle"               = "layout_in_circle")
+                                        ),
+                                    br(),br(),
+                                    numericInput("selected_degree", tags$b("Network degree highlighting:"), 2, min = 1, max = 5, step = 1)   
+                                ),
+                                column(4,
+                                 br(),
+                                 actionBttn("go", "Initialize Network", color = "danger", style = "bordered", block=TRUE)
+                                    # style - simple, bordered, minimal, stretch, jelly, gradient, fill, material-circle, material-flat, pill, float, unite.
+                                    # color - default, primary, warning, danger, success, royal.
                                 )
                             )
-                        )
-                    
+                        ) 
                     ),
             tabPanel("Node Colors", 
-                        checkboxInput("color_by_cluster",tags$b("Click to color all nodes by network cluster"),value = FALSE),
+                        checkboxInput("color_by_cluster",tags$b("Color all nodes by network cluster?"),value = FALSE),
                         list(
                             fluidRow(
-                                column(6,checkboxInput("highlight_my_element",tags$b("Highlight element(s) of interest"),value = FALSE)
+                                column(6,checkboxInput("highlight_element",tags$b("Highlight element(s) of interest?"),value = FALSE)
                                     ),
-                                column(6, conditionalPanel(condition = "input.highlight_my_element == true",   
-                                            {colourpicker::colourInput("elementhighlight", tags$b("Select highlight color:"), value = "lightgoldenrod1")})
+                                column(6, conditionalPanel(condition = "input.highlight_element == true",   
+                                            {colourpicker::colourInput("highlight_color", tags$b("Select highlight color:"), value = "lightgoldenrod1")})
                                       )
                             ) ## fluidRow
                         ), ## list
@@ -101,12 +115,12 @@ dashboardPage(
                             list(
                                 fluidRow(
                                     column(6, 
-                                        selectInput("color_element_by", tags$b("Select a color scheme for elements:"),
+                                        selectInput("color_element_by", tags$b("Element color scheme:"),
                                                     c("Use a single color for all elements"    = "singlecolor",  
                                                     "Color elements based on network degree" = "network_degree_norm"))),
                                     column(6, 
                                         conditionalPanel(condition = "input.color_element_by == 'singlecolor'",   
-                                            {colourpicker::colourInput("elementcolor", tags$b("Element color:"), value = "skyblue")}
+                                            {colourpicker::colourInput("element_color", tags$b("Element color:"), value = "skyblue")}
                                         ),      
                                         conditionalPanel(condition = "input.color_element_by != 'singlecolor'",   
                                             {pickerInput("elementpalette", label = tags$b("Element palette:"),
@@ -125,7 +139,7 @@ dashboardPage(
                             list(
                                 fluidRow(
                                       column(6,
-                                         selectInput("color_mineral_by", tags$b("Select a color scheme for minerals:"),
+                                         selectInput("color_mineral_by", tags$b("Mineral color scheme:"),
                                                          c("Use a single color for all minerals"    = "singlecolor",  
                                                            "Color minerals based on mean redox state"      = "redox",        
                                                            "Color minerals based on maximum age"           = "max_age",      
@@ -133,7 +147,7 @@ dashboardPage(
                                       ),
                                       column(6,
                                           conditionalPanel(condition = "input.color_mineral_by == 'singlecolor'",   
-                                              {colourpicker::colourInput("mineralcolor", tags$b("Select mineral color:"), value = "firebrick3")}
+                                              {colourpicker::colourInput("mineral_color", tags$b("Select mineral color:"), value = "firebrick3")}
                                           ),
                                           conditionalPanel(condition = "input.color_mineral_by != 'singlecolor'",   
                                               {pickerInput("mineralpalette", label = tags$b("Mineral palette:"),
@@ -151,11 +165,11 @@ dashboardPage(
                             )
                         )  ## condtional panel if cluster is False
                     ), ## end of element mineral color schemes              
-            tabPanel("Node Size and Shape", 
+            tabPanel("Node Size", 
                     list(
                         fluidRow(
                             column(6,
-                                selectInput("element_size_type", tags$b("Select a size scheme for element nodes"), 
+                                selectInput("element_size_type", tags$b("Element node size scheme:"), 
                                              c("Single size for all element nodes" = "singlesize",
                                                "Size element nodes by network degree" = "network_degree_norm")
                                            ), selected = "singlesize"
@@ -166,7 +180,7 @@ dashboardPage(
                             ),
                             column(6,    
                                 conditionalPanel(condition = "input.element_size_type != 'singlesize'", 
-                                    {sliderInput("size_scale",tags$b("Element size scaler"),value=50,min=10,max=150,step=10)}) 
+                                    {sliderInput("size_scale",tags$b("Element size scaler"),value=20,min=10,max=100,step=10)}) 
                             )     
                         )                    
                     ), 
@@ -174,7 +188,7 @@ dashboardPage(
                     list(
                         fluidRow(
                             column(6,
-                                selectInput("mineral_size_type", tags$b("Select a size scheme for mineral nodes"), 
+                                selectInput("mineral_size_type", tags$b("Mineral node size scheme:"), 
                                      c("Single size for all mineral nodes" = "singlesize",
                                        "Size mineral nodes based on mean redox state" = "redox",
                                        "Size mineral nodes based on maximum age"           = "max_age",      
@@ -187,8 +201,9 @@ dashboardPage(
                                     {sliderInput("mineral_size",tags$b("Mineral size"),value=10,min=0,max=50, step = 5)})
                             )
                         )
-                    ),
-                    
+                    )
+                ),
+                tabPanel("Node Labels", 
                     list(
                         fluidRow(
                             column(6, p("Note that element labels are scaled to element node size and cannot be sized differently.")),
@@ -203,9 +218,9 @@ dashboardPage(
                                 column(6, colourpicker::colourInput("mineral_label_color",tags$b("Mineral label color"),value = "#000000"))
                             )
                         )
-                    }),
-
-                    
+                    })
+                ),
+                tabPanel("Node Shapes", 
                     list(
                       fluidRow(
                            column(6,
@@ -242,7 +257,7 @@ dashboardPage(
     
                       column(6,
                           conditionalPanel(condition = "input.color_edge_by == 'singlecolor'",   
-                              {colourpicker::colourInput("edgecolor", tags$b("Edge color:"), value = "#5E5E5E")}
+                              {colourpicker::colourInput("edge_color", tags$b("Edge color:"), value = "#5E5E5E")}
                           ),
 
                           conditionalPanel(condition = "input.color_edge_by != 'singlecolor'",   
@@ -259,44 +274,28 @@ dashboardPage(
                         )
                     ) ## fluid
                 ), ## list
-                sliderInput("edge_weight",tags$b("Weight for edges"),value=5,min=1,max=10)      
-            ), ## tabpanel,            
-            
-            tabPanel("Display", 
-                list(
-                    fluidRow(
-                        column(6,
-                            selectInput("network_layout", tags$br("Select a layout algorithm for the network:"),
-                                c("Kamada-Kawai"         = "layout_with_kk",
-                                  "Fruchterman Reingold" =  "layout_with_fr",
-                                   "Circle"               = "layout_in_circle")
-                            )
-                        ),
-                        column(6, numericInput("selected_degree", tags$br("Degree for highlighting network node connections:"), 2, min = 1, max = 5, step = 1)    
-                        )
-                    )
-                )        
-            )       
-                                     
-                                     
-                
-
-        
-        ), ## tabBox
-    box(width = 2, status = "primary", actionButton("go","Initialize Network",width="100%"))
+                sliderInput("edge_weight",tags$b("Weight for edges"),value=3,min=1,max=10)      
+            ) ## tabpanel,  
+                      
+        ) ## tabBox
   ), ## fluidRow
   
+  br(),br(),
   fluidRow(
-  
-        div(style = "height:700px; outline: 1px solid black; overflow: hidden; margin-left: auto; margin-right: auto;width:90%;", 
-            visNetworkOutput("networkplot", height = "100%")
-        ), 
-        div(style = "float:right; padding-top:10px; padding-right:10px;  margin-right: 75px;",
-            downloadButton('downloadNetwork', 'Export network as HTML')
+        box(width=10, height="600px",
+            div(style = "height:600px; overflow: hidden;", 
+                visNetworkOutput("networkplot", height = "90%")
+            )
         ),
-        div(style = "display: block; padding: 2em; margin-left: auto; margin-right:auto;width:80%;", 
-            plotOutput("networklegend", width = "75%", height = "100px")
+        box(width=2, plotOutput("networklegend")),
+        box(width=2, 
+            downloadBttn("downloadNetwork_html", "Save as HTML",  size = "sm", style = "bordered", color = "success"),
+            br(),br(),
+            downloadBttn("exportNodes", "Save node data", size = "sm", style = "bordered", color = "primary"),
+            br(),br(),
+            downloadBttn("exportEdges", "Save edge data", size = "sm", style = "bordered", color = "primary")
         ),
+
         div(style = "display: block; padding-top: 1em; margin-left: auto; margin-right: auto;width:90%;",
             DT::dataTableOutput("nodeTable")
         )
