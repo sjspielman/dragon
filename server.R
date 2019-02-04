@@ -191,7 +191,7 @@ server <- function(input, output, session) {
                 colorlegend_element <- out$leg
                 node_attr[["element_colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
             } 
-            node_attr[["leg"]] <- plot_grid(colorlegend_element, colorlegend_mineral, nrow=2)
+            node_attr[["leg"]] <- plot_grid(colorlegend_element, colorlegend_mineral, nrow=1)
             node_attr[["colors"]] <- bind_rows(node_attr[["element_colors"]], node_attr[["mineral_colors"]]) 
         }   
         
@@ -228,12 +228,8 @@ server <- function(input, output, session) {
         node_attr[["sizes"]] %<>% 
              bind_rows(minsizes) %>% 
              mutate(font.size = size)
-        if(input$label_mineral) 
-        { 
-            mineral_label_size <- input$mineral_label_size
-        } else {
-            mineral_label_size <- "NA"
-        }
+        mineral_label_size <- input$mineral_label_size
+        if(mineral_label_size == 0) mineral_label_size <- "NA" 
         node_attr[["sizes"]] %<>%  mutate(font.size = ifelse(group == "element", font.size, mineral_label_size))
         
 
@@ -310,7 +306,7 @@ server <- function(input, output, session) {
                           color = input$mineral_color, 
                           shape = input$mineral_shape,
                           size  = input$mineral_size,
-                          font  = list(size = input$mineral_label_size)) %>%
+                          font  = list(size = ifelse(input$mineral_label_size == 0, "NA", input$mineral_label_size))) %>%
                 visEdges(color = input$edge_color,
                          width = input$edge_weight) 
         })
@@ -326,9 +322,10 @@ server <- function(input, output, session) {
         { 
             finallegend <- plot_grid(node_styler()$leg)
         } else {
-            finallegend <- plot_grid(node_styler()$leg, edge_styler()$leg, nrow = 2)
+            finallegend <- plot_grid(node_styler()$leg, edge_styler()$leg, nrow = 1)
         }
-        ggdraw(finallegend)
+        #save_plot(finallegend, "legend.pdf")
+        plot(finallegend)
     })          
 
 

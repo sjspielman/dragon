@@ -1,9 +1,8 @@
 rruff                <- read_csv("data/rruff_minerals.csv") %>% mutate(max_age = max_age/1000) 
 element_redox_states <- read_csv("data/rruff_redox_states.csv")
 rruff_separated      <- read_csv("data/rruff_separated_elements.csv")
-
-all_elements  <- element_redox_states %>% select(element) %>% unique()
-rruff_chemistry <- rruff_separated %>% select(-chemistry_elements) %>% unique()
+rruff_sub            <- rruff %>% select(-mineral_id, -mindat_id, -rruff_chemistry)
+rruff_chemistry      <- rruff_separated %>% select(-chemistry_elements) %>% unique()
 
 initialize_data <- function(elements_of_interest, force_all_elements, age_limit)
 { 
