@@ -9,7 +9,7 @@ library(visNetwork)
 library(magrittr)
 library(cowplot)
 library(igraph)
-
+library(shinyjs)
 
 library(shinydashboard)
 
@@ -228,15 +228,18 @@ dashboardPage(skin="red",
                         visNetworkOutput("networkplot", height = "90%")
                     )
                 ),
-                box(width=2, height="100px",
-                    downloadBttn("downloadNetwork_html", "Save as HTML",  size = "xs", style = "bordered", color = "success"),
-                    br(),
-                    downloadBttn("exportNodes", "Save node data", size = "xs", style = "bordered", color = "primary"),
-                    br(),
-                    downloadBttn("exportEdges", "Save edge data", size = "xs", style = "bordered", color = "primary")
+                box(width=3, height="80px", align="center",
+                    downloadBttn("exportNodes", "Save nodes as CSV", size = "xs", style = "bordered", color = "primary"),
+                    downloadBttn("exportEdges", "Save edges as CSV", size = "xs", style = "bordered", color = "primary"),
+                    downloadBttn("downloadNetwork_html", "Save as HTML",  size = "xs", style = "bordered", color = "success")
                 ),
-                box(width=10, height="100px",plotOutput("networklegend")),
-                
+                #box(id = "hiddenBox", width=5),
+                box(width=5, height="80px",
+                    div(style = "height:75px;",
+                        plotOutput("networklegend", height = "80%", width = "100%")
+                    )
+                ),
+        
                 box(width=12, 
                     div(style = "display: block; padding-top: 1em; margin-left: auto; margin-right: auto;width:90%;",
                         DT::dataTableOutput("nodeTable")

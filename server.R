@@ -11,14 +11,15 @@ library(magrittr)
 library(cowplot)
 library(igraph)
 library(pdfr)
-
+library(gridExtra)
+library(shinyjs)
 source("build_network.R")
 
 ## is_remote = is the age actually associated with the locality (1) or was is ported from another locality (0)
 variable_to_title <- list("redox" = "Mean Redox State", 
                           "max_age" = "Maximum Age (Ga)", 
                           "num_localities" = "Number of known localities", 
-                          "network_degree_norm" = "Network degree\n(normalized)")   
+                          "network_degree_norm" = "Network degree")   
 
 ## mediocre matching here.
 vis_to_gg_shape <- list("circle"  = 19,
@@ -32,11 +33,11 @@ vis_to_gg_shape <- list("circle"  = 19,
                         "triangle" = 17)
 
 
-geom.point.size <- 12
+geom.point.size <- 8
 theme_set(theme_cowplot() + theme(legend.position = "bottom",
-                                  legend.text = element_text(size=11),
+                                  legend.text = element_text(size=9),
                                   legend.key.size = unit(1, "cm"),
-                                  legend.title = element_text(size=13),
+                                  legend.title = element_text(size=10),
                                   legend.box.background = element_rect(color = "white")))                                  
 obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, legendtitle)
 {
@@ -314,20 +315,28 @@ server <- function(input, output, session) {
     })
         
         
-        
+    observeEvent(input$go,{
     output$networklegend <- renderPlot({
         
-        req(input$go > 0 )
-        if (is.na(edge_styler()$leg)) 
+        e <- edge_styler()
+        n <- node_styler()
+        
+        if (is.na(e$leg)) 
         { 
-            finallegend <- plot_grid(node_styler()$leg)
+            finallegend <- plot_grid(n$leg)
         } else {
-            finallegend <- plot_grid(node_styler()$leg, edge_styler()$leg, nrow = 1)
+            finallegend <- plot_grid(n$leg, e$leg, nrow = 1)
         }
         #save_plot(finallegend, "legend.pdf")
-        plot(finallegend)
+        #p <- ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species))  +geom_point() + theme(legend.position="none")
+        #finallegend <- plot_grid(p, finallegend, nrow=2, rel_heights=c(1, 0.1))
+        #vp <- viewport(x = 0.5, y = 0.5, w = 0.1, h = 0.1,just = "center")
+        #pushViewport(vp) 
+        ggdraw(finallegend)
+        #plot(grid.arrange(finallegend, vp=vp))
+        #draw_plot(finallegend, x = 0, y = 0, width = 0.1, height = 0.1, scale = 1)
     })          
-
+})
 
    
 
@@ -400,7 +409,7 @@ server <- function(input, output, session) {
         })
 
 
-
+    shinyjs::hide(id = "hiddenBox")
 
 
     
