@@ -65,11 +65,11 @@ dashboardPage(skin = "red",
                                                     ), 
                                                     multiple = TRUE
                         ),
-            checkboxInput("force_all_elements","Force element intersection in minerals",value = FALSE),
+            awesomeCheckbox("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
             sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = 4.5, step = 0.1, value = 0), #   
             #checkboxInput("refresh_rruff","Refresh rruff data",value = FALSE), ## Eventually we want an option to requery their server and get latest and greatest. This does slow things down, however.
 
-            #selectInput("network_layout", "Starting network layout:",
+            #pickerInput("network_layout", "Starting network layout:",
             #    c("Kamada-Kawai"         = "layout_with_kk",
             #      "Fruchterman Reingold" =  "layout_with_fr",
             #      "Circle"               = "layout_in_circle")
@@ -80,7 +80,7 @@ dashboardPage(skin = "red",
         br(),
         menuItem(text = "Node Colors",
         fluidRow(
-            column(7,checkboxInput("highlight_element","Highlight focal elements",value = FALSE)
+            column(7,awesomeCheckbox("highlight_element","Highlight focal elements",value = FALSE, status="danger")
                 ),
             column(5, #conditionalPanel(condition = "input.highlight_element == true", {   
                         colourpicker::colourInput("highlight_color", "Color:", value = "lightgoldenrod1")
@@ -89,8 +89,8 @@ dashboardPage(skin = "red",
         ), 
         fluidRow(
             column(7, 
-                selectInput("color_element_by", "Element color scheme:",
-                            c("Select a single color"    = "singlecolor",  
+                pickerInput("color_element_by", "Element color scheme:",
+                            c("Single color"    = "singlecolor",  
                             "Color by network degree" = "network_degree_norm"))),
             column(5, 
                 conditionalPanel(condition = "input.color_element_by == 'singlecolor'",   
@@ -111,8 +111,8 @@ dashboardPage(skin = "red",
         ),
         fluidRow(
             column(7,
-                 selectInput("color_mineral_by", "Mineral color scheme:",
-                                 c("Select a single color"    = "singlecolor",  
+                 pickerInput("color_mineral_by", "Mineral color scheme:",
+                                 c("Single color"    = "singlecolor",  
                                    "Color by mean redox state"      = "redox",        
                                    "Color by maximum age"           = "max_age",      
                                    "Color by number of localities"  = "num_localities"))
@@ -138,7 +138,7 @@ dashboardPage(skin = "red",
         ),
         menuItem(text = "Node Sizes",
             fluidRow(
-                column(6, selectInput("element_size_type", "Element node size:", 
+                column(6, pickerInput("element_size_type", "Element node size:", 
                                      c("Single size" = "singlesize",
                                        "Size by network degree" = "network_degree_norm"), selected = "singlesize")
                     ),
@@ -151,7 +151,7 @@ dashboardPage(skin = "red",
             ),                    
 
             fluidRow(
-                    column(6, selectInput("mineral_size_type", "Mineral node size:", 
+                    column(6, pickerInput("mineral_size_type", "Mineral node size:", 
                              c("Single size" = "singlesize",
                                "Size by mean redox state" = "redox",
                                "Size by maximum age"           = "max_age",      
@@ -176,7 +176,7 @@ dashboardPage(skin = "red",
         menuItem(text = "Node Shapes", 
             fluidRow(
                column(6,
-                   selectInput("element_shape", "Element shape", ## shapes that scale with font
+                   pickerInput("element_shape", "Element shape", ## shapes that scale with font
                         c("Circle"     = "circle",
                           "Ellipse"    = "ellipse",
                           "Box"        = "box", 
@@ -184,7 +184,7 @@ dashboardPage(skin = "red",
                     )
                 ),
                 column(6, 
-                    selectInput("mineral_shape", "Mineral shape",  ## shapes that DO NOT scale with font
+                    pickerInput("mineral_shape", "Mineral shape",  ## shapes that DO NOT scale with font
                                 c("Circle"   = "dot", #### !!!!!!
                                   "Square"   = "square",
                                   "Star"     = "star",
@@ -197,7 +197,7 @@ dashboardPage(skin = "red",
         menuItem(text = "Edge Attributes", 
             fluidRow(
                  column(6,
-                   selectInput("color_edge_by", "Edge color scheme:",
+                   pickerInput("color_edge_by", "Edge color scheme:",
                                            c("Single color" = "singlecolor",  
                                              "Color by mean element redox state" = "redox"))
                  ),
@@ -219,8 +219,21 @@ dashboardPage(skin = "red",
                      )
                    )
                 ), ## fluid
-                sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10) 
-            )
+                fluidRow(
+                    column(6, sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10)),
+                    column(6, checkboxInput("edge_shadow", "Enable edge shadows", FALSE))
+                )
+            ) #,
+#         menuItem(text = "Network Interaction Preferences",
+#                 numericInput("selected_degree", "Node selection highlight degree", min=1, max=5, 2, width = "270px"),
+#                 switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="mini",labelWidth = "300px"),
+#                 switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="mini",labelWidth = "300px"),
+#                 switchInput("hide_edges_on_drag","Hide edges when dragging nodes",value = TRUE, size="mini",labelWidth = "300px"),
+#                 switchInput("nav_buttons","Show navigation buttons",value = TRUE, size="mini",labelWidth = "300px"),
+#                 switchInput("hover","Emphasize on hover",value = TRUE, size="mini",labelWidth = "300px"),
+#                 switchInput("select_multiple_nodes", "Select multiple nodes at once", value=TRUE, size="mini",labelWidth = "300px")
+# 
+#             )
         
     )),
     dashboardBody(
@@ -230,24 +243,21 @@ dashboardPage(skin = "red",
           fluidRow(
                 div(style = "margin-right:1%; margin-left:1%;",
                     
-
+                    div(style = "float:left;margin-left:2%;margin-bottom:1%;",
+                        dropdownButton(status = "danger", width="300px", circle=FALSE,icon=icon("gear"), tooltip = tooltipOptions(title = "Network interaction preferences"),
+                            numericInput("selected_degree", "Node selection highlight degree", min=1, max=5, 2, width = "240px"),
+                            switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                            switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                            switchInput("hide_edges_on_drag","Hide edges when dragging nodes",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                            switchInput("nav_buttons","Show navigation buttons",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                            switchInput("hover","Emphasize on hover",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                            switchInput("select_multiple_nodes", "Select multiple nodes at once", value=TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger")
+                        )               
+                    
+                    
+                    ),
+                    
                     box(align="right", width=12, height="700px",
-                        
-                        
-                        div(style = "float:right;margin-top:-1%;",
-                                
-                                conditionalPanel(condition = "input.go > 0", {
-                                    pickerInput(
-                                        inputId = "selected_degree",
-                                        label = "",
-                                        choices = c(1,2,3,4,5), 
-                                        options = pickerOptions(title = "Node selection highlight degree"),
-                                        width="225px"
-                                    )
-                                })
-                            ),
- 
-   
                         div(style = "height:625px; overflow: hidden;", 
                             visNetworkOutput("networkplot", height = "90%")
                         ),

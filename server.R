@@ -283,9 +283,16 @@ server <- function(input, output, session) {
                                                        #selected = selected_element,
                                                        #values = nodes$id[nodes$type == "element"],
                                                        main    = "Select node to view",
-                                                       style   = "width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: 0em 0.5em 0em 0em;")  ##t r b l 
+                                                       style   = "float:left; width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: -1.25em 0.5em 0em 0em;")  ##t r b l 
                            ) %>%
-                
+                    visInteraction(dragView          = TRUE, 
+                                   dragNodes         = TRUE, 
+                                   zoomView          = TRUE, 
+                                   hover             = TRUE,
+                                   selectConnectedEdges = TRUE,
+                                   hideEdgesOnDrag   = TRUE,
+                                   multiselect       = FALSE,
+                                   navigationButtons = TRUE) %>%
                     visGroups(groupname = "element", 
                               color = input$element_color, 
                               shape = input$element_shape,
@@ -296,7 +303,9 @@ server <- function(input, output, session) {
                               size  = input$mineral_size,
                               font  = list(size = ifelse(input$mineral_label_size == 0, "NA", input$mineral_label_size))) %>%
                     visEdges(color = input$edge_color,
-                             width = input$edge_weight) 
+                             width = input$edge_weight,
+                             smooth = FALSE,  ## no visual effect that I can perceive, and improves speed. Cool.
+                             shadow = input$edge_shadow) 
             })                 
         })
     
@@ -404,8 +413,16 @@ server <- function(input, output, session) {
         visNetworkProxy("networkplot") %>%
                 visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
                 visUpdateEdges(edges = edge_styler()$styled_edges) %>%
+                visEdges(shadow = input$edge_shadow) %>%
                 visGetSelectedNodes() %>%
                 visGetPositions() %>%
+                visInteraction(dragView          = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
+                               hover             = input$hover, 
+                               selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
+                               zoomView          = input$zoom_view,
+                               multiselect       = input$select_multiple_nodes,
+                               hideEdgesOnDrag   = input$hide_edges_on_drag,
+                               navigationButtons = input$nav_buttons) %>%
                 visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree))
     
     })     
