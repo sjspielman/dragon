@@ -11,8 +11,8 @@ library(magrittr)
 library(cowplot)
 library(igraph)
 library(pdfr)
-library(gridExtra)
-library(shinyjs)
+
+
 source("build_network.R")
 
 ## is_remote = is the age actually associated with the locality (1) or was is ported from another locality (0)
@@ -45,7 +45,7 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
     cvar <- as.symbol(color_variable)
     dat %>% mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
 
-    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) + guides(colour = guide_legend(title.position="top", title.hjust = 0.5)) + theme(legend.position = "right")
+    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) + guides(colour = guide_legend(title.position="top", title.hjust = 0.5, nrow = 1)  )
     if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1)+ guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
     
     data.colors <- ggplot_build(p)$data[[1]] %>% 
@@ -94,23 +94,8 @@ obtain_node_sizes <- function(dat, size_variable, lowsize, highsize, size_scale 
   
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
 server <- function(input, output, session) {
     
-
      
     
     ################################# Build network ####################################
@@ -277,66 +262,67 @@ server <- function(input, output, session) {
     })
         
 
-
-    output$networkplot <- renderVisNetwork({
-        
-        req(input$go > 0)
-        nodes <- chemistry_network()$nodes
-        edges <- chemistry_network()$edges
-        #selected_element <- chemistry_network()$elements_of_interest[1]
-        
-        isolate({
-            starting_nodes <- node_styler()$styled_nodes
-            starting_edges <- edge_styler()$styled_edges
-
-                visNetwork(starting_nodes, starting_edges) %>%
-                visIgraphLayout(layout = input$network_layout, type = "full") %>% ## stabilizes
-                visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
-                           nodesIdSelection = list(enabled = TRUE, 
-                                                   #selected = selected_element,
-                                                   #values = nodes$id[nodes$type == "element"],
-                                                   main    = "Select node to view",
-                                                   style   = "width: 200px; font-size: 16px; height: 26px; margin: 0.5em 0.5em 0em 0.5em;")  ##t r b l 
-                       ) %>%
-                
-                visGroups(groupname = "element", 
-                          color = input$element_color, 
-                          shape = input$element_shape,
-                          font  = list(size = input$element_label_size)) %>%
-                visGroups(groupname = "mineral", 
-                          color = input$mineral_color, 
-                          shape = input$mineral_shape,
-                          size  = input$mineral_size,
-                          font  = list(size = ifelse(input$mineral_label_size == 0, "NA", input$mineral_label_size))) %>%
-                visEdges(color = input$edge_color,
-                         width = input$edge_weight) 
-        })
-                 
-    })
-        
-        
     observeEvent(input$go,{
-    output$networklegend <- renderPlot({
+    
+
+        output$networkplot <- renderVisNetwork({
+
+
+            nodes <- chemistry_network()$nodes
+            edges <- chemistry_network()$edges
+            #selected_element <- chemistry_network()$elements_of_interest[1]
         
-        e <- edge_styler()
-        n <- node_styler()
+            isolate({
+                starting_nodes <- node_styler()$styled_nodes
+                starting_edges <- edge_styler()$styled_edges
+
+                    visNetwork(starting_nodes, starting_edges) %>%
+                    visIgraphLayout(layout = "layout_with_fr", type = "full") %>% ## stabilizes
+                    visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
+                               nodesIdSelection = list(enabled = TRUE, 
+                                                       #selected = selected_element,
+                                                       #values = nodes$id[nodes$type == "element"],
+                                                       main    = "Select node to view",
+                                                       style   = "width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: 0em 0.5em 0em 0em;")  ##t r b l 
+                           ) %>%
+                
+                    visGroups(groupname = "element", 
+                              color = input$element_color, 
+                              shape = input$element_shape,
+                              font  = list(size = input$element_label_size)) %>%
+                    visGroups(groupname = "mineral", 
+                              color = input$mineral_color, 
+                              shape = input$mineral_shape,
+                              size  = input$mineral_size,
+                              font  = list(size = ifelse(input$mineral_label_size == 0, "NA", input$mineral_label_size))) %>%
+                    visEdges(color = input$edge_color,
+                             width = input$edge_weight) 
+            })                 
+        })
+    
+
         
-        if (is.na(e$leg)) 
-        { 
-            finallegend <- plot_grid(n$leg)
-        } else {
-            finallegend <- plot_grid(n$leg, e$leg, nrow = 1)
-        }
-        #save_plot(finallegend, "legend.pdf")
-        #p <- ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species))  +geom_point() + theme(legend.position="none")
-        #finallegend <- plot_grid(p, finallegend, nrow=2, rel_heights=c(1, 0.1))
-        #vp <- viewport(x = 0.5, y = 0.5, w = 0.1, h = 0.1,just = "center")
-        #pushViewport(vp) 
-        ggdraw(finallegend)
-        #plot(grid.arrange(finallegend, vp=vp))
-        #draw_plot(finallegend, x = 0, y = 0, width = 0.1, height = 0.1, scale = 1)
-    })          
-})
+        output$networklegend <- renderPlot({
+        
+            e <- edge_styler()
+            n <- node_styler()
+        
+            if (is.na(e$leg)) 
+            { 
+                finallegend <- plot_grid(n$leg)
+            } else {
+                finallegend <- plot_grid(n$leg, e$leg, nrow = 1)
+            }
+            #save_plot(finallegend, "legend.pdf")
+            #p <- ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species))  +geom_point() + theme(legend.position="none")
+            #finallegend <- plot_grid(p, finallegend, nrow=2, rel_heights=c(1, 0.1))
+            #vp <- viewport(x = 0.5, y = 0.5, w = 0.1, h = 0.1,just = "center")
+            #pushViewport(vp) 
+            ggdraw(finallegend)
+            #plot(grid.arrange(finallegend, vp=vp))
+            #draw_plot(finallegend, x = 0, y = 0, width = 0.1, height = 0.1, scale = 1)
+        })          
+    })
 
    
 
@@ -353,65 +339,63 @@ server <- function(input, output, session) {
         
         
     output$exportNodes <- downloadHandler(
-        filename <- function() { paste0('mcnet-node_data', Sys.Date(), '.csv') },
+        filename <- function() { paste0('mcnet_node_data_', Sys.Date(), '.csv') },
         content <- function(con) 
         {
             write_csv(node_styler()$styled_nodes, con)
         })
     output$exportEdges <- downloadHandler(
-        filename <- function() { paste0('mcnet-edge_data', Sys.Date(), '.csv') },
+        filename <- function() { paste0('mcnet_edge_data_', Sys.Date(), '.csv') },
         content <- function(con) 
         {
             write_csv(edge_styler()$styled_edges, con)
         })
 
+
+
+
+    observeEvent(input$networkplot_selected, {
+        #if (is.null(input$networkplot_selected)) {
+        #    sel <- chemistry_network()$elements_of_interest[1]
+        #}else{
+        #  sel <- input$networkplot_selected
+        #}
         
-       ## todo: Table reloads and flushes page resulting in shit UI
-       ## a solution is here - https://github.com/rstudio/DT/issues/168
-       ## or: https://stackoverflow.com/questions/38182261/shiny-for-r-dt-how-to-read-retain-page-length-and-column-visibility
-       observeEvent(input$networkplot_selected, {
-            output$nodeTable <- renderDT({
-                
-                mineral_names <- chemistry_network()$nodes$id[chemistry_network()$mineral_indices]
-                if (input$networkplot_selected %in% mineral_names){
-                    chemistry_network()$edges %>% 
-                        filter(mineral_name == input$networkplot_selected) %>% 
-                         select(mineral_name) %>% 
-                         left_join(rruff) %>% 
-                         select(mineral_name, mineral_id, mindat_id, at_locality, is_remote, rruff_chemistry, max_age) %>%
-                         unique() %>% 
-                         mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
-                                is_remote   = ifelse(is_remote == 0, "No", "Yes")) %>%
-                        rename("Mineral" = mineral_name,
-                               "Mineral ID" = mineral_id,
-                               "Mindat ID"  = mindat_id,
-                               "At Locality?" = at_locality,
-                               "Is Remote?" = is_remote,
-                               "Chemistry"  = rruff_chemistry,
-                               "Maximum Age (Ga)" = max_age) %>%
-                        arrange(`Maximum Age (Ga)`, Mineral)  -> outtab
-                } else{
-                    chemistry_network()$edges %>% 
-                        filter(element == input$networkplot_selected) %>% 
-                         left_join(rruff) %>% 
-                         select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry) %>%
-                         unique() %>%
-                         rename("Element"                        = element,
-                                "Mineral"                        = mineral_name, 
-                                "Maximum age (Ga)"               = max_age, 
-                                "Number of known localities"     = num_localities, 
-                                "Element redox state in mineral" = redox,
-                                "Chemistry"                      = rruff_chemistry) %>%
-                         arrange(`Maximum age (Ga)`, Mineral)  -> outtab
-                }
-                outtab
-            })
-        })
-
-
-    shinyjs::hide(id = "hiddenBox")
-
-
+        sel <- input$networkplot_selected
+        if (sel %in% chemistry_network()$edges$mineral_name){
+            chemistry_network()$edges %>% 
+                filter(mineral_name == sel) %>% 
+                 select(mineral_name) %>% 
+                 left_join(rruff) %>% 
+                 select(mineral_name, mineral_id, mindat_id, at_locality, is_remote, rruff_chemistry, max_age) %>%
+                 unique() %>% 
+                 mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
+                        is_remote   = ifelse(is_remote == 0, "No", "Yes")) %>%
+                rename("Mineral" = mineral_name,
+                       "Mineral ID" = mineral_id,
+                       "Mindat ID"  = mindat_id,
+                       "At Locality?" = at_locality,
+                       "Is Remote?" = is_remote,
+                       "Chemistry"  = rruff_chemistry,
+                       "Maximum Age (Ga)" = max_age) %>%
+                arrange(`Maximum Age (Ga)`, Mineral) -> node_table 
+        } else{
+            chemistry_network()$edges %>% 
+                filter(element == sel) %>% 
+                 left_join(rruff) %>% 
+                 select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry) %>%
+                 unique() %>%
+                 rename("Element"                        = element,
+                        "Mineral"                        = mineral_name, 
+                        "Maximum age (Ga)"               = max_age, 
+                        "Number of known localities"     = num_localities, 
+                        "Element redox state in mineral" = redox,
+                        "Chemistry"                      = rruff_chemistry) %>%
+                 arrange(`Maximum age (Ga)`, Mineral) -> node_table  
+        }
+        output$nodeTable <- renderDT( node_table )
+      
+    })
     
     observe({
 

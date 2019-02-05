@@ -1,7 +1,22 @@
 ###  This script produces files used in app from original database information
 library(tidyverse)
 
-rruff <- read_csv("rruff_minerals.csv")
+
+#m1 <- read_tsv("http://rruff.info/mineral_list/MED/exporting/tbl_mineral.csv", guess_max=10000)
+#m2 <- read_tsv("http://rruff.info/mineral_list/MED/exporting/tbl_locality_age_cache.csv", guess_max=10000)
+
+m1 <- read_tsv("tbl_mineral.csv", guess_max=10000)
+m2 <- read_tsv("tbl_locality_age_cache.csv", guess_max=10000)
+
+left_join(m1, m2) %>% 
+   select(mineral_name, 
+          mineral_id, 
+          mindat_id,    ### locality id  
+          at_locality, 
+          rruff_chemistry, 
+          max_age, 
+          chemistry_elements) %>% 
+   na.omit() -> rruff 
 
 rruff %>%
     select(mineral_name, rruff_chemistry, chemistry_elements) %>%
@@ -22,7 +37,7 @@ for (mineral in mineral_chem$mineral_name)
         filter(mineral_name == mineral) -> mindat
 
 
-    temp <- as.tibble(as.data.frame(str_match_all(mindat$rruff_chemistry, "([A-Z][a-z]*)\\^(\\d)([+-])\\^"), stringsAsFactors=FALSE))
+    temp <- as_tibble(as.data.frame(str_match_all(mindat$rruff_chemistry, "([A-Z][a-z]*)\\^(\\d)([+-])\\^"), stringsAsFactors=FALSE))
     if(nrow(temp) == 0)
     {
         temp2 <- tibble("mineral_name" = mineral, "element" = NA, "redox" = NA, "n" = 1)
@@ -40,13 +55,15 @@ for (mineral in mineral_chem$mineral_name)
     element_redox_states <- bind_rows( element_redox_states, temp2 )
 }
 
+##### NOTE: WE DO NOT DEAL WITH EXCEPTIONS TO THE FOUR MUTATES BELOW.
+##### SEE HERE FOR POSSIBLE EXCEPTIONS: https://www.chemguide.co.uk/inorganic/redox/oxidnstates.html
 rruff_elements %>% 
     rename(element = chemistry_elements) %>% 
     left_join(element_redox_states) %>% 
     select(-n) %>%
-    mutate(redox = if_else(element == "O", -2, redox),   ### fix, only sometimes
-           redox = if_else(element == "H", 1, redox),    ### fix, only sometimes
-           redox = if_else(element == "Cl", -1, redox),   ### fix, only sometimes
+    mutate(redox = if_else(element == "O", -2, redox),   
+           redox = if_else(element == "H", 1, redox),    
+           redox = if_else(element == "Cl", -1, redox),   
            redox = if_else(element == "F", -1, redox)) %>%
     replace_na(list(redox = 0)) -> rruff_redox
 write_csv(rruff_redox, "rruff_redox_states.csv")

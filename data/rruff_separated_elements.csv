@@ -8601,10 +8601,13 @@ Malinkoite,NaBSiO_4_,Na
 Malinkoite,NaBSiO_4_,B
 Malinkoite,NaBSiO_4_,Si
 Malinkoite,NaBSiO_4_,O
-Mallardite,Mn^2+^SO_4_·7H_2_O,Mn
-Mallardite,Mn^2+^SO_4_·7H_2_O,S
-Mallardite,Mn^2+^SO_4_·7H_2_O,O
-Mallardite,Mn^2+^SO_4_·7H_2_O,H
+Malladrite,Na_2_SiF_6_,Na
+Malladrite,Na_2_SiF_6_,Si
+Malladrite,Na_2_SiF_6_,F
+Mallardite,Mn^ 2+^SO_4_·7H_2_O,Mn
+Mallardite,Mn^ 2+^SO_4_·7H_2_O,S
+Mallardite,Mn^ 2+^SO_4_·7H_2_O,O
+Mallardite,Mn^ 2+^SO_4_·7H_2_O,H
 Mallestigite,Pb^2+^_3_Sb^5+^(S^6+^O_4_)(As^5+^O_4_)(OH)_6_·3H_2_O,Pb
 Mallestigite,Pb^2+^_3_Sb^5+^(S^6+^O_4_)(As^5+^O_4_)(OH)_6_·3H_2_O,Sb
 Mallestigite,Pb^2+^_3_Sb^5+^(S^6+^O_4_)(As^5+^O_4_)(OH)_6_·3H_2_O,S
@@ -17481,11 +17484,6 @@ Armbrusterite,Na_6_K_5_Mn^3+^Mn^2+^_14_[Si_9_O_22_]_4_(OH)_10_·4H_2_O,Mn
 Armbrusterite,Na_6_K_5_Mn^3+^Mn^2+^_14_[Si_9_O_22_]_4_(OH)_10_·4H_2_O,Si
 Armbrusterite,Na_6_K_5_Mn^3+^Mn^2+^_14_[Si_9_O_22_]_4_(OH)_10_·4H_2_O,O
 Armbrusterite,Na_6_K_5_Mn^3+^Mn^2+^_14_[Si_9_O_22_]_4_(OH)_10_·4H_2_O,H
-Ursilite,Mg_4_(U^6+^O_2_)_4_(Si_2_O_5_)_5.5_(OH)_5_·13H_2_O,Mg
-Ursilite,Mg_4_(U^6+^O_2_)_4_(Si_2_O_5_)_5.5_(OH)_5_·13H_2_O,U
-Ursilite,Mg_4_(U^6+^O_2_)_4_(Si_2_O_5_)_5.5_(OH)_5_·13H_2_O,O
-Ursilite,Mg_4_(U^6+^O_2_)_4_(Si_2_O_5_)_5.5_(OH)_5_·13H_2_O,Si
-Ursilite,Mg_4_(U^6+^O_2_)_4_(Si_2_O_5_)_5.5_(OH)_5_·13H_2_O,H
 Alloriite,"(Na,K,Ca)_24_(Na,Ca)_4_Ca_4_(Si,Al)_48_O_96_(S^6+^O_4_)_4_(SO_3_,CO_3_)_2_(OH,Cl)_2_·4(H_2_O,OH)",Na
 Alloriite,"(Na,K,Ca)_24_(Na,Ca)_4_Ca_4_(Si,Al)_48_O_96_(S^6+^O_4_)_4_(SO_3_,CO_3_)_2_(OH,Cl)_2_·4(H_2_O,OH)",K
 Alloriite,"(Na,K,Ca)_24_(Na,Ca)_4_Ca_4_(Si,Al)_48_O_96_(S^6+^O_4_)_4_(SO_3_,CO_3_)_2_(OH,Cl)_2_·4(H_2_O,OH)",Ca
