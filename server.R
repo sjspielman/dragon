@@ -282,7 +282,7 @@ server <- function(input, output, session) {
                                nodesIdSelection = list(enabled = TRUE, 
                                                        #selected = selected_element,
                                                        #values = nodes$id[nodes$type == "element"],
-                                                       main    = "Select node to view",
+                                                       main    = "Select node",
                                                        style   = "float:left; width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: -1.25em 0.5em 0em 0em;")  ##t r b l 
                            ) %>%
                     visInteraction(dragView          = TRUE, 
@@ -290,7 +290,7 @@ server <- function(input, output, session) {
                                    zoomView          = TRUE, 
                                    hover             = TRUE,
                                    selectConnectedEdges = TRUE,
-                                   hideEdgesOnDrag   = TRUE,
+                                   hideEdgesOnDrag   = FALSE,
                                    multiselect       = FALSE,
                                    navigationButtons = TRUE) %>%
                     visGroups(groupname = "element", 
@@ -423,7 +423,8 @@ server <- function(input, output, session) {
                                multiselect       = input$select_multiple_nodes,
                                hideEdgesOnDrag   = input$hide_edges_on_drag,
                                navigationButtons = input$nav_buttons) %>%
-                visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree))
+                visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree),
+                           nodesIdSelection = list(enabled = TRUE, main  = "Select node"))
     
     })     
 

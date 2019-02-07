@@ -248,7 +248,7 @@ dashboardPage(skin = "red",
                             numericInput("selected_degree", "Node selection highlight degree", min=1, max=5, 2, width = "240px"),
                             switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
                             switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                            switchInput("hide_edges_on_drag","Hide edges when dragging nodes",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                            switchInput("hide_edges_on_drag","Hide edges when dragging nodes",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
                             switchInput("nav_buttons","Show navigation buttons",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
                             switchInput("hover","Emphasize on hover",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
                             switchInput("select_multiple_nodes", "Select multiple nodes at once", value=TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger")
