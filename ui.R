@@ -9,7 +9,7 @@ library(visNetwork)
 library(magrittr)
 library(cowplot)
 library(igraph)
-library(shinyjs)
+
 
 library(shinydashboard)
 
@@ -122,7 +122,7 @@ dashboardPage(skin = "red",
                     {colourpicker::colourInput("mineral_color", "Color:", value = "firebrick3")}
                 ),
                 conditionalPanel(condition = "input.color_mineral_by != 'singlecolor'",   
-                    {pickerInput("mineralpalette", label = "'Palette:",
+                    {pickerInput("mineralpalette", label = "Palette:",
                       choices = divseq.list, selected = "Reds", width = "90%",
                       choicesOpt = list(
                           content = sprintf(
@@ -170,7 +170,7 @@ dashboardPage(skin = "red",
             ),
             fluidRow( 
                 column(6, colourpicker::colourInput("mineral_label_color","Mineral font color",value = "#000000")),
-                column(6, sliderInput("mineral_label_size","Mineral font size",value=0,min=0,max=100))
+                column(6, sliderInput("mineral_label_size","Mineral font size",value=0,min=0,max=50))
             )
         ),
         menuItem(text = "Node Shapes", 
@@ -265,16 +265,17 @@ dashboardPage(skin = "red",
                             plotOutput("networklegend", height = "80%", width = "75%")
                         )
                     ), # box
-                    div(style = "float:right; margin-right:1.5%; margin-top:-1.5%; margin-bottom:1%;",
-                        downloadBttn("exportNodes", "Save nodes as CSV", size = "xs", style = "bordered", color = "primary"),
-                        downloadBttn("exportEdges", "Save edges as CSV", size = "xs", style = "bordered", color = "primary"),
-                        downloadBttn("downloadNetwork_html", "Save as HTML",  size = "xs", style = "bordered", color = "success")
-                    ), #div
-                    box(width=12, 
+                    box(width=8, 
                         div(style = "display: block; padding-top: 1em; margin-left: auto; margin-right: auto;",
                             DT::dataTableOutput("nodeTable")
                         )
-                    ) # box
+                    ), # box
+                    box(width = 4, align = "center",
+                        downloadBttn("exportNodes", "Save nodes as CSV", size = "sm", style = "bordered", color = "primary"),
+                        downloadBttn("exportEdges", "Save edges as CSV", size = "sm", style = "bordered", color = "primary"),
+                        downloadBttn("downloadNetwork_html", "Save as HTML",  size = "sm", style = "bordered", color = "success")
+                    ) 
+
                 ) # outer div
           )## fluidRow
     ) ## dashboardBody

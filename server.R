@@ -10,7 +10,7 @@ library(visNetwork)
 library(magrittr)
 library(cowplot)
 library(igraph)
-library(pdfr)
+#library(pdfr)
 
 
 source("build_network.R")
@@ -143,6 +143,7 @@ server <- function(input, output, session) {
             out <- obtain_colors_legend(chemistry_network()$nodes, "cluster_ID", "d", "NA", "Network cluster identity")
             node_attr[["leg"]] <- out$leg
             node_attr[["colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
+            #cluster_colors <- out$cols$color
         } else 
         { 
             if (input$color_mineral_by == "singlecolor")
@@ -213,15 +214,13 @@ server <- function(input, output, session) {
         }         
         node_attr[["sizes"]] %<>% 
              bind_rows(minsizes) %>% 
-             mutate(font.size = size)
-        mineral_label_size <- input$mineral_label_size
-        if(mineral_label_size == 0) mineral_label_size <- "NA" 
-        node_attr[["sizes"]] %<>%  mutate(font.size = ifelse(group == "element", font.size, mineral_label_size))
-        
+             mutate(font.size = ifelse(group == "element", size, input$mineral_label_size))
+        pdfr(node_attr[["sizes"]])
 
 
         
         ########## Finalize (including shape, highlight, label) #################
+       # if (input$color_by_cluster){print(cluster_colors)}
         node_attr[["styled_nodes"]] <- chemistry_network()$nodes %>% 
                                            left_join( node_attr[["colors"]] ) %>%
                                            left_join( node_attr[["sizes"]]   ) %>% 
@@ -229,11 +228,16 @@ server <- function(input, output, session) {
                                                   color.border = darken(color.background, 0.3),
                                                   color.highlight = lighten(color.background, 0.3),
                                                   label =  ifelse(group == "element", label, 
-                                                           ifelse(input$label_mineral, chemistry_network()$mineral_labels, NA)),
+                                                           ifelse(input$mineral_label_size != 0, chemistry_network()$mineral_labels, NA)),
                                                   font.color = ifelse(group == "element", input$element_label_color, input$mineral_label_color),
+                                                  #font.color = ifelse(input$color_by_cluster & input$element_shape == "text", color.background, font.color),
                                                   font.color = ifelse((id %in% chemistry_network()$elements_of_interest & input$highlight_element & input$element_shape == "text"), input$highlight_color, font.color),
                                                   shape = ifelse(group == "element", input$element_shape, input$mineral_shape)
                                            )
+        if (input$color_by_cluster & input$element_shape == "text")
+        {
+            node_attr[["styled_nodes"]]$font.color <- node_attr[["styled_nodes"]]$color.background
+        } 
         return ( node_attr )
     })
     
@@ -341,7 +345,7 @@ server <- function(input, output, session) {
         content <- function(con) 
         {
             visNetwork(nodes = node_styler()$styled_nodes, edges = edge_styler()$styled_edges, height = "800px") %>%
-                visIgraphLayout(layout = input$network_layout, type = "full") %>% ## stabilizes
+                visIgraphLayout(layout = "layout_with_fr", type = "full") %>% ## stabilizes
                 visExport(type = "png") %>% ## somehow pdf is worse resolution than png.......??
                 visSave(con)
         })
@@ -402,7 +406,7 @@ server <- function(input, output, session) {
                         "Chemistry"                      = rruff_chemistry) %>%
                  arrange(`Maximum age (Ga)`, Mineral) -> node_table  
         }
-        output$nodeTable <- renderDT( node_table )
+        output$nodeTable <- renderDT( rownames= FALSE, node_table  )
       
     })
     
