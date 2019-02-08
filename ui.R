@@ -271,9 +271,9 @@ dashboardPage(skin = "red",
                         )
                     ), # box
                     box(width = 4, align = "center",
-                        downloadBttn("exportNodes", "Save nodes as CSV", size = "sm", style = "bordered", color = "primary"),
-                        downloadBttn("exportEdges", "Save edges as CSV", size = "sm", style = "bordered", color = "primary"),
-                        downloadBttn("downloadNetwork_html", "Save as HTML",  size = "sm", style = "bordered", color = "success")
+                        downloadBttn("exportNodes", "Save nodes as CSV", size = "xs", style = "bordered", color = "primary"),
+                        downloadBttn("exportEdges", "Save edges as CSV", size = "xs", style = "bordered", color = "primary"),
+                        downloadBttn("downloadNetwork_html", "Save as HTML",  size = "xs", style = "bordered", color = "success")
                     ) 
 
                 ) # outer div
