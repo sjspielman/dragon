@@ -215,8 +215,6 @@ server <- function(input, output, session) {
         node_attr[["sizes"]] %<>% 
              bind_rows(minsizes) %>% 
              mutate(font.size = ifelse(group == "element", size, input$mineral_label_size))
-        pdfr(node_attr[["sizes"]])
-
 
         
         ########## Finalize (including shape, highlight, label) #################
