@@ -10,7 +10,6 @@ library(visNetwork)
 library(magrittr)
 library(cowplot)
 library(igraph)
-#library(pdfr)
 
 
 source("build_network.R")
@@ -110,7 +109,7 @@ server <- function(input, output, session) {
         network_information   <- initialize_data(elements_of_interest, force_all_elements, age_limit)
         network               <- construct_network(network_information)
         
-        edges <- network$edges     
+
         nodes <- network$nodes %>% 
                      rename(group = type) %>% 
                      mutate(label = case_when(group == "mineral"                     ~ label,
@@ -118,6 +117,7 @@ server <- function(input, output, session) {
                                               group == "element" & nchar(label) == 2 ~ paste0(label, " "),
                                               group == "element" & nchar(label) == 3 ~ label),                        
                             font.face = "courier")
+        edges <- network$edges
         
         return (list("nodes" = nodes, 
                      "edges" = edges, 
@@ -359,6 +359,18 @@ server <- function(input, output, session) {
 
 
 
+    output$clusterTable <- renderDT(rownames= FALSE, 
+       chemistry_network()$nodes %>% 
+            select(id, group, cluster_ID, network_degree) %>%
+            rename("Node name" = id,
+                   "Node type" = group,
+                   "Louvain Cluster"  = cluster_ID,
+                   "Normalized network degree" = network_degree) %>%
+            arrange(`Louvain Cluster`, `Normalized network degree`)
+    )
+
+
+
 
     observeEvent(input$networkplot_selected, {
         #if (is.null(input$networkplot_selected)) {
@@ -366,11 +378,12 @@ server <- function(input, output, session) {
         #}else{
         #  sel <- input$networkplot_selected
         #}
-        
+        e <- chemistry_network()$edges
+        #n <- chemistry_network()$nodes
         sel <- input$networkplot_selected
-        if (sel %in% chemistry_network()$edges$mineral_name){
-            chemistry_network()$edges %>% 
-                filter(mineral_name == sel) %>% 
+        if (sel %in% e$mineral_name){
+            e %>% 
+                filter(mineral_name == sel) %>%
                  select(mineral_name) %>% 
                  left_join(rruff) %>% 
                  select(mineral_name, mineral_id, mindat_id, at_locality, is_remote, rruff_chemistry, max_age) %>%
@@ -386,7 +399,7 @@ server <- function(input, output, session) {
                        "Maximum Age (Ga)" = max_age) %>%
                 arrange(`Maximum Age (Ga)`, Mineral) -> node_table 
         } else{
-            chemistry_network()$edges %>% 
+            e %>% 
                 filter(element == sel) %>% 
                  left_join(rruff) %>% 
                  select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry) %>%

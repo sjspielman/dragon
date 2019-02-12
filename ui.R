@@ -265,12 +265,15 @@ dashboardPage(skin = "red",
                             plotOutput("networklegend", height = "80%", width = "75%")
                         )
                     ), # box
-                    box(width=8, 
-                        div(style = "display: block; padding-top: 1em; margin-left: auto; margin-right: auto;",
-                            DT::dataTableOutput("nodeTable")
-                        )
-                    ), # box
-                    box(width = 4, align = "center",
+                    tabBox(width=9, 
+                        tabPanel("Selected Node Information", 
+                                DT::dataTableOutput("nodeTable")
+                        ),
+                        tabPanel("Node Clustering and Degree", 
+                            DT::dataTableOutput("clusterTable")
+                        )                       
+                    ), # tabBox
+                    box(width = 3, align = "center",
                         downloadBttn("exportNodes", "Save nodes as CSV", size = "xs", style = "bordered", color = "primary"),
                         downloadBttn("exportEdges", "Save edges as CSV", size = "xs", style = "bordered", color = "primary"),
                         downloadBttn("downloadNetwork_html", "Save as HTML",  size = "xs", style = "bordered", color = "success")
