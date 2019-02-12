@@ -3,7 +3,7 @@ library(shinythemes)
 library(shinyWidgets)
 library(colourpicker)
 library(colorspace)
-library(RColorBrewer)  ## colorspace conflict? something strange has been happening but not fully reprexy.
+library(RColorBrewer)  ## colorspace conflict? something strange has been happening but not fully reprexable THIS IS A WORD.
 library(DT)
 library(tidyverse)
 library(visNetwork)
@@ -119,7 +119,6 @@ server <- function(input, output, session) {
                                               group == "element" & nchar(label) == 3 ~ label),                        
                             font.face = "courier")
         
-           
         return (list("nodes" = nodes, 
                      "edges" = edges, 
                      "mineral_indices" = which(nodes$group == "mineral"),
@@ -216,7 +215,7 @@ server <- function(input, output, session) {
              bind_rows(minsizes) %>% 
              mutate(font.size = ifelse(group == "element", size, input$mineral_label_size))
 
-        
+
         ########## Finalize (including shape, highlight, label) #################
        # if (input$color_by_cluster){print(cluster_colors)}
         node_attr[["styled_nodes"]] <- chemistry_network()$nodes %>% 
@@ -225,10 +224,8 @@ server <- function(input, output, session) {
                                            mutate(color.background = ifelse((id %in% chemistry_network()$elements_of_interest & input$highlight_element), input$highlight_color, color.background), 
                                                   color.border = darken(color.background, 0.3),
                                                   color.highlight = lighten(color.background, 0.3),
-                                                  label =  ifelse(group == "element", label, 
-                                                           ifelse(input$mineral_label_size != 0, chemistry_network()$mineral_labels, NA)),
                                                   font.color = ifelse(group == "element", input$element_label_color, input$mineral_label_color),
-                                                  #font.color = ifelse(input$color_by_cluster & input$element_shape == "text", color.background, font.color),
+                                                  #font.color = ifelse(input$color_by_cluster & input$element_shape == "text", color.background, font.color),   ### in if below. was not playing well here for...some reason?
                                                   font.color = ifelse((id %in% chemistry_network()$elements_of_interest & input$highlight_element & input$element_shape == "text"), input$highlight_color, font.color),
                                                   shape = ifelse(group == "element", input$element_shape, input$mineral_shape)
                                            )
@@ -236,11 +233,9 @@ server <- function(input, output, session) {
         {
             node_attr[["styled_nodes"]]$font.color <- node_attr[["styled_nodes"]]$color.background
         } 
+
         return ( node_attr )
-    })
-    
-    
-    
+    })   
     
     
     
