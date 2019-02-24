@@ -46,14 +46,15 @@ palette.label.colors <- ifelse(brewer.palettes$category == "seq", "black", "whit
 #    dashboardHeader(title = tags$span(style="font-weight:500","MCNet: Visualizing Mineral Chemistry Networks using the RRUFF IMA database"), titleWidth = "800px",
 
 dashboardPage(skin = "red",
-    dashboardHeader(title = "MCnet: Visualizing Mineral Chemistry Networks using the Mineral Evolution database", titleWidth = "860px",
+    dashboardHeader(title = "MCnet: Visualizing Mineral Chemistry Networks using the Mineral Evolution Database", titleWidth = "940px",
         dropdownMenu(
             type = "notifications", 
             icon = icon("question-circle"),
             badgeStatus = NULL,
             headerText = "Information:",
-            notificationItem("Source Code", icon = icon("github"), href = "http://github.com/spielmanlab/mcnet"))
-        ),
+            notificationItem("Source Code", icon = icon("github"), href = "http://github.com/spielmanlab/mcnet"),
+            notificationItem("Mineral Evolution Database", icon = icon("globe"), href =  "http://rruff.info/ima/")
+        )),
   dashboardSidebar(width = 330,
     sidebarMenu(
         chooseSliderSkin(skin = "Flat"),
