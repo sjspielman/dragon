@@ -115,7 +115,8 @@ server <- function(input, output, session) {
                      mutate(label = case_when(group == "mineral"                     ~ label,
                                               group == "element" & nchar(label) == 1 ~ paste0(" ", label, " "),
                                               group == "element" & nchar(label) == 2 ~ paste0(label, " "),
-                                              group == "element" & nchar(label) == 3 ~ label),                        
+                                              group == "element" & nchar(label) == 3 ~ label),  
+                            title = id,                      
                             font.face = "courier")
         edges <- network$edges
         
@@ -274,7 +275,7 @@ server <- function(input, output, session) {
                 starting_edges <- edge_styler()$styled_edges
 
                     visNetwork(starting_nodes, starting_edges) %>%
-                    visIgraphLayout(layout = "layout_with_fr", type = "full") %>% ## stabilizes
+                    visIgraphLayout(layout = "layout_with_lgl", type = "full") %>% ## stabilizes
                     visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
                                nodesIdSelection = list(enabled = TRUE, 
                                                        #selected = selected_element,
