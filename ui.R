@@ -46,7 +46,7 @@ palette.label.colors <- ifelse(brewer.palettes$category == "seq", "black", "whit
 #    dashboardHeader(title = tags$span(style="font-weight:500","MCNet: Visualizing Mineral Chemistry Networks using the RRUFF IMA database"), titleWidth = "800px",
 
 dashboardPage(skin = "red",
-    dashboardHeader(title = "MCnet: Visualizing Mineral Chemistry Networks using the RRUFF IMA database", titleWidth = "860px",
+    dashboardHeader(title = "MCnet: Visualizing Mineral Chemistry Networks using the Mineral Evolution database", titleWidth = "860px",
         dropdownMenu(
             type = "notifications", 
             icon = icon("question-circle"),
