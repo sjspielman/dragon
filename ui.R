@@ -46,13 +46,13 @@ palette.label.colors <- ifelse(brewer.palettes$category == "seq", "black", "whit
 #    dashboardHeader(title = tags$span(style="font-weight:500","MCNet: Visualizing Mineral Chemistry Networks using the RRUFF IMA database"), titleWidth = "800px",
 
 dashboardPage(skin = "red",
-    dashboardHeader(title = "MCnet: Visualizing Mineral Chemistry Networks using the Mineral Evolution Database", titleWidth = "940px",
+    dashboardHeader(title = "gbSphere: Deep-time Mineral Chemistry Networks", titleWidth = "560px",
         dropdownMenu(
             type = "notifications", 
             icon = icon("question-circle"),
             badgeStatus = NULL,
             headerText = "Information:",
-            notificationItem("Source Code", icon = icon("github"), href = "http://github.com/spielmanlab/mcnet"),
+            notificationItem("Source Code", icon = icon("github"), href = "http://github.com/spielmanlab/gbsphere"),
             notificationItem("Mineral Evolution Database", icon = icon("globe"), href =  "http://rruff.info/ima/")
         )),
   dashboardSidebar(width = 330,
@@ -66,7 +66,8 @@ dashboardPage(skin = "red",
                                                     ), 
                                                     multiple = TRUE
                         ),
-            awesomeCheckbox("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
+            prettyCheckbox("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger"),
+            prettyCheckbox("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
             sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = 4.5, step = 0.1, value = 0), #   
             #checkboxInput("refresh_rruff","Refresh rruff data",value = FALSE), ## Eventually we want an option to requery their server and get latest and greatest. This does slow things down, however.
 
@@ -81,7 +82,7 @@ dashboardPage(skin = "red",
         br(),
         menuItem(text = "Node Colors",
         fluidRow(
-            column(7,awesomeCheckbox("highlight_element","Highlight focal elements",value = FALSE, status="danger")
+            column(7,prettyCheckbox("highlight_element","Highlight focal elements",value = FALSE, status="danger")
                 ),
             column(5, #conditionalPanel(condition = "input.highlight_element == true", {   
                         colourpicker::colourInput("highlight_color", "Color:", value = "lightgoldenrod1")
@@ -90,9 +91,18 @@ dashboardPage(skin = "red",
         ), 
         fluidRow(
             column(7, 
-                pickerInput("color_element_by", "Element color scheme:",
-                            c("Single color"    = "singlecolor",  
-                            "Color by network degree" = "network_degree_norm"))),
+                conditionalPanel(condition = "input.elements_by_redox == true", {
+                                    pickerInput("color_element_by", "Element color scheme:",
+                                                c("Single color"            = "singlecolor",  
+                                                  "Color by network degree" = "network_degree_norm",
+                                                  "Color by redox state"    = "redox"))                
+                                }),
+                conditionalPanel(condition = "input.elements_by_redox == false", {
+                                    pickerInput("color_element_by", "Element color scheme:",
+                                                c("Single color"            = "singlecolor",  
+                                                  "Color by network degree" = "network_degree_norm"))
+                                })                
+            ),
             column(5, 
                 conditionalPanel(condition = "input.color_element_by == 'singlecolor'",   
                     {colourpicker::colourInput("element_color", "Color:", value = "skyblue")}
@@ -135,7 +145,7 @@ dashboardPage(skin = "red",
                 ) 
              )
         ),
-        checkboxInput("color_by_cluster","Color by network cluster",value = FALSE),br()
+        prettyCheckbox("color_by_cluster","Color by network cluster",value = FALSE, status="danger"),br()
         ),
         menuItem(text = "Node Sizes",
             fluidRow(

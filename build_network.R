@@ -4,7 +4,7 @@ rruff_separated      <- read_csv("data/rruff_separated_elements.csv")
 rruff_sub            <- rruff %>% select(-mineral_id, -mindat_id, -rruff_chemistry)
 rruff_chemistry      <- rruff_separated %>% select(-chemistry_elements) %>% unique()
 
-initialize_data <- function(elements_of_interest, force_all_elements, age_limit)
+initialize_data <- function(elements_of_interest, force_all_elements, age_limit, elements_by_redox)
 { 
 
     ## Must have all elements
@@ -51,15 +51,24 @@ initialize_data <- function(elements_of_interest, force_all_elements, age_limit)
         filter(max_age >= age_limit) %>%
         select(mineral_name, num_localities, max_age, chemistry_elements) %>%
         unique() %>%
-        separate_rows(chemistry_elements,sep=" ") 
-
-    elements_only %>%
+        separate_rows(chemistry_elements,sep=" ") %>%
         rename(element = chemistry_elements) %>%
-        left_join(element_redox_states) %>% 
-        group_by(mineral_name, element, max_age, num_localities) %>%
-        summarize(redox = mean(redox)) %>%   ##  some minerals have a few states
-        unique() %>%
-        ungroup() -> network_information    
+        left_join(element_redox_states)
+
+    if (!(elements_by_redox))
+    {
+        elements_only %>%
+            group_by(mineral_name, element, max_age, num_localities) %>%
+            summarize(redox = mean(redox)) %>% 
+            unique() %>%
+            ungroup() -> network_information    
+    } else {
+        elements_only %>%
+            mutate(base_element = element, 
+                   element = paste(element, abs(redox), sep = "_")) %>%
+            unique() %>%
+            ungroup() -> network_information        
+    }
     
     network_information    
 }
