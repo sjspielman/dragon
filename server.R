@@ -388,7 +388,7 @@ server <- function(input, output, session) {
 
     output$downloadNetwork_html <- downloadHandler(
         #req(input$go > 0)
-        filename <- function() { paste0('mcnet-', Sys.Date(), '.html') },
+        filename <- function() { paste0('dragon-', Sys.Date(), '.html') },
         content <- function(con) 
         {
             visNetwork(nodes = node_styler()$styled_nodes, edges = edge_styler()$styled_edges, height = "800px") %>%
@@ -399,13 +399,13 @@ server <- function(input, output, session) {
         
         
     output$exportNodes <- downloadHandler(
-        filename <- function() { paste0('mcnet_node_data_', Sys.Date(), '.csv') },
+        filename <- function() { paste0('dragon_node_data_', Sys.Date(), '.csv') },
         content <- function(con) 
         {
             write_csv(node_styler()$styled_nodes, con)
         })
     output$exportEdges <- downloadHandler(
-        filename <- function() { paste0('mcnet_edge_data_', Sys.Date(), '.csv') },
+        filename <- function() { paste0('dragon_edge_data_', Sys.Date(), '.csv') },
         content <- function(con) 
         {
             write_csv(edge_styler()$styled_edges, con)
