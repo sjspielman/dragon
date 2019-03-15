@@ -271,17 +271,20 @@ server <- function(input, output, session) {
         if (input$elements_by_redox)
         {
         
-            node_attr[["styled_nodes"]] %<>%
+             node_attr[["styled_nodes"]] %<>%
+                filter(group == "element") %>% 
                 mutate(id2 = id) %>%
                 separate(id2, into=c("base_element", "blah")) %>%
                 mutate(color.background = ifelse(base_element %in% chemistry_network()$elements_of_interest & input$highlight_element, input$highlight_color, color.background),
                        font.color       = ifelse(base_element %in% chemistry_network()$elements_of_interest & input$element_shape == "text" & input$highlight_element, input$highlight_color, font.color)) %>%
-                select(-base_element, -blah)     
+                select(-base_element, -blah) %>%
+                bind_rows( node_attr[["styled_nodes"]] %>% filter(group == "mineral"))    
         }
         
         node_attr[["styled_nodes"]] %<>% mutate(color.border = darken(color.background, 0.3),
                                                 color.highlight = lighten(color.background, 0.3))
-        
+
+
         
         if (input$color_by_cluster & input$element_shape == "text")
         {
@@ -343,7 +346,7 @@ server <- function(input, output, session) {
                                    selectConnectedEdges = TRUE,
                                    hideEdgesOnDrag   = FALSE,
                                    multiselect       = FALSE,
-                                   navigationButtons = TRUE) %>%
+                                   navigationButtons = FALSE) %>%
                     visGroups(groupname = "element", 
                               color = input$element_color, 
                               shape = input$element_shape,
@@ -424,17 +427,12 @@ server <- function(input, output, session) {
     )
 
 
-
-
     observeEvent(input$networkplot_selected, {
-        #if (is.null(input$networkplot_selected)) {
-        #    sel <- chemistry_network()$elements_of_interest[1]
-        #}else{
-        #  sel <- input$networkplot_selected
-        #}
-        e <- chemistry_network()$edges
-        #n <- chemistry_network()$nodes
+
         sel <- input$networkplot_selected
+        e <- chemistry_network()$edges
+    
+        ################ ID table ##################
         if (sel %in% e$mineral_name){
             e %>% 
                 filter(mineral_name == sel) %>%
@@ -452,6 +450,8 @@ server <- function(input, output, session) {
                        "Chemistry"  = rruff_chemistry,
                        "Maximum Age (Ga)" = max_age) %>%
                 arrange(`Maximum Age (Ga)`, Mineral) -> node_table 
+            locality_table <- node_table %>% select(-`Maximum Age (Ga)`)
+            
         } else{
             e %>% 
                 filter(element == sel) %>% 
@@ -464,10 +464,40 @@ server <- function(input, output, session) {
                         "Number of known localities"     = num_localities, 
                         "Element redox state in mineral" = redox,
                         "Chemistry"                      = rruff_chemistry) %>%
-                 arrange(`Maximum age (Ga)`, Mineral) -> node_table  
+                 arrange(`Maximum age (Ga)`, Mineral) -> node_table 
+           
+           
+            e %>% 
+                filter(element==sel) %>% 
+                select(mineral_name) %>%
+                left_join(rruff) %>% 
+                select(-chemistry_elements, -max_age) %>%
+                unique() %>% 
+                mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
+                       is_remote   = ifelse(is_remote == 0, "No", "Yes")) %>%
+                rename("Mineral" = mineral_name,
+                       "Mineral ID" = mineral_id,
+                       "Mindat ID"  = mindat_id,
+                       "At Locality?" = at_locality,
+                       "Is Remote?" = is_remote,
+                       "Chemistry"  = rruff_chemistry) -> locality_table
         }
-        output$nodeTable <- renderDT( rownames= FALSE, node_table  )
-      
+            
+        
+        output$nodeTable <- renderDT( rownames= FALSE, server=FALSE, 
+                                node_table, 
+                                extensions = c('Buttons', 'ColReorder', 'Responsive'),
+                                options = list(
+                                    dom = 'Bfrtip',
+                                    colReorder = TRUE
+                                ))
+        output$localityTable <- renderDT( rownames= FALSE, server=FALSE, 
+                                locality_table, 
+                                extensions = c('Buttons', 'ColReorder', 'Responsive'),
+                                options = list(
+                                    dom = 'Bfrtip',
+                                    colReorder = TRUE
+                                ))
     })
     
     observe({

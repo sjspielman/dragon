@@ -65,11 +65,13 @@ initialize_data <- function(elements_of_interest, force_all_elements, age_limit,
     } else {
         elements_only %>%
             mutate(base_element = element, 
-                   element = paste(element, abs(redox), sep = "_")) %>%
+                   redox_sign = case_when(redox == 0 ~ "+",
+                                          redox == abs(redox) ~ "+",
+                                          redox != abs(redox) ~ "-"),
+                   element = paste0(element, redox_sign, abs(redox))) %>%
             unique() %>%
             ungroup() -> network_information        
     }
-    
     network_information    
 }
 

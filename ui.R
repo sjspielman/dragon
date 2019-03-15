@@ -46,7 +46,7 @@ palette.label.colors <- ifelse(brewer.palettes$category == "seq", "black", "whit
 #    dashboardHeader(title = tags$span(style="font-weight:500","MCNet: Visualizing Mineral Chemistry Networks using the RRUFF IMA database"), titleWidth = "800px",
 
 dashboardPage(skin = "red",
-    dashboardHeader(title = "gbSphere: Deep-time Mineral Chemistry Networks", titleWidth = "560px",
+    dashboardHeader(title = "dragon: Deep-time Redox Analysis of the Geo-bio Ontology Network", titleWidth = "740px",
         dropdownMenu(
             type = "notifications", 
             icon = icon("question-circle"),
@@ -257,12 +257,12 @@ dashboardPage(skin = "red",
                     div(style = "float:left;margin-left:2%;margin-bottom:1%;",
                         dropdownButton(status = "danger", width="300px", circle=FALSE,icon=icon("gear"), tooltip = tooltipOptions(title = "Network interaction preferences"),
                             numericInput("selected_degree", "Node selection highlight degree", min=1, max=5, 2, width = "240px"),
+                            switchInput("select_multiple_nodes", "Select multiple nodes at once", value=FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                            switchInput("hover","Emphasize on hover",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                            switchInput("hide_edges_on_drag","Hide edges when dragging nodes (more efficient)",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
                             switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
                             switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                            switchInput("hide_edges_on_drag","Hide edges when dragging nodes",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                            switchInput("nav_buttons","Show navigation buttons",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                            switchInput("hover","Emphasize on hover",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                            switchInput("select_multiple_nodes", "Select multiple nodes at once", value=TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger")
+                            switchInput("nav_buttons","Show navigation buttons",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger")
                         )               
                     
                     
@@ -276,18 +276,23 @@ dashboardPage(skin = "red",
                             plotOutput("networklegend", height = "80%", width = "75%")
                         )
                     ), # box
-                    tabBox(width=9, 
+                    tabBox(width=10, 
                         tabPanel("Selected Node Information", 
-                                DT::dataTableOutput("nodeTable")
+                            DT::dataTableOutput("nodeTable")
                         ),
+                        tabPanel("Associated Mineral Localities", 
+                            DT::dataTableOutput("localityTable")
+                        ), 
                         tabPanel("Node Clustering and Degree", 
                             DT::dataTableOutput("clusterTable")
                         )                       
                     ), # tabBox
-                    box(width = 3, align = "center",
-                        downloadBttn("exportNodes", "Save nodes as CSV", size = "xs", style = "bordered", color = "primary"),
-                        downloadBttn("exportEdges", "Save edges as CSV", size = "xs", style = "bordered", color = "primary"),
-                        downloadBttn("downloadNetwork_html", "Save as HTML",  size = "xs", style = "bordered", color = "success")
+                    box(width = 2, align = "center",
+                        downloadBttn("exportNodes", "Export nodes as CSV", size = "xs", style = "bordered", color = "primary"),
+                        br(),br(),
+                        downloadBttn("exportEdges", "Export edges as CSV", size = "xs", style = "bordered", color = "primary"),
+                        br(),br(),
+                        downloadBttn("downloadNetwork_html", "Export HTML network",  size = "xs", style = "bordered", color = "success")
                     ) 
 
                 ) # outer div
