@@ -43,7 +43,6 @@ palette.label.colors <- ifelse(brewer.palettes$category == "seq", "black", "whit
 
 
 
-#    dashboardHeader(title = tags$span(style="font-weight:500","MCNet: Visualizing Mineral Chemistry Networks using the RRUFF IMA database"), titleWidth = "800px",
 
 dashboardPage(skin = "red",
     dashboardHeader(title = "dragon: Deep-time Redox Analysis of the Geo-bio Ontology Network", titleWidth = "740px",
@@ -52,7 +51,7 @@ dashboardPage(skin = "red",
             icon = icon("question-circle"),
             badgeStatus = NULL,
             headerText = "Information:",
-            notificationItem("Source Code", icon = icon("github"), href = "http://github.com/spielmanlab/gbsphere"),
+            notificationItem("Source Code", icon = icon("github"), href = "http://github.com/spielmanlab/dragon"),
             notificationItem("Mineral Evolution Database", icon = icon("globe"), href =  "http://rruff.info/ima/")
         )),
   dashboardSidebar(width = 330,
