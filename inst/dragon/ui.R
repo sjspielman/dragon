@@ -45,7 +45,7 @@ palette.label.colors <- ifelse(brewer.palettes$category == "seq", "black", "whit
 
 
 dashboardPage(skin = "red",
-    dashboardHeader(title = "dragon: Deep-time Redox Analysis of the Geo-bio Ontology Network", titleWidth = "740px",
+    dashboardHeader(title = "dragon: Deep-time Redox Analysis of the Geobiology Ontology Network", titleWidth = "770px",
         dropdownMenu(
             type = "notifications", 
             icon = icon("question-circle"),
@@ -70,12 +70,6 @@ dashboardPage(skin = "red",
             sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = 4.5, step = 0.1, value = 0), #   
             #checkboxInput("refresh_rruff","Refresh rruff data",value = FALSE), ## Eventually we want an option to requery their server and get latest and greatest. This does slow things down, however.
 
-            #pickerInput("network_layout", "Starting network layout:",
-            #    c("Kamada-Kawai"         = "layout_with_kk",
-            #      "Fruchterman Reingold" =  "layout_with_fr",
-            #      "Circle"               = "layout_in_circle")
-            #    ),
-            #numericInput("selected_degree", "Network degree highlighting:", 2, min = 1, max = 5, step = 1),
             br(), 
             actionBttn("go", "Initialize Network", size="sm", color = "danger"),
         br(),
@@ -90,17 +84,10 @@ dashboardPage(skin = "red",
         ), 
         fluidRow(
             column(7, 
-                conditionalPanel(condition = "input.elements_by_redox == true", {
-                                    pickerInput("color_element_by", "Element color scheme:",
-                                                c("Single color"            = "singlecolor",  
-                                                  "Color by network degree" = "network_degree_norm",
-                                                  "Color by redox state"    = "redox"))                
-                                }),
-                conditionalPanel(condition = "input.elements_by_redox == false", {
-                                    pickerInput("color_element_by", "Element color scheme:",
-                                                c("Single color"            = "singlecolor",  
-                                                  "Color by network degree" = "network_degree_norm"))
-                                })                
+                pickerInput("color_element_by", "Element color scheme:",
+                             c("Single color"            = "singlecolor",  
+                               "Color by network degree" = "network_degree_norm",
+                               "Color by redox state"    = "redox"))                            
             ),
             column(5, 
                 conditionalPanel(condition = "input.color_element_by == 'singlecolor'",   
@@ -177,6 +164,9 @@ dashboardPage(skin = "red",
         menuItem(text = "Node Labels and Font", 
             fluidRow(
                 column(6, colourpicker::colourInput("element_label_color","Element font color",value = "#000000"))
+            ),
+            fluidRow(
+                column(12, prettyCheckbox("only_use_element_label_color", tags$span(style="font-size:13px;","Always use the above color for element node labels"), value = FALSE, status="danger"))
             ),
             fluidRow( 
                 column(6, colourpicker::colourInput("mineral_label_color","Mineral font color",value = "#000000")),

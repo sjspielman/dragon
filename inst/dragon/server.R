@@ -90,7 +90,6 @@ obtain_node_sizes <- function(dat, size_variable, lowsize, highsize, size_scale 
 server <- function(input, output, session) {
     
      
-    
     ################################# Build network ####################################
     chemistry_network <- reactive({
         
@@ -124,12 +123,14 @@ server <- function(input, output, session) {
 
         nodes <- network$nodes
         edges <- network$edges
+        element_mean_redox <- network$element_mean_redox
         return (list("nodes" = nodes, 
                      "edges" = edges, 
                      "mineral_indices" = which(nodes$group == "mineral"),
                      "element_indices" = which(nodes$group == "element"),
                      "mineral_labels"  = nodes$label[nodes$group == "mineral"],
-                     "elements_of_interest" = input$elements_of_interest))
+                     "elements_of_interest" = input$elements_of_interest,
+                     "element_mean_redox"   = element_mean_redox))
     })
     
     
@@ -139,6 +140,7 @@ server <- function(input, output, session) {
     node_styler <- reactive({
 
         node_attr <- list()
+      
         
         ################ Colors ####################
         if (input$color_by_cluster) 
@@ -179,12 +181,24 @@ server <- function(input, output, session) {
                                                 select(label, id) %>%
                                                 mutate(color.background = input$element_color)
             } 
-            if (input$color_element_by == "network_degree_norm")
+
+            if ((input$color_element_by == "redox" & input$elements_by_redox == FALSE) | input$color_element_by == "network_degree_norm")
             {  
-                out <- obtain_colors_legend(chemistry_network()$nodes %>% filter(group == "element"), input$color_element_by, "c", input$elementpalette, variable_to_title[[input$color_element_by]])
+            
+                chemistry_network()$nodes %>% filter(group == "element") -> legend_data
+                if (input$color_element_by == "redox")
+                {
+                    legend_data %<>% 
+                        select(-redox) %>%
+                        left_join(chemistry_network()$element_mean_redox, by="id") %>% 
+                        rename(redox = mean_element_redox) %>%
+                        unique()
+                }
+                out <- obtain_colors_legend(legend_data, input$color_element_by, "c", input$elementpalette, variable_to_title[[input$color_element_by]])
                 colorlegend_element <- out$leg
                 node_attr[["element_colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
             } 
+
 
             if (input$color_element_by == "redox" & input$elements_by_redox == TRUE)
             {  
@@ -263,7 +277,7 @@ server <- function(input, output, session) {
                                            left_join( node_attr[["sizes"]]   ) %>% 
                                            mutate(color.background = ifelse((id %in% chemistry_network()$elements_of_interest & input$highlight_element), input$highlight_color, color.background), 
                                                   font.color = ifelse(group == "element", input$element_label_color, input$mineral_label_color),
-                                                  font.color = ifelse(group == "element" & input$element_shape == "text", color.background, font.color),
+                                                  font.color = ifelse(group == "element" & input$element_shape == "text" & input$only_use_element_label_color == FALSE, color.background, font.color),
                                                   font.color = ifelse((id %in% chemistry_network()$elements_of_interest & input$highlight_element & input$element_shape == "text"), input$highlight_color, font.color),
                                                   shape = ifelse(group == "element", input$element_shape, input$mineral_shape))
                                                   
@@ -277,7 +291,7 @@ server <- function(input, output, session) {
                 mutate(color.background = ifelse(base_element %in% chemistry_network()$elements_of_interest & input$highlight_element, input$highlight_color, color.background),
                        font.color       = ifelse(base_element %in% chemistry_network()$elements_of_interest & input$element_shape == "text" & input$highlight_element, input$highlight_color, font.color)) %>%
                 select(-base_element, -blah) %>%
-                bind_rows( node_attr[["styled_nodes"]] %>% filter(group == "mineral"))    
+                bind_rows( node_attr[["styled_nodes"]] %>% filter(group == "mineral") ) 
         }
         
         node_attr[["styled_nodes"]] %<>% mutate(color.border = darken(color.background, 0.3),
@@ -289,6 +303,8 @@ server <- function(input, output, session) {
         {
             node_attr[["styled_nodes"]]$font.color <- node_attr[["styled_nodes"]]$color.background
         } 
+        
+        node_attr[["styled_nodes"]] %<>% arrange(desc(group)) ## arranging minerals first is necessary so that element nodes are always on top, in particular for element_by_redox==T; Addresses https://github.com/spielmanlab/dragon/issues/5
 
         return ( node_attr )
     })   

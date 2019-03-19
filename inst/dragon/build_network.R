@@ -72,6 +72,13 @@ obtain_network_information <- function(elements_only_age, elements_by_redox)
             ungroup() -> network_information        
     }
     
+    network_information %<>%
+        select(element, redox) %>%
+        unique() %>%
+        group_by(element) %>%
+        summarize(mean_element_redox = mean(redox)) %>%
+        right_join(network_information)
+
     network_information    
 }
 
@@ -80,10 +87,11 @@ construct_network   <- function(network_information, elements_by_redox)
 {
 
     network_data <- network_information %>% select(mineral_name, element)
-        element_network <- graph.data.frame(network_data, directed=FALSE)
-        V(element_network)$type <- bipartite_mapping(element_network)$type 
-        clustered_net <- cluster_louvain(element_network)
-        deg <- degree(element_network, mode="all")
+    
+    element_network <- graph.data.frame(network_data, directed=FALSE)
+    V(element_network)$type <- bipartite_mapping(element_network)$type 
+    clustered_net <- cluster_louvain(element_network)
+    deg <- degree(element_network, mode="all")
 
     ### 1 row per VERTEX, to be joined with nodes
     minerals_as_item <- network_information %>% 
@@ -93,16 +101,24 @@ construct_network   <- function(network_information, elements_by_redox)
         select(mineral_name, mean_redox, num_localities, max_age) %>%
         rename(item = mineral_name) %>%
         unique() 
+    
+    network_information %>% 
+        select(element, mean_element_redox) %>% 
+        rename(id = element) -> element_redox
 
     vertex_information <- left_join( tibble("item" = clustered_net$names, "cluster_ID"= as.numeric(clustered_net$membership)),
                                      tibble("item" = names(deg), "network_degree"= as.numeric(deg)) ) %>%
         mutate(type = ifelse(item %in% network_information$mineral_name, "mineral", "element")) %>%
         group_by(type) %>%
         mutate(network_degree_norm = network_degree / max(network_degree)) %>%
-        ungroup() %>%              
-        left_join(minerals_as_item) %>%
-        rename(id = item, redox = mean_redox)
+        ungroup() %>%        
+        left_join(minerals_as_item) %>%    
+        rename(id = item, redox = mean_redox) #%>%
+        #left_join(element_redox, by="id") %>% 
+        #mutate(redox = ifelse(is.na(redox), mean_element_redox, redox)) %>% 
+        #select(-mean_element_redox)
 
+    
     net <- toVisNetworkData(element_network)
 
     edges <- as_tibble(net$edges) %>% bind_cols(network_information)
@@ -122,8 +138,7 @@ construct_network   <- function(network_information, elements_by_redox)
                                          group == "element" & nchar(label) == 3+charadd ~ label),  
                        title = id,                      
                        font.face = "courier")
-
-    return (list("nodes" = nodes, "edges" = edges))
+    return (list("nodes" = nodes, "edges" = edges, "element_mean_redox" = element_redox))
 }
   
   
