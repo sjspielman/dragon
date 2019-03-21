@@ -65,8 +65,8 @@ dashboardPage(skin = "red",
                                                     ), 
                                                     multiple = TRUE
                         ),
-            prettyCheckbox("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger"),
-            prettyCheckbox("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
+            prettyCheckbox("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
+            prettyCheckbox("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
             sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = 4.5, step = 0.1, value = 0), #   
             #checkboxInput("refresh_rruff","Refresh rruff data",value = FALSE), ## Eventually we want an option to requery their server and get latest and greatest. This does slow things down, however.
 
@@ -75,7 +75,7 @@ dashboardPage(skin = "red",
         br(),
         menuItem(text = "Node Colors",
         fluidRow(
-            column(7,prettyCheckbox("highlight_element","Highlight focal elements",value = FALSE, status="danger")
+            column(7,prettyCheckbox("highlight_element","Highlight focal elements",value = FALSE, icon = icon("check"), animation="smooth", status="danger")
                 ),
             column(5, #conditionalPanel(condition = "input.highlight_element == true", {   
                         colourpicker::colourInput("highlight_color", "Color:", value = "lightgoldenrod1")
@@ -166,7 +166,7 @@ dashboardPage(skin = "red",
                 column(6, colourpicker::colourInput("element_label_color","Element font color",value = "#000000"))
             ),
             fluidRow(
-                column(12, prettyCheckbox("only_use_element_label_color", tags$span(style="font-size:13px;","Always use the above color for element node labels"), value = FALSE, status="danger"))
+                column(12, prettyCheckbox("only_use_element_label_color", "Always use the above color for element labels", value = FALSE, animation="smooth", icon = icon("check"), status="danger"))
             ),
             fluidRow( 
                 column(6, colourpicker::colourInput("mineral_label_color","Mineral font color",value = "#000000")),
@@ -220,8 +220,7 @@ dashboardPage(skin = "red",
                    )
                 ), ## fluid
                 fluidRow(
-                    column(6, sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10)),
-                    column(6, checkboxInput("edge_shadow", "Enable edge shadows", FALSE))
+                    column(12, sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10))
                 )
             ) #,
 #         menuItem(text = "Network Interaction Preferences",

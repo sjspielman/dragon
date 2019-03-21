@@ -38,6 +38,8 @@ theme_set(theme_cowplot() + theme(legend.position = "bottom",
                                   legend.key.size = unit(1, "cm"),
                                   legend.title = element_text(size=10),
                                   legend.box.background = element_rect(color = "white")))                                  
+
+
 obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, legendtitle)
 {
     
@@ -50,7 +52,7 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
     data.colors <- ggplot_build(p)$data[[1]] %>% 
                     as_tibble() %>% 
                     bind_cols(dat2) %>%
-                    rename(color = colour) ## god help me, hadley.
+                    rename(color = colour) ## god help me, hadley. 
     data.legend <- get_legend(p)
     return (list("cols" = data.colors, "leg" = data.legend))
 }
@@ -148,7 +150,6 @@ server <- function(input, output, session) {
             out <- obtain_colors_legend(chemistry_network()$nodes, "cluster_ID", "d", "NA", "Network cluster identity")
             node_attr[["leg"]] <- out$leg
             node_attr[["colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
-            #cluster_colors <- out$cols$color
         } else 
         { 
             if (input$color_mineral_by == "singlecolor")
@@ -212,27 +213,7 @@ server <- function(input, output, session) {
                                                     select(label, id, color.background) %>%
                                                     unique()
             }    
-            #### WAYYY too busy           
-#             if (input$color_element_by == "base_element")
-#             {   
-#             
-#                 out <- obtain_colors_legend(chemistry_network()$edges %>% select(base_element, element), input$color_element_by, "d", "NA", "blaaahhh")
-#                 colorlegend_element <- NA
-#                 node_attr[["element_colors"]] <- out$cols %>% 
-#                                                     select(element, color) %>% 
-#                                                     rename(id = element, color.background = color) %>% 
-#                                                     left_join(chemistry_network()$nodes) %>% 
-#                                                     filter(group == "element") %>%
-#                                                     select(label, id, color.background) %>%
-#                                                     unique()
-#             } 
-            
-            #if(is.na(colorlegend_element))
-            #{   
-            #    node_attr[["leg"]] <- plot_grid(colorlegend_mineral, nrow=1)
-            #} else {
             node_attr[["leg"]] <- plot_grid(colorlegend_element, colorlegend_mineral, nrow=1)
-            #}
             node_attr[["colors"]] <- bind_rows(node_attr[["element_colors"]], node_attr[["mineral_colors"]]) 
         }   
         
@@ -271,7 +252,7 @@ server <- function(input, output, session) {
              mutate(font.size = ifelse(group == "element", size, input$mineral_label_size))
 
 
-        ########## Finalize (including shape, highlight, label) #################
+        ########## Merge and add in remaining attributes including shape, highlight, label #################
         node_attr[["styled_nodes"]] <- chemistry_network()$nodes %>% 
                                            left_join( node_attr[["colors"]] ) %>%
                                            left_join( node_attr[["sizes"]]   ) %>% 
@@ -280,10 +261,14 @@ server <- function(input, output, session) {
                                                   font.color = ifelse(group == "element" & input$element_shape == "text" & input$only_use_element_label_color == FALSE, color.background, font.color),
                                                   font.color = ifelse((id %in% chemistry_network()$elements_of_interest & input$highlight_element & input$element_shape == "text"), input$highlight_color, font.color),
                                                   shape = ifelse(group == "element", input$element_shape, input$mineral_shape))
-                                                  
+               
+        ############################## Deal with certain edge cases at the END ###########################                                
+        if (input$color_by_cluster & input$element_shape == "text" & !(input$only_use_element_label_color))
+        {
+            node_attr[["styled_nodes"]]$font.color <- node_attr[["styled_nodes"]]$color.background
+        } 
         if (input$elements_by_redox)
         {
-        
              node_attr[["styled_nodes"]] %<>%
                 filter(group == "element") %>% 
                 mutate(id2 = id) %>%
@@ -294,18 +279,13 @@ server <- function(input, output, session) {
                 bind_rows( node_attr[["styled_nodes"]] %>% filter(group == "mineral") ) 
         }
         
+        ### also for sure at end, since depends on all colors being set properly above.
         node_attr[["styled_nodes"]] %<>% mutate(color.border = darken(color.background, 0.3),
-                                                color.highlight = lighten(color.background, 0.3))
-
-
-        
-        if (input$color_by_cluster & input$element_shape == "text")
-        {
-            node_attr[["styled_nodes"]]$font.color <- node_attr[["styled_nodes"]]$color.background
-        } 
-        
-        node_attr[["styled_nodes"]] %<>% arrange(desc(group)) ## arranging minerals first is necessary so that element nodes are always on top, in particular for element_by_redox==T; Addresses https://github.com/spielmanlab/dragon/issues/5
-
+                                                color.highlight = lighten(color.background, 0.3),
+                                                color.hover.border = darken(color.background, 0.3),
+                                                color.hover.background = lighten(color.background, 0.3))%>%
+                                         arrange(desc(group)) ## arranging minerals first is necessary so that element nodes are always on top and not obscured by giant minerally networks; https://github.com/spielmanlab/dragon/issues/5
+        ######################################################
         return ( node_attr )
     })   
     
@@ -373,8 +353,7 @@ server <- function(input, output, session) {
                               font  = list(size = ifelse(input$mineral_label_size == 0, "NA", input$mineral_label_size))) %>%
                     visEdges(color = input$edge_color,
                              width = input$edge_weight,
-                             smooth = FALSE,  ## no visual effect that I can perceive, and improves speed. Cool.
-                             shadow = input$edge_shadow) 
+                             smooth = FALSE)  ## no visual effect that I can perceive, and improves speed. Cool. 
             })                 
         })
     
@@ -522,7 +501,6 @@ server <- function(input, output, session) {
         visNetworkProxy("networkplot") %>%
                 visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
                 visUpdateEdges(edges = edge_styler()$styled_edges) %>%
-                visEdges(shadow = input$edge_shadow) %>%
                 visGetSelectedNodes() %>%
                 visGetPositions() %>%
                 visInteraction(dragView          = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
