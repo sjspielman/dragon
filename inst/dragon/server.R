@@ -410,14 +410,19 @@ server <- function(input, output, session) {
 
 
 
-    output$clusterTable <- renderDT(rownames= FALSE, 
+    output$clusterTable <- renderDT(rownames= FALSE,  server = FALSE,
        chemistry_network()$nodes %>% 
             select(id, group, cluster_ID, network_degree) %>%
             rename("Node name" = id,
                    "Node type" = group,
                    "Louvain Cluster"  = cluster_ID,
                    "Normalized network degree" = network_degree) %>%
-            arrange(`Louvain Cluster`, `Normalized network degree`)
+            arrange(`Louvain Cluster`, `Normalized network degree`),
+         extensions = c('Buttons', 'ColReorder', 'Responsive'),
+                        options = list(
+                        dom = 'Bfrtip',
+                        colReorder = TRUE
+        )
     )
 
 
