@@ -1,7 +1,7 @@
 ## Test environments
 * Local OS X install, R 3.5.3
-* Linux (x86_64-pc-linux-gnu on travis-ci), R 3.5.2
-* win-builder (devel and release)
+* Linux (x86_64-pc-linux-gnu on travis-ci), R versions `oldrel`, `release`, and `devel`
+* Windows versions `devel` and `release` 
 
 ## R CMD check results 
 
@@ -14,9 +14,9 @@
 
 Status: OK
 
-`The command "grep -q -R "WARNING" "${RCHECK_DIR}/00check.log"" exited with 0.`
+`Done. Your build exited with 0.`
 
-### windows devel
+### windows devel (3.6.0 alpha)
 
 Status: 1 NOTE
 
@@ -24,7 +24,7 @@ Status: 1 NOTE
 `* checking CRAN incoming feasibility ... NOTE`
 `Maintainer: 'Stephanie J. Spielman <spielman@rowan.edu>'`
 
-### windows release
+### windows release (3.5.3)
 
 Status: 1 NOTE
 
