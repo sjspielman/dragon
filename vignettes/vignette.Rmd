@@ -16,17 +16,12 @@ knitr::opts_chunk$set(
 )
 ```
 
-The `dragon` (**D**eep time **R**edox **A**nalysis of the **G**eo-bio **O**ntology **N**etwork) package provides a Shiny Application for examining mineral-chemistry networks over deep time on Earth, with a specific application of investigating biologically-relevant evolution of element redox states. `dragon` uses the `visNetwork` library (an R wrapper for `vis.js`) to construct user-friendly interactive networks. 
+The `dragon` (**D**eep time **R**edox **A**nalysis of the **G**eobiology **O**ntology **N**etwork) package provides a Shiny Application for examining mineral-chemistry networks over deep time on Earth, with a specific application of investigating biologically-relevant evolution of element redox states. `dragon` uses the `visNetwork` library (an R wrapper for `vis.js`) to construct user-friendly interactive networks. 
 
 This package was written by Stephanie J. Spielman, Ph.D. at Rowan University for collaborative research with Eli K. Moore, Ph.D. at Rowan University and is lisenced under GPL-3.
 
-To obtain and run `dragon`, you will need the `remotes` package:
+To run `dragon` locally, simply run the command `rundragon()`:
 ```{r, eval = FALSE}
-
-## Install package
-library(remotes)
-install_github("spielmanlab/dragon")
-
 ## Launch application
 library(dragon)
 rundragon()

@@ -2,3 +2,4 @@
 .DS_Store
 rsconnect/
 cran_comments.md
+.Rapp.history
