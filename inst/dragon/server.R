@@ -470,7 +470,7 @@ server <- function(input, output, session) {
                 filter(element==sel) %>% 
                 select(mineral_name) %>%
                 left_join(rruff) %>% 
-                select(-chemistry_elements, -max_age) %>%
+                select(-chemistry_elements) %>%
                 unique() %>% 
                 mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
                        is_remote   = ifelse(is_remote == 0, "No", "Yes")) %>%
@@ -478,6 +478,7 @@ server <- function(input, output, session) {
                        "Mineral ID" = mineral_id,
                        "Mindat ID"  = mindat_id,
                        "At Locality?" = at_locality,
+                       "Maximum Age (Ga)" = max_age,
                        "Is Remote?" = is_remote,
                        "Chemistry"  = rruff_chemistry) -> locality_table
         }
