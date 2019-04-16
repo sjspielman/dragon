@@ -11,15 +11,22 @@ library(magrittr)
 library(cowplot)
 library(igraph)
 
+options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Make NA in DT show as NA instead of blank cell
+
 
 source("build_network.R")
 
-## is_remote = is the age actually associated with the locality (1) or was is ported from another locality (0)
 variable_to_title <- list("redox" = "Mean Redox State", 
                           "max_age" = "Maximum Age (Ga)", 
                           "num_localities" = "Number of known localities", 
-                          "network_degree_norm" = "Network degree")   
-
+                          "network_degree_norm" = "Network degree", 
+                          "pauling" = "Pauling Electronegativity", 
+                          "allen"  = "Allen Electronegativity",
+                          "mean_pauling" = "Mean Pauling Electronegativity", 
+                          "mean_allen"  = "Mean Allen Electronegativity",
+                          "sd_pauling" = "Std Dev Pauling Electronegativity", 
+                          "sd_allen"  = "Std Dev Allen Electronegativity")
+                          
 ## mediocre matching here.
 vis_to_gg_shape <- list("circle"  = 19,
                         "dot"     = 19,
@@ -31,7 +38,7 @@ vis_to_gg_shape <- list("circle"  = 19,
                         "diamond" = 18,
                         "triangle" = 17)
 
-
+na.gray <- "#DCDCDC"
 geom.point.size <- 8
 theme_set(theme_cowplot() + theme(legend.position = "bottom",
                                   legend.text = element_text(size=9),
@@ -46,8 +53,8 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
     cvar <- as.symbol(color_variable)
     dat %>% mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
 
-    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle) + guides(colour = guide_legend(title.position="top", title.hjust = 0.5, nrow = 1)  )
-    if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1)+ guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
+    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle, na.value = na.gray) + guides(colour = guide_legend(title.position="top", title.hjust = 0.5, nrow = 1)  )
+    if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1, na.value = na.gray)+ guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
 
     data.colors <- ggplot_build(p)$data[[1]] %>% 
                     as_tibble() %>% 
@@ -61,7 +68,7 @@ obtain_colors_legend_single <- function(group, singleshape, singlecolor)
 {
     p <- tibble(x = 1, y = 1, type = group) %>% 
         ggplot(aes(x=x,y=y,color=type)) + 
-            geom_point(size = geom.point.size, shape = singleshape) + scale_color_manual(name = "", values=c(singlecolor)) + theme(legend.text = element_text(size=16))
+            geom_point(size = geom.point.size, shape = singleshape) + scale_color_manual(name = "", values=c(singlecolor), na.value=na.gray) + theme(legend.text = element_text(size=16))
     data.colors <- ggplot_build(p)$data[[1]]$colour
     data.legend <- get_legend(p)
     return (list("cols" = data.colors, "leg" = data.legend))
@@ -125,14 +132,15 @@ server <- function(input, output, session) {
 
         nodes <- network$nodes
         edges <- network$edges
-        element_mean_redox <- network$element_mean_redox
+        element_mean_redox_electro <- network$element_mean_redox_electro
         return (list("nodes" = nodes, 
                      "edges" = edges, 
                      "mineral_indices" = which(nodes$group == "mineral"),
                      "element_indices" = which(nodes$group == "element"),
                      "mineral_labels"  = nodes$label[nodes$group == "mineral"],
                      "elements_of_interest" = input$elements_of_interest,
-                     "element_mean_redox"   = element_mean_redox))
+                     "element_mean_redox_electro"   = element_mean_redox_electro))
+
     })
     
     
@@ -183,18 +191,10 @@ server <- function(input, output, session) {
                                                 mutate(color.background = input$element_color)
             } 
 
-            if ((input$color_element_by == "redox" & input$elements_by_redox == FALSE) | input$color_element_by == "network_degree_norm")
+            if ((input$color_element_by == "redox" & input$elements_by_redox == FALSE) |  input$color_element_by == "pauling" | input$color_element_by == "allen" | input$color_element_by == "network_degree_norm")
             {  
             
                 chemistry_network()$nodes %>% filter(group == "element") -> legend_data
-                if (input$color_element_by == "redox")
-                {
-                    legend_data %<>% 
-                        select(-redox) %>%
-                        left_join(chemistry_network()$element_mean_redox, by="id") %>% 
-                        rename(redox = mean_element_redox) %>%
-                        unique()
-                }
                 out <- obtain_colors_legend(legend_data, input$color_element_by, "c", input$elementpalette, variable_to_title[[input$color_element_by]])
                 colorlegend_element <- out$leg
                 node_attr[["element_colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
@@ -430,24 +430,28 @@ server <- function(input, output, session) {
 
         sel <- input$networkplot_selected
         e <- chemistry_network()$edges
-    
+        print(names(e))
         ################ ID table ##################
         if (sel %in% e$mineral_name){
             e %>% 
-                filter(mineral_name == sel) %>%
-                 select(mineral_name) %>% 
+                 filter(mineral_name == sel) %>%
+                 select(mineral_name, mean_pauling, sd_pauling) %>% 
                  left_join(rruff) %>% 
-                 select(mineral_name, mineral_id, mindat_id, at_locality, is_remote, rruff_chemistry, max_age) %>%
+                 select(mineral_name, mineral_id, mindat_id, at_locality, is_remote, rruff_chemistry, max_age, mean_pauling, sd_pauling) %>%
                  unique() %>% 
                  mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
-                        is_remote   = ifelse(is_remote == 0, "No", "Yes")) %>%
+                        is_remote   = ifelse(is_remote == 0, "No", "Yes"),
+                        mean_pauling = round(mean_pauling, 5),
+                        sd_pauling = round(sd_pauling, 5)) %>%
                 rename("Mineral" = mineral_name,
                        "Mineral ID" = mineral_id,
                        "Mindat ID"  = mindat_id,
                        "At Locality?" = at_locality,
                        "Is Remote?" = is_remote,
                        "Chemistry"  = rruff_chemistry,
-                       "Maximum Age (Ga)" = max_age) %>%
+                       "Maximum Age (Ga)" = max_age,
+                       "Mean Pauling electronegativity" = mean_pauling,
+                       "Std Dev Pauling electronegativity" = sd_pauling) %>%
                 arrange(`Maximum Age (Ga)`, Mineral) -> node_table 
             locality_table <- node_table %>% select(-`Maximum Age (Ga)`)
             
@@ -455,33 +459,39 @@ server <- function(input, output, session) {
             e %>% 
                 filter(element == sel) %>% 
                  left_join(rruff) %>% 
-                 select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry) %>%
+                 select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry, pauling, allen) %>%
                  unique() %>%
                  rename("Element"                        = element,
                         "Mineral"                        = mineral_name, 
                         "Maximum age (Ga)"               = max_age, 
                         "Number of known localities"     = num_localities, 
                         "Element redox state in mineral" = redox,
-                        "Chemistry"                      = rruff_chemistry) %>%
+                        "Chemistry"                      = rruff_chemistry,
+                        "Pauling electronegativity"      = pauling,
+                        "Allen electronegativity"        = allen) %>%
                  arrange(`Maximum age (Ga)`, Mineral) -> node_table 
            
-           
             e %>% 
-                filter(element==sel) %>% 
-                select(mineral_name) %>%
+                filter(element == sel) %>% 
+                select(mineral_name, mean_pauling, sd_pauling) %>%
                 left_join(rruff) %>% 
                 select(-chemistry_elements) %>%
-                unique() %>% 
+                unique() %>%
                 mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
-                       is_remote   = ifelse(is_remote == 0, "No", "Yes")) %>%
+                       is_remote   = ifelse(is_remote == 0, "No", "Yes"),
+                       mean_pauling = round(mean_pauling, 5),
+                       sd_pauling = round(sd_pauling, 5)) %>%
                 rename("Mineral" = mineral_name,
                        "Mineral ID" = mineral_id,
                        "Mindat ID"  = mindat_id,
                        "At Locality?" = at_locality,
                        "Maximum Age (Ga)" = max_age,
                        "Is Remote?" = is_remote,
-                       "Chemistry"  = rruff_chemistry) -> locality_table
+                       "Chemistry"  = rruff_chemistry, 
+                       "Mean Pauling electronegativity" = mean_pauling,
+                       "Std Dev Pauling electronegativity" = sd_pauling) -> locality_table
         }
+            
             
         
         output$nodeTable <- renderDT( rownames= FALSE, server=FALSE, 

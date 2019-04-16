@@ -3,6 +3,8 @@ element_redox_states <- read_csv("data/rruff_redox_states.csv.zip")
 rruff_separated      <- read_csv("data/rruff_separated_elements.csv.zip")
 rruff_sub            <- rruff %>% select(-mineral_id, -mindat_id, -rruff_chemistry)
 rruff_chemistry      <- rruff_separated %>% select(-chemistry_elements) %>% unique()
+electronegativity    <- read_csv("data/element_electronegativities.csv.zip")
+
 
 initialize_data <- function(elements_of_interest, force_all_elements)
 { 
@@ -47,37 +49,38 @@ initialize_data_age <- function(elements_only, age_limit)
 
 obtain_network_information <- function(elements_only_age, elements_by_redox)
 {      
-    elements_only_age %<>%    
-        select(mineral_name, num_localities, max_age, chemistry_elements) %>%
-        unique() %>%
-        separate_rows(chemistry_elements,sep=" ") %>%
-        rename(element = chemistry_elements) %>%
-        left_join(element_redox_states)
+    network_information <- elements_only_age %>%    
+                            select(mineral_name, num_localities, max_age, chemistry_elements) %>%
+                            unique() %>%
+                            separate_rows(chemistry_elements,sep=" ") %>%
+                            rename(element = chemistry_elements) %>%
+                            left_join(element_redox_states) %>% 
+                            left_join(electronegativity, by = "element") %>%
+                            unique()
 
-    if (!(elements_by_redox))
+    if (elements_by_redox)
     {
-        elements_only_age %>%
-            group_by(mineral_name, element, max_age, num_localities) %>%
-            summarize(redox = mean(redox)) %>% 
-            unique() %>%
-            ungroup() -> network_information    
-    } else {
-        elements_only_age %>%
+        network_information %>%
             mutate(base_element = element, 
                    redox_sign = case_when(redox == 0 ~ "+",
                                           redox == abs(redox) ~ "+",
                                           redox != abs(redox) ~ "-"),
-                   element = paste0(element, redox_sign, abs(redox))) %>%
+                   element = ifelse(is.na(redox), paste0(element, "  "), 
+                                                  paste0(element, redox_sign, abs(redox)))) %>%
             unique() %>%
-            ungroup() -> network_information        
+            ungroup() -> network_information       
     }
     
+    ### STARTS multiple redox states, one per element per mineral, regardless of if/else above
     network_information %<>%
         select(element, redox) %>%
         unique() %>%
         group_by(element) %>%
-        summarize(mean_element_redox = mean(redox)) %>%
-        right_join(network_information)
+        summarize(mean_element_redox = mean(redox, na.rm=TRUE)) %>%
+        right_join(network_information) %>%
+        mutate(redox = ifelse(is.nan(redox), NA, redox),
+               mean_element_redox = ifelse(is.nan(mean_element_redox), NA, mean_element_redox))
+    ### ENDS with two redox columns: redox is the element in the mineral (sometimes unknown), and mean_element_redox will be a unique per node. 
 
     network_information    
 }
@@ -96,15 +99,23 @@ construct_network   <- function(network_information, elements_by_redox)
     ### 1 row per VERTEX, to be joined with nodes
     minerals_as_item <- network_information %>% 
         group_by(mineral_name) %>%
-        summarize(mean_redox = mean(redox)) %>%   
         left_join(network_information) %>%
-        select(mineral_name, mean_redox, num_localities, max_age) %>%
+        select(mineral_name, num_localities, max_age, allen, pauling) %>%
         rename(item = mineral_name) %>%
-        unique() 
+        unique() %>%
+        group_by(item) %>%
+        mutate(mean_pauling = mean(pauling), 
+                  sd_pauling = sd(pauling),
+                  mean_allen  = mean(allen),
+                  sd_allen = sd(allen)) %>%
+        select(-allen, -pauling) %>%
+        unique()
     
+    ## TWO COLUMNS, ID IS NOW UNIQUE NODE
     network_information %>% 
-        select(element, mean_element_redox) %>% 
-        rename(id = element) -> element_redox
+        select(element, mean_element_redox, pauling, allen) %>%
+        rename(id = element, redox = mean_element_redox) %>%
+        unique() -> element_redox_electro
 
     vertex_information <- left_join( tibble("item" = clustered_net$names, "cluster_ID"= as.numeric(clustered_net$membership)),
                                      tibble("item" = names(deg), "network_degree"= as.numeric(deg)) ) %>%
@@ -112,16 +123,14 @@ construct_network   <- function(network_information, elements_by_redox)
         group_by(type) %>%
         mutate(network_degree_norm = network_degree / max(network_degree)) %>%
         ungroup() %>%        
-        left_join(minerals_as_item) %>%    
-        rename(id = item, redox = mean_redox) #%>%
-        #left_join(element_redox, by="id") %>% 
-        #mutate(redox = ifelse(is.na(redox), mean_element_redox, redox)) %>% 
-        #select(-mean_element_redox)
+        left_join(minerals_as_item) %>%  
+        rename(id = item) %>%
+        left_join(element_redox_electro, by="id")
 
     
     net <- toVisNetworkData(element_network)
 
-    edges <- as_tibble(net$edges) %>% bind_cols(network_information)
+    edges <- as_tibble(net$edges) %>% bind_cols(network_information) %>% left_join(minerals_as_item)
 
     charadd <- 0
     if (elements_by_redox){
@@ -134,11 +143,11 @@ construct_network   <- function(network_information, elements_by_redox)
                 rename(group = type) %>% 
                 mutate(label = case_when(group == "mineral"                     ~ label,
                                          group == "element" & nchar(label) == 1+charadd ~ paste0(" ", label, " "),
-                                         group == "element" & nchar(label) == 2+charadd ~ paste0(label, " "),
+                                         group == "element" & nchar(label) == 2+charadd ~ paste0(" ", label),
                                          group == "element" & nchar(label) == 3+charadd ~ label),  
                        title = id,                      
                        font.face = "courier")
-    return (list("nodes" = nodes, "edges" = edges, "element_mean_redox" = element_redox))
+    return (list("nodes" = nodes, "edges" = edges, "element_mean_redox_electro" = element_redox_electro))
 }
   
   
