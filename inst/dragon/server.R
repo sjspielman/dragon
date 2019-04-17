@@ -409,13 +409,14 @@ server <- function(input, output, session) {
        
        
        chemistry_network()$nodes %>% 
-            select(id, group, cluster_ID, network_degree, mean_pauling, sd_pauling, pauling) %>%
+            select(id, group, cluster_ID, network_degree, mean_pauling, sd_pauling, pauling, max_age) %>%
             mutate(mean_pauling = round(mean_pauling, 5),
                    sd_pauling = round(sd_pauling, 5)) %>%
             rename("Node name" = id,
                    "Node type" = group,
                    "Louvain Cluster"  = cluster_ID,
                    "Normalized network degree" = network_degree,
+                   "Maximum Age" = max_age, 
                    "Pauling electronegativity (elements)" = pauling,
                    "Mean Pauling electronegativity (minerals)" = mean_pauling,
                    "Std Dev Pauling electronegativity (minerals)" = sd_pauling) %>%
