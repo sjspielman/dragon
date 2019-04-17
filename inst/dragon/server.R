@@ -21,11 +21,8 @@ variable_to_title <- list("redox" = "Mean Redox State",
                           "num_localities" = "Number of known localities", 
                           "network_degree_norm" = "Network degree", 
                           "pauling" = "Pauling Electronegativity", 
-                          "allen"  = "Allen Electronegativity",
                           "mean_pauling" = "Mean Pauling Electronegativity", 
-                          "mean_allen"  = "Mean Allen Electronegativity",
-                          "sd_pauling" = "Std Dev Pauling Electronegativity", 
-                          "sd_allen"  = "Std Dev Allen Electronegativity")
+                          "sd_pauling" = "Std Dev Pauling Electronegativity")
                           
 ## mediocre matching here.
 vis_to_gg_shape <- list("circle"  = 19,
@@ -132,15 +129,12 @@ server <- function(input, output, session) {
 
         nodes <- network$nodes
         edges <- network$edges
-        element_mean_redox_electro <- network$element_mean_redox_electro
         return (list("nodes" = nodes, 
                      "edges" = edges, 
-                     "mineral_indices" = which(nodes$group == "mineral"),
-                     "element_indices" = which(nodes$group == "element"),
-                     "mineral_labels"  = nodes$label[nodes$group == "mineral"],
-                     "elements_of_interest" = input$elements_of_interest,
-                     "element_mean_redox_electro"   = element_mean_redox_electro))
-
+                     #"mineral_indices" = which(nodes$group == "mineral"),
+                     #"element_indices" = which(nodes$group == "element"),
+                     #"mineral_labels"  = nodes$label[nodes$group == "mineral"],
+                     "elements_of_interest" = input$elements_of_interest))
     })
     
     
@@ -149,9 +143,7 @@ server <- function(input, output, session) {
     ######################### Node colors, shape, size, labels #########################
     node_styler <- reactive({
 
-        node_attr <- list()
-      
-        
+        node_attr <- list()        
         ################ Colors ####################
         if (input$color_by_cluster) 
         {        
@@ -191,7 +183,7 @@ server <- function(input, output, session) {
                                                 mutate(color.background = input$element_color)
             } 
 
-            if ((input$color_element_by == "redox" & input$elements_by_redox == FALSE) |  input$color_element_by == "pauling" | input$color_element_by == "allen" | input$color_element_by == "network_degree_norm")
+            if ((input$color_element_by == "redox" & input$elements_by_redox == FALSE) |  input$color_element_by == "pauling" | input$color_element_by == "network_degree_norm")
             {  
             
                 chemistry_network()$nodes %>% filter(group == "element") -> legend_data
@@ -411,12 +403,22 @@ server <- function(input, output, session) {
 
 
     output$clusterTable <- renderDT(rownames= FALSE,  server = FALSE,
+       
+       
+       
+       
+       
        chemistry_network()$nodes %>% 
-            select(id, group, cluster_ID, network_degree) %>%
+            select(id, group, cluster_ID, network_degree, mean_pauling, sd_pauling, pauling) %>%
+            mutate(mean_pauling = round(mean_pauling, 5),
+                   sd_pauling = round(sd_pauling, 5)) %>%
             rename("Node name" = id,
                    "Node type" = group,
                    "Louvain Cluster"  = cluster_ID,
-                   "Normalized network degree" = network_degree) %>%
+                   "Normalized network degree" = network_degree,
+                   "Pauling electronegativity (elements)" = pauling,
+                   "Mean Pauling electronegativity (minerals)" = mean_pauling,
+                   "Std Dev Pauling electronegativity (minerals)" = sd_pauling) %>%
             arrange(`Louvain Cluster`, `Normalized network degree`),
          extensions = c('Buttons', 'ColReorder', 'Responsive'),
                         options = list(
@@ -430,7 +432,7 @@ server <- function(input, output, session) {
 
         sel <- input$networkplot_selected
         e <- chemistry_network()$edges
-        print(names(e))
+
         ################ ID table ##################
         if (sel %in% e$mineral_name){
             e %>% 
@@ -459,7 +461,7 @@ server <- function(input, output, session) {
             e %>% 
                 filter(element == sel) %>% 
                  left_join(rruff) %>% 
-                 select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry, pauling, allen) %>%
+                 select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry, pauling) %>%
                  unique() %>%
                  rename("Element"                        = element,
                         "Mineral"                        = mineral_name, 
@@ -467,8 +469,7 @@ server <- function(input, output, session) {
                         "Number of known localities"     = num_localities, 
                         "Element redox state in mineral" = redox,
                         "Chemistry"                      = rruff_chemistry,
-                        "Pauling electronegativity"      = pauling,
-                        "Allen electronegativity"        = allen) %>%
+                        "Pauling electronegativity"      = pauling) %>%
                  arrange(`Maximum age (Ga)`, Mineral) -> node_table 
            
             e %>% 

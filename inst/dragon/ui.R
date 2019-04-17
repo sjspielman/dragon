@@ -88,8 +88,7 @@ dashboardPage(skin = "red",
                              c("Single color"            = "singlecolor",  
                                "Color by network degree" = "network_degree_norm",
                                "Color by redox state"    = "redox",
-                               "Color by Pauling electronegativity" = "pauling", 
-                               "Color by Allen electronegativity" = "allen"))                            
+                               "Color by Pauling electronegativity" = "pauling"))                            
             ),
             column(5, 
                 conditionalPanel(condition = "input.color_element_by == 'singlecolor'",   
@@ -115,9 +114,7 @@ dashboardPage(skin = "red",
                                    "Color by maximum age"           = "max_age",      
                                    "Color by number of localities"  = "num_localities",
                                    "Color by mean Pauling electronegativity" = "mean_pauling", 
-                                   "Color by mean Allen electronegativity" = "mean_allen",
-                                   "Color by std dev Pauling electronegativity" = "sd_pauling", 
-                                   "Color by std dev Allen electronegativity" = "sd_allen"))  
+                                   "Color by std dev Pauling electronegativity" = "sd_pauling"))
             ),
             column(5,
                 conditionalPanel(condition = "input.color_mineral_by == 'singlecolor'",   

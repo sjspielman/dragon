@@ -3,7 +3,7 @@ element_redox_states <- read_csv("data/rruff_redox_states.csv.zip")
 rruff_separated      <- read_csv("data/rruff_separated_elements.csv.zip")
 rruff_sub            <- rruff %>% select(-mineral_id, -mindat_id, -rruff_chemistry)
 rruff_chemistry      <- rruff_separated %>% select(-chemistry_elements) %>% unique()
-electronegativity    <- read_csv("data/element_electronegativities.csv.zip")
+electronegativity    <- read_csv("data/element_electronegativities.csv.zip") %>% select(-allen)
 
 
 initialize_data <- function(elements_of_interest, force_all_elements)
@@ -56,7 +56,9 @@ obtain_network_information <- function(elements_only_age, elements_by_redox)
                             rename(element = chemistry_elements) %>%
                             left_join(element_redox_states) %>% 
                             left_join(electronegativity, by = "element") %>%
-                            unique()
+                            group_by(mineral_name) %>%
+                            mutate(mean_pauling = mean(pauling),
+                                   sd_pauling   = sd(pauling))
 
     if (elements_by_redox)
     {
@@ -100,20 +102,13 @@ construct_network   <- function(network_information, elements_by_redox)
     minerals_as_item <- network_information %>% 
         group_by(mineral_name) %>%
         left_join(network_information) %>%
-        select(mineral_name, num_localities, max_age, allen, pauling) %>%
+        select(mineral_name, num_localities, max_age, mean_pauling, sd_pauling) %>%
         rename(item = mineral_name) %>%
-        unique() %>%
-        group_by(item) %>%
-        mutate(mean_pauling = mean(pauling), 
-                  sd_pauling = sd(pauling),
-                  mean_allen  = mean(allen),
-                  sd_allen = sd(allen)) %>%
-        select(-allen, -pauling) %>%
-        unique()
+        unique() 
     
     ## TWO COLUMNS, ID IS NOW UNIQUE NODE
     network_information %>% 
-        select(element, mean_element_redox, pauling, allen) %>%
+        select(element, mean_element_redox, pauling) %>%
         rename(id = element, redox = mean_element_redox) %>%
         unique() -> element_redox_electro
 
@@ -147,7 +142,7 @@ construct_network   <- function(network_information, elements_by_redox)
                                          group == "element" & nchar(label) == 3+charadd ~ label),  
                        title = id,                      
                        font.face = "courier")
-    return (list("nodes" = nodes, "edges" = edges, "element_mean_redox_electro" = element_redox_electro))
+    return (list("nodes" = nodes, "edges" = edges))
 }
   
   
