@@ -532,10 +532,56 @@ server <- function(input, output, session) {
                            nodesIdSelection = list(enabled = TRUE, main  = "Select node"))
     
     })     
-
-}
     
+    
+    
+    
+    observeEvent(input$build_model,
+    {         
+       chemistry_network()$nodes %>%
+        filter(group == "mineral") %>%
+        dplyr::select(cluster_ID, network_degree_norm, num_localities, max_age, mean_pauling, sd_pauling) %>%
+        rename("Louvain Cluster" = cluster_ID,
+               "Network degree (normalized)" = network_degree_norm,
+               "Mean Pauling electronegativity" = mean_pauling,
+               "Standard deviation Pauling electronegativity" = sd_pauling, 
+               "Number of known localities" = num_localities,
+               "Maximum known age" = max_age)  -> mineral_nodes    
+        mineral_nodes$`Louvain Cluster` <- as.factor(mineral_nodes$`Louvain Cluster`)
+        
+        # names:
+        #      [4] "cluster_ID"          "network_degree_norm"
+        #      [7] "num_localities"      "max_age"             "mean_pauling"       
+        #     [10] "sd_pauling"          "redox"               
 
- 
-
-
+        response_string <- paste0("`", input$response, "`")
+        predictor_strings <- str_replace( str_replace(input$predictors, "$", "`"), "^", "`")
+        fit_string <- paste(response_string, "~", paste0(predictor_strings, collapse = " + "))
+        print(fit_string)
+        fit <- lm(as.formula(fit_string), data = mineral_nodes, na.action = na.omit )
+        output$fitted_model <- renderDT( rownames= FALSE, server=FALSE, { 
+                                                broom::tidy(fit) %>%
+                                                mutate(term = str_replace_all(term, "`", ""),
+                                                       estimate = round(estimate, 5),
+                                                       std.error = round(std.error, 5),
+                                                       statistic = round(statistic, 5),
+                                                       p.value   = round(p.value, 5)) %>%
+                                                rename("Term" = term, 
+                                                        "Estimated effect size" = estimate,
+                                                        "Standard error of effect size" = std.error,
+                                                        "t-value statistic" = statistic,
+                                                        "P-value" = p.value) 
+                                                
+                                            })
+    })
+}
+    # 
+#                                                         choices = c("Maximum known age"            = "max_age",
+#                                             #"Average redox state" = "redox",
+#                                             "Mean Pauling electronegativity" = "mean_pauling", 
+#                                             "Standard deviation Pauling electronegativity" = "sd_pauling", 
+#                                             "Louvain Cluster"     = "cluster_ID",
+#                                             "Network degree (normalized)"  = "network_degree_norm",
+#                                             "Number of known localities"   = "num_localities")
+# 
+# 

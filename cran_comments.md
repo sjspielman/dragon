@@ -32,4 +32,18 @@ Status: 1 NOTE
 `* checking CRAN incoming feasibility ... NOTE`
 `Maintainer: 'Stephanie J. Spielman <spielman@rowan.edu>'`
 
+## Additional Notes
 
+This comment was noted from initial CRAN submission (on 4/11/19) and has been fixed in current CRAN submission: 
+> Author(s): Stephanie J. Spielman [aut, cre] 
+> Maintainer: Stephanie J. Spielman <spielman@rowan.edu> 
+> Suggests: knitr 
+> Description: Shiny application for network visualization and manipulation 
+> of the mineral-chemistry network across deep time on Earth. 
+>
+>Please don't capitalize Earth. 
+>
+>Please fix and resubmit. 
+>
+>Best, 
+>Matthias Sterrer 

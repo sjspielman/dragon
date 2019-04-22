@@ -260,14 +260,46 @@ dashboardPage(skin = "red",
                     
                     
                     tabBox(width=12, 
-                        tabPanel("Network",                      
+                        tabPanel("Visualize Network",                      
                             div(style = "height:600px; overflow: hidden;", 
                                 visNetworkOutput("networkplot", height = "90%")
                             ),
                             div(style = "height:70px;",
                                 plotOutput("networklegend", height = "80%", width = "75%")
                             )
-                        )
+                        ),  ## tabPanel
+                        tabPanel("Analyze Network",
+                            helpText("In this tab, you can construct linear models to analyze properties of minerals in the specified network."),
+                        
+                        fluidRow(
+                            column(12, 
+
+                            pickerInput("response", tags$b("Select the response variable:"), 
+                                choices = c("Maximum known age" ,#           = "max_age",
+                                            #"Average redox state" = "redox",
+                                            "Mean Pauling electronegativity",# = "mean_pauling", 
+                                            "Standard deviation Pauling electronegativity",#  = "sd_pauling", 
+                                            "Louvain Cluster",#      = "cluster_ID",
+                                            "Network degree (normalized)",#   = "network_degree_norm",
+                                            "Number of known localities"), selected = "max_age",
+                                ),
+                            prettyCheckboxGroup("predictors", tags$b("Select one or more predictor variable(s):"), status="danger", animation="smooth", icon = icon("check"),
+                            #pickerInput("predictor", "Select the predictor (independent) variable for your model:", 
+                                choices = c("Maximum known age" ,#            = "max_age",
+                                            #"Average redox state" = "redox",
+                                            "Mean Pauling electronegativity",#  = "mean_pauling", 
+                                            "Standard deviation Pauling electronegativity",#  = "sd_pauling", 
+                                            "Louvain Cluster" ,#     = "cluster_ID",
+                                            "Network degree (normalized)",#   = "network_degree_norm",
+                                            "Number of known localities")#   = "num_localities")
+                                ),
+                            actionBttn("build_model", "Fit linear model", size="sm", color = "danger"),
+                            br(),br(),br()
+                            ),
+                            column(7,
+                                DT::dataTableOutput("fitted_model")
+                            )), br()
+                        ) ## tabPanel                 
                     ), # tabBox
                     br(),br(),br(),
                     tabBox(width=10, 
