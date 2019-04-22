@@ -253,19 +253,23 @@ dashboardPage(skin = "red",
                             switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
                             switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
                             switchInput("nav_buttons","Show navigation buttons",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger")
-                        )               
-                    
-                    
+                        )                                   
                     ),
                     
-                    box(align="right", width=12, height="700px",
-                        div(style = "height:625px; overflow: hidden;", 
-                            visNetworkOutput("networkplot", height = "90%")
-                        ),
-                        div(style = "height:70px;",
-                            plotOutput("networklegend", height = "80%", width = "75%")
+                    
+                    
+                    
+                    tabBox(width=12, 
+                        tabPanel("Network",                      
+                            div(style = "height:600px; overflow: hidden;", 
+                                visNetworkOutput("networkplot", height = "90%")
+                            ),
+                            div(style = "height:70px;",
+                                plotOutput("networklegend", height = "80%", width = "75%")
+                            )
                         )
-                    ), # box
+                    ), # tabBox
+                    br(),br(),br(),
                     tabBox(width=10, 
                         tabPanel("Selected Node Information", 
                             DT::dataTableOutput("nodeTable")
@@ -278,11 +282,11 @@ dashboardPage(skin = "red",
                         )                       
                     ), # tabBox
                     box(width = 2, align = "center",
-                        downloadBttn("exportNodes", "Export nodes as CSV", size = "xs", style = "bordered", color = "primary"),
+                        downloadBttn("exportNodes", "Export nodes as CSV", size = "xs", style = "bordered", color = "danger"),
                         br(),br(),
-                        downloadBttn("exportEdges", "Export edges as CSV", size = "xs", style = "bordered", color = "primary"),
+                        downloadBttn("exportEdges", "Export edges as CSV", size = "xs", style = "bordered", color = "danger"),
                         br(),br(),
-                        downloadBttn("downloadNetwork_html", "Export HTML network",  size = "xs", style = "bordered", color = "success")
+                        downloadBttn("downloadNetwork_html", "Export HTML network",  size = "xs", style = "bordered", color = "danger")
                     ) 
 
                 ) # outer div

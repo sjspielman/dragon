@@ -4,7 +4,7 @@ Title: Deep time Redox Analysis of the Geobiology Ontology Network
 Version: 0.1.0
 Authors@R: c( person("Stephanie J.", "Spielman", role = c("aut", "cre"), email = "spielman@rowan.edu"))
 Maintainer: Stephanie J. Spielman <spielman@rowan.edu>
-Description: Shiny application for network visualization and manipulation of the mineral-chemistry network across deep time on Earth. 
+Description: Shiny application for network visualization and manipulation of the mineral-chemistry network across deep time on earth. 
 License: GPL-3 + file LICENSE
 Encoding: UTF-8
 LazyData: true

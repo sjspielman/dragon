@@ -23,3 +23,7 @@ label
     font-size: 14px;
     font-weight: 400; 
 }
+
+.nav-tabs-custom>.nav-tabs>li.active {
+    border-top-color: #D73924;
+}
