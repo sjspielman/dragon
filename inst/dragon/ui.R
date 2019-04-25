@@ -54,7 +54,7 @@ dashboardPage(skin = "red",
             notificationItem("Source Code", icon = icon("github"), href = "http://github.com/spielmanlab/dragon"),
             notificationItem("Mineral Evolution Database", icon = icon("globe"), href =  "http://rruff.info/ima/")
         )),
-  dashboardSidebar(width = 330,
+  dashboardSidebar(width = 350,
     sidebarMenu(
         chooseSliderSkin(skin = "Flat"),
             pickerInput("elements_of_interest", tags$span(style="font-weight:400", "Select focal element(s):"),
@@ -74,67 +74,71 @@ dashboardPage(skin = "red",
             actionBttn("go", "Initialize Network", size="sm", color = "danger"),
         br(),
         menuItem(text = "Node Colors",
-        fluidRow(
-            column(7,prettyCheckbox("highlight_element","Highlight focal elements",value = FALSE, icon = icon("check"), animation="smooth", status="danger")
+
+            fluidRow(
+                column(7, 
+                    pickerInput("color_element_by", "Element color scheme:",
+                                 c("Single color"            = "singlecolor",  
+                                   "Color by network degree" = "network_degree_norm",
+                                   "Color by redox state"    = "redox",
+                                   "Color by Pauling electronegativity" = "pauling"))                            
                 ),
-            column(5, #conditionalPanel(condition = "input.highlight_element == true", {   
-                        colourpicker::colourInput("highlight_color", "Color:", value = "lightgoldenrod1")
-                    #})
-                )
-        ), 
-        fluidRow(
-            column(7, 
-                pickerInput("color_element_by", "Element color scheme:",
-                             c("Single color"            = "singlecolor",  
-                               "Color by network degree" = "network_degree_norm",
-                               "Color by redox state"    = "redox",
-                               "Color by Pauling electronegativity" = "pauling"))                            
-            ),
-            column(5, 
-                conditionalPanel(condition = "input.color_element_by == 'singlecolor'",   
-                    {colourpicker::colourInput("element_color", "Color:", value = "skyblue")}
-                ),      
-                conditionalPanel(condition = "input.color_element_by != 'singlecolor'",   
-                    {pickerInput("elementpalette", label = "Palette:",
-                        choices = divseq.list, selected = "Blues", width = "90%",
-                        choicesOpt = list(
-                            content = sprintf(
-                                "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-                                unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
+                column(5, 
+                    conditionalPanel(condition = "input.color_element_by == 'singlecolor'",   
+                        {colourpicker::colourInput("element_color", "Color:", value = "skyblue")}
+                    ),      
+                    conditionalPanel(condition = "input.color_element_by != 'singlecolor'",   
+                        {pickerInput("elementpalette", label = "Palette:",
+                            choices = divseq.list, selected = "Blues", width = "90%",
+                            choicesOpt = list(
+                                content = sprintf(
+                                    "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
+                                    unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
+                                )
                             )
-                        )
-                    )}
+                        )}
+                    )
                 )
-            )
-        ),
-        fluidRow(
-            column(7,
-                 pickerInput("color_mineral_by", "Mineral color scheme:",
-                                 c("Single color"    = "singlecolor",  
-                                   "Color by maximum age"           = "max_age",      
-                                   "Color by number of localities"  = "num_localities",
-                                   "Color by mean Pauling electronegativity" = "mean_pauling", 
-                                   "Color by std dev Pauling electronegativity" = "sd_pauling"))
             ),
-            column(5,
-                conditionalPanel(condition = "input.color_mineral_by == 'singlecolor'",   
-                    {colourpicker::colourInput("mineral_color", "Color:", value = "firebrick3")}
+            fluidRow(
+                column(7,
+                     pickerInput("color_mineral_by", "Mineral color scheme:",
+                                     c("Single color"    = "singlecolor",  
+                                       "Color by maximum age"           = "max_age",      
+                                       "Color by number of localities"  = "num_localities",
+                                       "Color by mean Pauling electronegativity" = "mean_pauling", 
+                                       "Color by std dev Pauling electronegativity" = "sd_pauling"))
                 ),
-                conditionalPanel(condition = "input.color_mineral_by != 'singlecolor'",   
-                    {pickerInput("mineralpalette", label = "Palette:",
-                      choices = divseq.list, selected = "Reds", width = "90%",
-                      choicesOpt = list(
-                          content = sprintf(
-                              "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-                              unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
+                column(5,
+                    conditionalPanel(condition = "input.color_mineral_by == 'singlecolor'",   
+                        {colourpicker::colourInput("mineral_color", "Color:", value = "firebrick3")}
+                    ),
+                    conditionalPanel(condition = "input.color_mineral_by != 'singlecolor'",   
+                        {pickerInput("mineralpalette", label = "Palette:",
+                          choices = divseq.list, selected = "Reds", width = "90%",
+                          choicesOpt = list(
+                              content = sprintf(
+                                  "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
+                                  unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
+                              )
                           )
-                      )
-                  )}        
-                ) 
-             )
-        ),
-        prettyCheckbox("color_by_cluster","Color by network cluster",value = FALSE, status="danger"),br()
-        ),
+                      )}        
+                    ) 
+                 )
+            ),
+            prettyCheckbox("color_by_cluster","Color by network cluster",value = FALSE, status="danger"),br()
+            ),
+        menuItem(text = "Color individual elements",
+            fluidRow(
+                column(7,prettyCheckbox("highlight_element","Highlight focal elements",value = FALSE, icon = icon("check"), animation="smooth", status="danger")
+                    ),
+                column(5, colourpicker::colourInput("highlight_color", "Color:", value = "lightgoldenrod1")
+                    )
+            ),
+            fluidRow(
+                column(7,uiOutput("choose_custom_elements_color")),                
+                column(5, colourpicker::colourInput("custom_selection_color", "Color:", value = "chartreuse3"))    
+            )), 
         menuItem(text = "Node Sizes",
             fluidRow(
                 column(6, pickerInput("element_size_type", "Element node size:", 
@@ -269,35 +273,53 @@ dashboardPage(skin = "red",
                             )
                         ),  ## tabPanel
                         tabPanel("Analyze Network",
-                            helpText("In this tab, you can construct linear models to analyze properties of minerals in the specified network."),
+                            helpText("In this tab, you can construct a linear regression model to analyze properties of minerals in the specified network."),
                         
                         fluidRow(
-                            column(12, 
+                            column(7, 
 
-                            pickerInput("response", tags$b("Select the response variable:"), 
-                                choices = c("Maximum known age" ,#           = "max_age",
-                                            #"Average redox state" = "redox",
-                                            "Mean Pauling electronegativity",# = "mean_pauling", 
-                                            "Standard deviation Pauling electronegativity",#  = "sd_pauling", 
-                                            "Louvain Cluster",#      = "cluster_ID",
-                                            "Network degree (normalized)",#   = "network_degree_norm",
-                                            "Number of known localities"), selected = "max_age",
+                                pickerInput("response", tags$b("Select the response (dependent) variable:"), 
+                                    choices = c("Maximum known age" ,#           = "max_age",
+                                                #"Average redox state" = "redox",
+                                                "Mean Pauling electronegativity",# = "mean_pauling", 
+                                                "Standard deviation Pauling electronegativity",#  = "sd_pauling", 
+                                                "Louvain Cluster",#      = "cluster_ID",
+                                                "Network degree (normalized)",#   = "network_degree_norm",
+                                                "Number of known localities"), selected="Maximum known age",
+                                    ),
+
+                                pickerInput("predictor", tags$b("Select the predictor (independent) variable:"), 
+                                    choices = c("Maximum known age" ,#           = "max_age",
+                                                #"Average redox state" = "redox",
+                                                "Mean Pauling electronegativity",# = "mean_pauling", 
+                                                "Standard deviation Pauling electronegativity",#  = "sd_pauling", 
+                                                "Louvain Cluster",#      = "cluster_ID",
+                                                "Network degree (normalized)",#   = "network_degree_norm",
+                                                "Number of known localities"), selected="Mean Pauling electronegativity",
                                 ),
-                            prettyCheckboxGroup("predictors", tags$b("Select one or more predictor variable(s):"), status="danger", animation="smooth", icon = icon("check"),
-                            #pickerInput("predictor", "Select the predictor (independent) variable for your model:", 
-                                choices = c("Maximum known age" ,#            = "max_age",
-                                            #"Average redox state" = "redox",
-                                            "Mean Pauling electronegativity",#  = "mean_pauling", 
-                                            "Standard deviation Pauling electronegativity",#  = "sd_pauling", 
-                                            "Louvain Cluster" ,#     = "cluster_ID",
-                                            "Network degree (normalized)",#   = "network_degree_norm",
-                                            "Number of known localities")#   = "num_localities")
-                                ),
-                            actionBttn("build_model", "Fit linear model", size="sm", color = "danger"),
-                            br(),br(),br()
+                                br(),br(),br()
                             ),
+                            
+                            column(5,
+                                p(tags$b("Preferences for plot of model results:")),
+                                prettyCheckbox("logx", "Use log scale on X-axis", status="danger", animation="smooth", icon = icon("check")),
+                                prettyCheckbox("logy", "Use log scale on Y-axis", status="danger", animation="smooth", icon = icon("check")),
+                                prettyCheckbox("bestfit", "Show regression line (with 95% confidence interval).", status="danger", animation="smooth", icon = icon("check")),
+                                ## LOL no apologies for the line below.
+                                helpText(HTML('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), "Note that these options are not applicable to Louvain Cluster analysis.")
+                            )
+                            ), ## fluidrow
+                            fluidRow(
                             column(7,
-                                DT::dataTableOutput("fitted_model")
+                                DT::dataTableOutput("fitted_model"),
+                                br(),br(),
+                                conditionalPanel( condition = "input.predictor == 'Louvain Cluster'", {
+                                    DT::dataTableOutput("fitted_tukey")
+                                })
+                            ),
+                            column(5,
+                                plotOutput("fitted_model_plot"),
+                                div(style="display:inline-block; float:right;",downloadButton("download_model_plot", "Download Plot"))                                
                             )), br()
                         ) ## tabPanel                 
                     ), # tabBox

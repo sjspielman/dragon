@@ -10,6 +10,7 @@ library(visNetwork)
 library(magrittr)
 library(cowplot)
 library(igraph)
+library(broom)
 
 options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Make NA in DT show as NA instead of blank cell
 
@@ -95,7 +96,7 @@ obtain_node_sizes <- function(dat, size_variable, lowsize, highsize, size_scale 
   
 server <- function(input, output, session) {
     
-     
+    
     ################################# Build network ####################################
     chemistry_network <- reactive({
         
@@ -135,9 +136,27 @@ server <- function(input, output, session) {
                      #"element_indices" = which(nodes$group == "element"),
                      #"mineral_labels"  = nodes$label[nodes$group == "mineral"],
                      "elements_of_interest" = input$elements_of_interest))
+
     })
     
-    
+
+
+
+    output$choose_custom_elements_color <- renderUI({
+        chemistry_network()$nodes %>%
+            filter(group == "element") %>%
+            dplyr::select(id) %>% 
+            separate(id, into=c("base_element", "blah")) %>%
+            arrange(base_element) -> available_base_elements
+        pickerInput("custom_selection_element", "Highlight a set of elements",             
+                        choices = available_base_elements$base_element,
+                               options = list(`actions-box` = TRUE, 
+                                              size = 4
+                                              ), 
+                                              multiple = TRUE
+                    )
+    })
+
     
 
     ######################### Node colors, shape, size, labels #########################
@@ -249,9 +268,11 @@ server <- function(input, output, session) {
                                            left_join( node_attr[["colors"]] ) %>%
                                            left_join( node_attr[["sizes"]]   ) %>% 
                                            mutate(color.background = ifelse((id %in% chemistry_network()$elements_of_interest & input$highlight_element), input$highlight_color, color.background), 
+                                                  color.background = ifelse(id %in% input$custom_selection_element, input$custom_selection_color, color.background), 
                                                   font.color = ifelse(group == "element", input$element_label_color, input$mineral_label_color),
                                                   font.color = ifelse(group == "element" & input$element_shape == "text" & input$only_use_element_label_color == FALSE, color.background, font.color),
                                                   font.color = ifelse((id %in% chemistry_network()$elements_of_interest & input$highlight_element & input$element_shape == "text"), input$highlight_color, font.color),
+                                                  font.color = ifelse((id %in% input$custom_selection_element & input$element_shape == "text"), input$custom_selection_color, font.color),
                                                   shape = ifelse(group == "element", input$element_shape, input$mineral_shape))
                
         ############################## Deal with certain edge cases at the END ###########################                                
@@ -266,7 +287,9 @@ server <- function(input, output, session) {
                 mutate(id2 = id) %>%
                 separate(id2, into=c("base_element", "blah")) %>%
                 mutate(color.background = ifelse(base_element %in% chemistry_network()$elements_of_interest & input$highlight_element, input$highlight_color, color.background),
-                       font.color       = ifelse(base_element %in% chemistry_network()$elements_of_interest & input$element_shape == "text" & input$highlight_element, input$highlight_color, font.color)) %>%
+                       font.color       = ifelse(base_element %in% chemistry_network()$elements_of_interest & input$element_shape == "text" & input$highlight_element, input$highlight_color, font.color),
+                       color.background = ifelse(base_element %in% input$custom_selection_element, input$custom_selection_color, color.background),
+                       font.color       = ifelse(base_element %in% input$custom_selection_element & input$element_shape == "text", input$input$custom_selection_element, font.color)) %>%
                 select(-base_element, -blah) %>%
                 bind_rows( node_attr[["styled_nodes"]] %>% filter(group == "mineral") ) 
         }
@@ -322,7 +345,7 @@ server <- function(input, output, session) {
                     visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
                                nodesIdSelection = list(enabled = TRUE, 
                                                        #selected = selected_element,
-                                                       #values = nodes$id[nodes$type == "element"],
+                                                       values = c( sort(nodes$id[nodes$group == "element"]), sort(nodes$id[nodes$group == "mineral"]) ),
                                                        main    = "Select node",
                                                        style   = "float:left; width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: -1.25em 0.5em 0em 0em;")  ##t r b l 
                            ) %>%
@@ -362,14 +385,7 @@ server <- function(input, output, session) {
             } else {
                 finallegend <- plot_grid(n$leg, e$leg, nrow = 1)
             }
-            #save_plot(finallegend, "legend.pdf")
-            #p <- ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, color = Species))  +geom_point() + theme(legend.position="none")
-            #finallegend <- plot_grid(p, finallegend, nrow=2, rel_heights=c(1, 0.1))
-            #vp <- viewport(x = 0.5, y = 0.5, w = 0.1, h = 0.1,just = "center")
-            #pushViewport(vp) 
             ggdraw(finallegend)
-            #plot(grid.arrange(finallegend, vp=vp))
-            #draw_plot(finallegend, x = 0, y = 0, width = 0.1, height = 0.1, scale = 1)
         })          
     })
 
@@ -536,8 +552,11 @@ server <- function(input, output, session) {
     
     
     
-    observeEvent(input$build_model,
-    {         
+    
+    ############### LINEAR MODEL TAB ###########################
+    
+    observe({
+      
        chemistry_network()$nodes %>%
         filter(group == "mineral") %>%
         dplyr::select(cluster_ID, network_degree_norm, num_localities, max_age, mean_pauling, sd_pauling) %>%
@@ -549,39 +568,105 @@ server <- function(input, output, session) {
                "Maximum known age" = max_age)  -> mineral_nodes    
         mineral_nodes$`Louvain Cluster` <- as.factor(mineral_nodes$`Louvain Cluster`)
         
-        # names:
-        #      [4] "cluster_ID"          "network_degree_norm"
-        #      [7] "num_localities"      "max_age"             "mean_pauling"       
-        #     [10] "sd_pauling"          "redox"               
-
         response_string <- paste0("`", input$response, "`")
-        predictor_strings <- str_replace( str_replace(input$predictors, "$", "`"), "^", "`")
-        fit_string <- paste(response_string, "~", paste0(predictor_strings, collapse = " + "))
-        print(fit_string)
+        predictor_string <- paste0("`", input$predictor, "`")
+        #predictor_strings <- str_replace( str_replace(input$predictors, "$", "`"), "^", "`")
+        #fit_string <- paste(response_string, "~", paste0(predictor_strings, collapse = " + "))
+        fit_string <- paste(response_string, "~", predictor_string)
         fit <- lm(as.formula(fit_string), data = mineral_nodes, na.action = na.omit )
-        output$fitted_model <- renderDT( rownames= FALSE, server=FALSE, { 
+        
+        
+        if (input$predictor == "Louvain Cluster")
+        {
+            ## This part is *extra* dumb. TukeyHSD is not into spaces so we have to muck with louvain name
+            ## Only applies when Cluster is the predictor variable.             
+            mineral_nodes %>% rename(louvain_cluster = `Louvain Cluster`) -> mineral_nodes2
+            aov_fit_string <- paste(response_string, "~louvain_cluster")
+            aov_fit <- aov(as.formula(aov_fit_string), data = mineral_nodes2, na.action = na.omit )
+            
+            output$fitted_tukey <- renderDT( rownames= FALSE, server=FALSE, options = list(dom = 't'), { 
+                                        
+                                     
+                                        TukeyHSD(aov_fit) %>% 
+                                            tidy() %>%
+                                            dplyr::select(-term) %>%
+                                            mutate(comparison = str_replace_all(comparison, "-", " - "),
+                                                    estimate = round(estimate, 6),
+                                                    conf.low = round(conf.low, 6),
+                                                    conf.high = round(conf.high, 6),
+                                                    adj.p.value = round(adj.p.value, 6)) %>%
+                                             rename("Cluster Comparison" = comparison, 
+                                                     "Estimated effect size difference" = estimate,
+                                                     "95% CI Lower bound" = conf.low,
+                                                     "95% CI Upper bound" = conf.high,
+                                                     "Adjusted P-value" = adj.p.value)
+                                     })
+
+
+
+
+        }
+        else {
+          output$fitted_tukey <- renderDT({})
+        }
+        
+        output$fitted_model <- renderDT( rownames= FALSE, server=FALSE, options = list(dom = 't'), { 
                                                 broom::tidy(fit) %>%
                                                 mutate(term = str_replace_all(term, "`", ""),
-                                                       estimate = round(estimate, 5),
-                                                       std.error = round(std.error, 5),
-                                                       statistic = round(statistic, 5),
-                                                       p.value   = round(p.value, 5)) %>%
+                                                       estimate = round(estimate, 6),
+                                                       std.error = round(std.error, 6),
+                                                       statistic = round(statistic, 6),
+                                                       p.value   = round(p.value, 6)) %>%
                                                 rename("Term" = term, 
-                                                        "Estimated effect size" = estimate,
+                                                        "Estimated effect size (Slope)" = estimate,
                                                         "Standard error of effect size" = std.error,
                                                         "t-value statistic" = statistic,
                                                         "P-value" = p.value) 
-                                                
                                             })
+        
+        top_plot <- ggplot(mineral_nodes, aes_string(x = predictor_string, y = response_string)) +
+                            xlab(input$predictor) + 
+                            ylab(input$response)
+                            
+        if (input$predictor == "Louvain Cluster")
+        {
+            #mineral_nodes %>% 
+            #    group_by(!! as.symbol(input$predictor)) %>% 
+            #    summarize(mean_response = mean( !! as.symbol(input$response) ) ) -> mineral_nodes_summary
+        
+            fitted_model_plot <- top_plot + 
+                                    geom_jitter(aes_string(color = predictor_string), width=0.2, size=1.5) + 
+                                    labs(color = input$predictor)  +
+                                    stat_summary(geom="errorbar", width=0, color = "grey30", size=1)+
+                                    stat_summary(geom="point", color = "grey30", size=2.5) + 
+                                    theme(legend.text=element_text(size=12), legend.title=element_text(size=13))
+        } else
+        {
+            fitted_model_plot <- top_plot + geom_point()
+            if (input$logx) fitted_model_plot <- fitted_model_plot + scale_x_log10()
+            if (input$logy) fitted_model_plot <- fitted_model_plot + scale_y_log10()
+            if (input$bestfit) fitted_model_plot <- fitted_model_plot + geom_smooth(method = "lm")
+        } 
+        
+
+        
+        output$fitted_model_plot <- renderPlot({
+            print(fitted_model_plot)
+        })      
+    
+   
+    
+    
+    
+    
+    output$download_model_plot <- downloadHandler(
+        filename = function() {
+          paste("dragon_model_plot-", Sys.Date(), ".pdf", sep="")
+        },
+        content = function(file) {
+          ggsave(file, fitted_model_plot)
+        })         
+        
+
     })
 }
-    # 
-#                                                         choices = c("Maximum known age"            = "max_age",
-#                                             #"Average redox state" = "redox",
-#                                             "Mean Pauling electronegativity" = "mean_pauling", 
-#                                             "Standard deviation Pauling electronegativity" = "sd_pauling", 
-#                                             "Louvain Cluster"     = "cluster_ID",
-#                                             "Network degree (normalized)"  = "network_degree_norm",
-#                                             "Number of known localities"   = "num_localities")
-# 
-# 
