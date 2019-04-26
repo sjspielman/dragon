@@ -11,6 +11,8 @@ library(magrittr)
 library(cowplot)
 library(igraph)
 library(broom)
+library(grid)
+#library(gridExtra) 
 
 options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Make NA in DT show as NA instead of blank cell
 
@@ -39,9 +41,9 @@ vis_to_gg_shape <- list("circle"  = 19,
 na.gray <- "#DCDCDC"
 geom.point.size <- 8
 theme_set(theme_cowplot() + theme(legend.position = "bottom",
-                                  legend.text = element_text(size=9),
+                                  legend.text = element_text(size=11),
                                   legend.key.size = unit(1, "cm"),
-                                  legend.title = element_text(size=10),
+                                  legend.title = element_text(size=13),
                                   legend.box.background = element_rect(color = "white")))                                  
 
 
@@ -51,9 +53,21 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
     cvar <- as.symbol(color_variable)
     dat %>% mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
 
-    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle, na.value = na.gray) + guides(colour = guide_legend(title.position="top", title.hjust = 0.5, nrow = 1)  )
+    dat2 %>% 
+        ungroup() %>%
+        dplyr::select( color_variable ) %>% 
+        na.omit() -> dat_check
+    print(nrow(dat_check))
+    
+    shiny::validate(
+        shiny::need(nrow(dat_check) > 0, 
+        "ERROR: The specified color scheme cannot be applied due to insufficient node information in the MED database.")
+    )  
+
+    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle, na.value = na.gray) + guides(colour = guide_legend(title.position="left", title.hjust = 0.5, byrow=TRUE)  )
     if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1, na.value = na.gray)+ guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
 
+    print(ggplot_build(p)$data[[1]])
     data.colors <- ggplot_build(p)$data[[1]] %>% 
                     as_tibble() %>% 
                     bind_cols(dat2) %>%
@@ -66,7 +80,9 @@ obtain_colors_legend_single <- function(group, singleshape, singlecolor)
 {
     p <- tibble(x = 1, y = 1, type = group) %>% 
         ggplot(aes(x=x,y=y,color=type)) + 
-            geom_point(size = geom.point.size, shape = singleshape) + scale_color_manual(name = "", values=c(singlecolor), na.value=na.gray) + theme(legend.text = element_text(size=16))
+            geom_point(size = geom.point.size, shape = singleshape) + 
+            scale_color_manual(name = "", values=c(singlecolor), na.value=na.gray) + 
+            theme(legend.text = element_text(size=16))
     data.colors <- ggplot_build(p)$data[[1]]$colour
     data.legend <- get_legend(p)
     return (list("cols" = data.colors, "leg" = data.legend))
@@ -162,19 +178,22 @@ server <- function(input, output, session) {
     ######################### Node colors, shape, size, labels #########################
     node_styler <- reactive({
 
-        node_attr <- list()        
+        node_attr <- list()   
+        node_attr[["both_legend"]] <- NA 
+        node_attr[["element_legend"]] <- NA     
+        node_attr[["mineral_legend"]] <- NA     
         ################ Colors ####################
         if (input$color_by_cluster) 
         {        
             out <- obtain_colors_legend(chemistry_network()$nodes, "cluster_ID", "d", "NA", "Network cluster identity")
-            node_attr[["leg"]] <- out$leg
+            node_attr[["both_legend"]] <- out$leg
             node_attr[["colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
         } else 
         { 
             if (input$color_mineral_by == "singlecolor")
             {
                 out <- obtain_colors_legend_single("Mineral", vis_to_gg_shape[input$mineral_shape], input$mineral_color)
-                colorlegend_mineral <- out$leg
+                node_attr[["mineral_legend"]] <- out$leg
                 node_attr[["mineral_colors"]] <- chemistry_network()$nodes %>% 
                                                 filter(group == "mineral") %>% 
                                                 select(label, id) %>%
@@ -183,7 +202,7 @@ server <- function(input, output, session) {
             } else
             {  
                 out <- obtain_colors_legend(chemistry_network()$nodes %>% filter(group == "mineral"), input$color_mineral_by, "c", input$mineralpalette, variable_to_title[[input$color_mineral_by]])
-                colorlegend_mineral <- out$leg
+                node_attr[["mineral_legend"]] <- out$leg
                 node_attr[["mineral_colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
             } 
             
@@ -195,7 +214,7 @@ server <- function(input, output, session) {
             {
                 if (input$element_shape == "text") { this_color <- input$element_label_color} else { this_color <- input$element_color}
                 out <- obtain_colors_legend_single("Element", vis_to_gg_shape[input$element_shape], this_color)
-                colorlegend_element <- out$leg
+                node_attr[["element_legend"]] <- out$leg
                 node_attr[["element_colors"]] <- chemistry_network()$nodes %>% 
                                                 filter(group == "element") %>% 
                                                 select(label, id) %>%
@@ -207,7 +226,7 @@ server <- function(input, output, session) {
             
                 chemistry_network()$nodes %>% filter(group == "element") -> legend_data
                 out <- obtain_colors_legend(legend_data, input$color_element_by, "c", input$elementpalette, variable_to_title[[input$color_element_by]])
-                colorlegend_element <- out$leg
+                node_attr[["element_legend"]] <- out$leg
                 node_attr[["element_colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
             } 
 
@@ -215,7 +234,7 @@ server <- function(input, output, session) {
             if (input$color_element_by == "redox" & input$elements_by_redox == TRUE)
             {  
                 out <- obtain_colors_legend(chemistry_network()$edges %>% select(element, redox), input$color_element_by, "c", input$elementpalette, "Element redox state")
-                colorlegend_element <- out$leg
+                node_attr[["element_legend"]] <- out$leg
                 node_attr[["element_colors"]] <- out$cols %>% 
                                                     select(element, color) %>% 
                                                     rename(id = element, color.background = color) %>% 
@@ -224,7 +243,6 @@ server <- function(input, output, session) {
                                                     select(label, id, color.background) %>%
                                                     unique()
             }    
-            node_attr[["leg"]] <- plot_grid(colorlegend_element, colorlegend_mineral, nrow=1)
             node_attr[["colors"]] <- bind_rows(node_attr[["element_colors"]], node_attr[["mineral_colors"]]) 
         }   
         
@@ -315,7 +333,7 @@ server <- function(input, output, session) {
             colorlegend_edge <- NA
         } else 
         {
-             out <- obtain_colors_legend(chemistry_network()$edges, input$color_edge_by, "c", input$edgepalette, "Mean element redox state:")
+             out <- obtain_colors_legend(chemistry_network()$edges, input$color_edge_by, "c", input$edgepalette, "Mean redox state")
 
              edge_colors <-  left_join(chemistry_network()$edges, out$cols)
              colorlegend_edge <- out$leg
@@ -373,21 +391,58 @@ server <- function(input, output, session) {
         })
     
 
-        
-        output$networklegend <- renderPlot({
-        
+        ########################## legend ##########################
+        finallegend <- reactive({
             e <- edge_styler()
             n <- node_styler()
-        
-            if (is.na(e$leg)) 
-            { 
-                finallegend <- plot_grid(n$leg)
-            } else {
-                finallegend <- plot_grid(n$leg, e$leg, nrow = 1)
-            }
-            ggdraw(finallegend)
+            finallegend <- NULL
+            if (is.na(n$both_legend)) 
+            {   ## Mineral, element
+                if (is.na(e$leg)) 
+                { 
+                    finallegend <- plot_grid(n$element_legend, n$mineral_legend, nrow=1)
+                } else {
+                    ### mineral, element, edge
+                    finallegend <- plot_grid(n$element_legend, n$mineral_legend, e$leg, nrow=1)
+                }
+            } else
+            {
+                ### both
+                if (is.na(e$leg)) 
+                { 
+                    finallegend <- n$both_legend
+                } else {
+                    ### both, edge
+                    finallegend <- plot_grid(n$both_legend, e$leg, nrow=1, scale=0.75)
+                }
+            }   
+            return(finallegend)
+        })
+
+
+        output$networklegend <- renderPlot({
+            ggdraw(finallegend())
         })          
+        
+        output$download_legend <- downloadHandler(
+        filename = function() {
+          paste("dragon_legend-", Sys.Date(), ".pdf", sep="")
+        },
+        content = function(file) {
+          ggsave(file, finallegend())
+        })      
+        ###########################
+
     })
+  
+
+
+
+
+
+
+
+
 
    
 
