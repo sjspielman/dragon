@@ -149,7 +149,7 @@ server <- function(input, output, session) {
             separate(id, into=c("base_element", "blah")) %>%
             arrange(base_element) -> available_base_elements
         pickerInput("custom_selection_element", "Highlight a set of elements",             
-                        choices = available_base_elements$base_element,
+                        choices = unique(available_base_elements$base_element),
                                options = list(`actions-box` = TRUE, 
                                               size = 4
                                               ), 

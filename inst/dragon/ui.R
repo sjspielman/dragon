@@ -130,7 +130,7 @@ dashboardPage(skin = "red",
             ),
         menuItem(text = "Color individual elements",
             fluidRow(
-                column(7,prettyCheckbox("highlight_element","Highlight focal elements",value = FALSE, icon = icon("check"), animation="smooth", status="danger")
+                column(7,prettyCheckbox("highlight_element","Highlight focal element(s)",value = FALSE, icon = icon("check"), animation="smooth", status="danger")
                     ),
                 column(5, colourpicker::colourInput("highlight_color", "Color:", value = "lightgoldenrod1")
                     )
