@@ -268,7 +268,7 @@ dashboardPage(skin = "red",
                             div(style = "height:600px; overflow: hidden;", 
                                 visNetworkOutput("networkplot", height = "90%")
                             ),
-                            div(style = "height:70px;",
+                            div(style = "height:80px;",
                                 plotOutput("networklegend", height = "80%", width = "75%")
                             )
                         ),  ## tabPanel
@@ -282,7 +282,7 @@ dashboardPage(skin = "red",
                                     choices = c("Maximum known age" ,#           = "max_age",
                                                 #"Average redox state" = "redox",
                                                 "Mean Pauling electronegativity",# = "mean_pauling", 
-                                                "Standard deviation Pauling electronegativity",#  = "sd_pauling", 
+                                                "Standard deviation electronegativity",#  = "sd_pauling", 
                                                 "Louvain Cluster",#      = "cluster_ID",
                                                 "Network degree (normalized)",#   = "network_degree_norm",
                                                 "Number of known localities"), selected="Maximum known age",
@@ -319,12 +319,14 @@ dashboardPage(skin = "red",
                             ),
                             column(5,
                                 plotOutput("fitted_model_plot"),
-                                div(style="display:inline-block; float:right;",downloadButton("download_model_plot", "Download Plot"))                                
+                                div(style="display:inline-block; float:right;",downloadBttn("download_model_plot", "Download Plot", size = "sm", style = "minimal", color = "danger"))                                
                             )), br()
                         ) ## tabPanel                 
                     ), # tabBox
+                    
+                    
                     br(),br(),br(),
-                    tabBox(width=10, 
+                    tabBox(width=12, 
                         tabPanel("Selected Node Information", 
                             DT::dataTableOutput("nodeTable")
                         ),
@@ -335,13 +337,25 @@ dashboardPage(skin = "red",
                             DT::dataTableOutput("clusterTable")
                         )                       
                     ), # tabBox
-                    box(width = 2, align = "center",
-                        downloadBttn("exportNodes", "Export nodes as CSV", size = "xs", style = "bordered", color = "danger"),
-                        br(),br(),
-                        downloadBttn("exportEdges", "Export edges as CSV", size = "xs", style = "bordered", color = "danger"),
-                        br(),br(),
-                        downloadBttn("downloadNetwork_html", "Export HTML network",  size = "xs", style = "bordered", color = "danger")
-                    ) 
+                    box(width = 12,
+                        fluidRow(
+                            column(3,
+                                downloadBttn("exportNodes", "Export nodes as CSV", size = "sm", style = "minimal", color = "danger")
+                            ),
+                            column(3,
+                                downloadBttn("exportEdges", "Export edges as CSV", size = "sm", style = "minimal", color = "danger")
+                            ),
+                            column(3, 
+                                downloadBttn("downloadNetwork_html", "Export HTML network", size = "sm", style = "minimal", color = "danger")
+                            ),
+                            column(3,
+                                downloadBttn("download_legend", "Download Legend as PDF", size = "sm", style = "minimal", color = "danger")                              
+                            )
+                        )
+                    )
+
+                    
+                     
 
                 ) # outer div
           )## fluidRow
