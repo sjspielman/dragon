@@ -1,9 +1,14 @@
-rruff                <- read_csv("data/rruff_minerals.csv.zip") %>% mutate(max_age = max_age/1000) 
-element_redox_states <- read_csv("data/rruff_redox_states.csv.zip")
-rruff_separated      <- read_csv("data/rruff_separated_elements.csv.zip")
+form_file_path <- function(filename)
+{
+    return( system.file("extdata", filename, package = "dragon") ) 
+}
+
+rruff                <- read_csv(form_file_path("rruff_minerals.csv.zip")) %>% mutate(max_age = max_age/1000) 
+element_redox_states <- read_csv(form_file_path("rruff_redox_states.csv.zip"))
+rruff_separated      <- read_csv(form_file_path("rruff_separated_elements.csv.zip"))
 rruff_sub            <- rruff %>% select(-mineral_id, -mindat_id, -rruff_chemistry)
 rruff_chemistry      <- rruff_separated %>% select(-chemistry_elements) %>% unique()
-electronegativity    <- read_csv("data/element_electronegativities.csv.zip") %>% select(-allen)
+electronegativity    <- read_csv(form_file_path("element_electronegativities.csv.zip")) %>% select(-allen)
 
 
 initialize_data <- function(elements_of_interest, force_all_elements)
