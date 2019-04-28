@@ -4,6 +4,8 @@ warnings_are_errors: false
 r_packages:
  - covr
  - testthat
+ - igraph
+ - tidyverse
 
 after_success:
   - Rscript -e 'covr::codecov()'
