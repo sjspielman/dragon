@@ -5,5 +5,6 @@ library(tidyverse)
 library(dragon)
 
 build_net <- system.file("inst/dragon/", "build_network.R", package = "dragon")
+print(build_net)
 source(build_net)
 test_check("dragon")
