@@ -4,5 +4,6 @@ library(testthat)
 library(tidyverse)
 library(dragon)
 
-source(system.file("inst/dragon/", "build_network.R", package = "dragon"))
+build_net <- system.file("inst/dragon/", "build_network.R", package = "dragon")
+source(build_net)
 test_check("dragon")
