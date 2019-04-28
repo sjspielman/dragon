@@ -1,5 +1,4 @@
 library(tidyverse)
-library(igraph)
 source(system.file("inst/dragon/", "build_network.R", package = "dragon"))
 
 
@@ -110,64 +109,3 @@ test_that("Test build_network::obtain_network_information() works", {
             failure_message = "Failed obtain_network_information() when YES separating by redox." 
           )   
 })	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-obtain_network_information <- function(elements_only_age, elements_by_redox)
-{      
-    network_information <- elements_only_age %>%    
-                            select(mineral_name, num_localities, max_age, chemistry_elements) %>%
-                            unique() %>%
-                            separate_rows(chemistry_elements,sep=" ") %>%
-                            rename(element = chemistry_elements) %>%
-                            left_join(element_redox_states) %>% 
-                            left_join(electronegativity, by = "element") %>%
-                            group_by(mineral_name) %>%
-                            mutate(mean_pauling = mean(pauling),
-                                   sd_pauling   = sd(pauling))
-
-    if (elements_by_redox)
-    {
-        network_information %>%
-            mutate(base_element = element, 
-                   redox_sign = case_when(redox == 0 ~ "+",
-                                          redox == abs(redox) ~ "+",
-                                          redox != abs(redox) ~ "-"),
-                   element = ifelse(is.na(redox), paste0(element, "  "), 
-                                                  paste0(element, redox_sign, abs(redox)))) %>%
-            unique() %>%
-            ungroup() -> network_information       
-    }
-    
-    ### STARTS multiple redox states, one per element per mineral, regardless of if/else above
-    network_information %<>%
-        select(element, redox) %>%
-        unique() %>%
-        group_by(element) %>%
-        summarize(mean_element_redox = mean(redox, na.rm=TRUE)) %>%
-        right_join(network_information) %>%
-        mutate(redox = ifelse(is.nan(redox), NA, redox),
-               mean_element_redox = ifelse(is.nan(mean_element_redox), NA, mean_element_redox))
-    ### ENDS with two redox columns: redox is the element in the mineral (sometimes unknown), and mean_element_redox will be a unique per node. 
-
-    network_information    
-}
