@@ -1,0 +1,175 @@
+mineral_name,num_localities,at_locality,is_remote,max_age,chemistry_elements,overall_max_age
+Acanthite,802,0,0,4,Ag S,4
+Acanthite,802,0,0,4,Ag S,4
+Acanthite,802,0,0,4,Ag S,4
+Acanthite,802,0,0,4,Ag S,4
+Acanthite,802,1,0,4,Ag S,4
+Acanthite,802,0,0,4,Ag S,4
+Acanthite,802,0,0,4,Ag S,4
+Acanthite,802,0,0,4,Ag S,4
+Acanthite,802,1,0,4,Ag S,4
+Calaverite,153,0,0,4,Au Te,4
+Calaverite,153,0,0,4,Au Te,4
+Calaverite,153,0,0,4,Au Te,4
+Calaverite,153,0,0,4,Au Te,4
+Calaverite,153,1,0,4,Au Te,4
+Chlorargyrite,393,0,0,4,Ag Cl,4
+Chlorargyrite,393,0,0,4,Ag Cl,4
+Chlorargyrite,393,0,0,4,Ag Cl,4
+Chlorargyrite,393,0,0,4,Ag Cl,4
+Chlorargyrite,393,0,0,4,Ag Cl,4
+Chlorargyrite,393,1,1,4,Ag Cl,4
+Dyscrasite,106,0,0,3.074,Ag Sb,3.074
+Dyscrasite,106,0,1,3.074,Ag Sb,3.074
+Dyscrasite,106,1,1,3.074,Ag Sb,3.074
+Dyscrasite,106,0,0,3.074,Ag Sb,3.074
+Dyscrasite,106,0,0,3.074,Ag Sb,3.074
+Dyscrasite,106,0,0,3.074,Ag Sb,3.074
+Dyscrasite,106,0,0,3.074,Ag Sb,3.074
+Dyscrasite,106,1,1,3.074,Ag Sb,3.074
+Gold,4364,0,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,0,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,1,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,1,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,0,1,4,Au,4
+Gold,4364,1,1,4,Au,4
+Gold,4364,1,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,1,0,4,Au,4
+Gold,4364,1,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,1,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,1,0,4,Au,4
+Gold,4364,0,0,4,Au,4
+Gold,4364,1,0,4,Au,4
+Gustavite,30,0,0,3.026,Ag Pb Bi S,3.026
+Gustavite,30,0,0,3.026,Ag Pb Bi S,3.026
+Gustavite,30,0,0,3.026,Ag Pb Bi S,3.026
+Gustavite,30,0,0,3.026,Ag Pb Bi S,3.026
+Gustavite,30,0,0,3.026,Ag Pb Bi S,3.026
+Gustavite,30,1,0,3.026,Ag Pb Bi S,3.026
+Hessite,306,0,0,4,Ag Te,4
+Hessite,306,0,0,4,Ag Te,4
+Hessite,306,0,0,4,Ag Te,4
+Hessite,306,0,0,4,Ag Te,4
+Hessite,306,1,0,4,Ag Te,4
+Iodargyrite,75,0,0,4.888,Ag I,4.888
+Iodargyrite,75,0,0,4.888,Ag I,4.888
+Iodargyrite,75,0,0,4.888,Ag I,4.888
+Iodargyrite,75,0,0,4.888,Ag I,4.888
+Iodargyrite,75,1,0,4.888,Ag I,4.888
+Jalpaite,40,0,0,4,Ag Cu S,4
+Jalpaite,40,0,0,4,Ag Cu S,4
+Jalpaite,40,0,0,4,Ag Cu S,4
+Jalpaite,40,0,0,4,Ag Cu S,4
+Jalpaite,40,1,0,4,Ag Cu S,4
+Maldonite,31,0,0,3.11,Au Bi,3.11
+Maldonite,31,0,1,3.11,Au Bi,3.11
+Maldonite,31,0,0,3.11,Au Bi,3.11
+Maldonite,31,0,0,3.11,Au Bi,3.11
+Maldonite,31,1,0,3.11,Au Bi,3.11
+Mckinstryite,24,0,0,4,Ag Cu S,4
+Mckinstryite,24,0,0,4,Ag Cu S,4
+Mckinstryite,24,0,0,4,Ag Cu S,4
+Mckinstryite,24,0,0,4,Ag Cu S,4
+Mckinstryite,24,1,0,4,Ag Cu S,4
+Naumannite,76,0,0,4,Ag Se,4
+Naumannite,76,0,0,4,Ag Se,4
+Naumannite,76,0,0,4,Ag Se,4
+Naumannite,76,0,0,4,Ag Se,4
+Naumannite,76,1,0,4,Ag Se,4
+Petzite,268,0,0,4,Ag Au Te,4
+Petzite,268,0,0,4,Ag Au Te,4
+Petzite,268,0,0,4,Ag Au Te,4
+Petzite,268,0,0,4,Ag Au Te,4
+Petzite,268,1,0,4,Ag Au Te,4
+Petzite,268,0,0,4,Ag Au Te,4
+Petzite,268,0,0,4,Ag Au Te,4
+Petzite,268,0,0,4,Ag Au Te,4
+Petzite,268,0,0,4,Ag Au Te,4
+Petzite,268,1,0,4,Ag Au Te,4
+Polybasite,220,0,0,4,Cu Ag Sb S,4
+Polybasite,220,0,0,4,Cu Ag Sb S,4
+Polybasite,220,0,0,4,Cu Ag Sb S,4
+Polybasite,220,0,0,4,Cu Ag Sb S,4
+Polybasite,220,1,0,4,Cu Ag Sb S,4
+Proustite,284,0,0,3.074,Ag As S,3.074
+Proustite,284,0,1,3.074,Ag As S,3.074
+Proustite,284,1,1,3.074,Ag As S,3.074
+Pyrargyrite,448,0,0,4,Ag Sb S,4
+Pyrargyrite,448,0,0,4,Ag Sb S,4
+Pyrargyrite,448,0,0,4,Ag Sb S,4
+Pyrargyrite,448,0,0,4,Ag Sb S,4
+Pyrargyrite,448,1,0,4,Ag Sb S,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,1,0,4,Ag,4
+Silver,1489,1,0,4,Ag,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,1,0,4,Ag,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,1,0,4,Ag,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,1,0,4,Ag,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,0,0,4,Ag,4
+Silver,1489,1,0,4,Ag,4
+Stephanite,204,0,0,4,Ag Sb S,4
+Stephanite,204,0,0,4,Ag Sb S,4
+Stephanite,204,0,0,4,Ag Sb S,4
+Stephanite,204,0,0,4,Ag Sb S,4
+Stephanite,204,1,0,4,Ag Sb S,4
+Stromeyerite,123,0,0,4,Cu Ag S,4
+Stromeyerite,123,0,0,4,Cu Ag S,4
+Stromeyerite,123,0,0,4,Cu Ag S,4
+Stromeyerite,123,0,0,4,Cu Ag S,4
+Stromeyerite,123,1,0,4,Cu Ag S,4
+Weibullite,7,0,0,4,Ag Pb Bi S Se,4
+Weibullite,7,0,0,4,Ag Pb Bi S Se,4
+Weibullite,7,0,0,4,Ag Pb Bi S Se,4
+Weibullite,7,0,0,4,Ag Pb Bi S Se,4
+Weibullite,7,0,0,4,Ag Pb Bi S Se,4
+Weibullite,7,1,0,4,Ag Pb Bi S Se,4
+Weibullite,7,1,0,4,Ag Pb Bi S Se,4
+Weibullite,7,1,0,4,Ag Pb Bi S Se,4
