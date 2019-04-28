@@ -24,6 +24,16 @@ label
     font-weight: 400; 
 }
 
+
+
 .nav-tabs-custom>.nav-tabs>li.active {
-    border-top-color: #293337;
+    border-top-color: #3e474b;
+}
+
+
+
+
+.box.box-primary {
+    border-top-color: #3e474b;
+    border-bottom-color:  #3e474b;
 }

@@ -337,7 +337,7 @@ dashboardPage(skin = "red",
                             DT::dataTableOutput("clusterTable")
                         )                       
                     ), # tabBox
-                    box(width = 12,
+                    box(width = 12,status = "primary",
                         fluidRow(
                             column(3,
                                 downloadBttn("exportNodes", "Export nodes as CSV", size = "sm", style = "minimal", color = "danger")
