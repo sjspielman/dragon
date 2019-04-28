@@ -3,8 +3,6 @@
 library(testthat)
 library(tidyverse)
 library(dragon)
+source(system.file("dragon/build_network.R", package = "dragon"))
 
-build_net <- system.file("dragon/build_network.R", package = "dragon")
-print(build_net)
-source(build_net)
 test_check("dragon")

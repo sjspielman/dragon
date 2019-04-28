@@ -26,8 +26,8 @@ r_packages:
  - covr
  - testthat
  
-r_github_packages: 
- - spielmanlab/dragon
+#r_github_packages: 
+# - spielmanlab/dragon
 
 after_success:
     - Rscript -e 'covr::codecov()'
