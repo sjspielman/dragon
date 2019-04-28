@@ -1,8 +1,3 @@
-library(tidyverse)
-source(system.file("inst/dragon/", "build_network.R", package = "dragon"))
-
-
-
 tibble_path <- "./true_tibbles/"
 
 test_that("Test build_network::initialize_data() works", {
