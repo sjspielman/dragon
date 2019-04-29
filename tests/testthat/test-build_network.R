@@ -49,31 +49,6 @@ test_that("Test build_network::initialize_data_age() works", {
 })	
 
 
-
-test_that("Test build_network::initialize_data_age() works", {
-    
-    ################ Age network can be obtained ##############
-    age_to_test <- 3
-    true_tibble <- read_csv(paste0(tibble_path, "initialize_data_age_AuAg_3ga.csv"))
-    elements_of_interest <- c("Au", "Ag") 
-    test_tibble <- initialize_data_age( initialize_data(elements_of_interest, FALSE), age_to_test)
-    expect( all_equal(true_tibble, test_tibble, ignore_col_order = T, ignore_row_order = T),
-            failure_message = "Failed intialize_data_age() when age network can be obtained." 
-          )   
-    expect_true( sum(test_tibble$max_age < age_to_test) == 0)
-
-    
-    
-    ############ Age network when cannot be obtained ##############        
-    age_to_test <- 6 ## impossible Earth age
-    test_tibble <- initialize_data_age( initialize_data(elements_of_interest, FALSE), age_to_test)
-    expect_true( nrow(test_tibble) == 0)
-})	
-
-
-
-
-
 test_that("Test build_network::obtain_network_information() works", {
 
     ## Conditions have fancy redox things happening, which matters a lot for this function.
