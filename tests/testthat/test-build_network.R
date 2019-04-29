@@ -1,3 +1,8 @@
+library(tidyverse)
+library(igraph)
+library(visNetwork)
+source(system.file("dragon/build_network.R", package = "dragon"))
+
 tibble_path <- "./true_tibbles/"
 
 test_that("Test build_network::initialize_data() works", {
@@ -68,6 +73,7 @@ test_that("Test build_network::obtain_network_information() works", {
      test_tibble %>% replace_na(list(sd_pauling = 1e5)) -> test_tibble
      true_tibble %>% replace_na(list(sd_pauling = 1e5)) -> true_tibble
      expect_true( isTRUE( all_equal(true_tibble, test_tibble, ignore_col_order = T, ignore_row_order = T, convert = TRUE) ) )   
+#df %>%replace(., is.na(.), "")
 
     
     ############### Separate by redox ##############
@@ -78,4 +84,58 @@ test_that("Test build_network::obtain_network_information() works", {
     expect( all_equal(true_tibble, test_tibble, ignore_col_order = T, ignore_row_order = T),
             failure_message = "Failed obtain_network_information() when YES separating by redox." 
           )   
+})	
+
+
+test_that("Test build_network::construct_network() works", {
+    
+    elements_of_interest <- c("Au") # speed
+    age_to_test <- 2
+
+
+    ############### Do not separate by redox ##############
+    input_tibble_notbyredox_raw <- initialize_data_age( initialize_data(elements_of_interest, FALSE), age_to_test)
+    input_tibble_notbyredox <- obtain_network_information(input_tibble_notbyredox_raw, FALSE)
+    
+    edges_nodes <- construct_network(input_tibble_notbyredox, FALSE)
+
+    true_edges <- read_csv(paste0(tibble_path, "contruct_network_edges_Au_notbyredox.csv"), trim_ws = FALSE)
+    # mean_element_redox redox sd_pauling redox_sign
+    true_nodes <- read_csv(paste0(tibble_path, "contruct_network_nodes_Au_notbyredox.csv"), trim_ws = FALSE)
+    #num_localities max_age mean_pauling sd_pauling redox pauling
+
+    true_edges %>% replace_na(list(mean_element_redox = 1e5, redox = 1e5, redox_sign = "", sd_pauling = 1e5)) -> true_edges
+    edges_nodes$edges %>% replace_na(list(mean_element_redox = 1e5, redox = 1e5, redox_sign = "", sd_pauling = 1e5)) -> test_edges
+
+
+    true_nodes %>% replace_na(list(num_localities = 1e5, max_age = 1e5, mean_pauling = 1e5, sd_pauling = 1e5, redox = 1e5, pauling = 1e5)) -> true_nodes
+    edges_nodes$nodes %>% replace_na(list(num_localities = 1e5, max_age = 1e5, mean_pauling = 1e5, sd_pauling = 1e5, redox = 1e5, pauling = 1e5)) -> test_nodes
+
+    expect_true( isTRUE( all_equal(true_edges, test_edges, ignore_col_order = T, ignore_row_order = T, convert = TRUE) ) ) 
+    expect_true( isTRUE( all_equal(true_nodes, test_nodes, ignore_col_order = T, ignore_row_order = T, convert = TRUE) ) ) 
+
+
+
+    
+    ############### Separate by redox ##############
+    input_tibble_byredox_raw <- initialize_data_age( initialize_data(elements_of_interest, TRUE), age_to_test)
+    input_tibble_byredox <- obtain_network_information(input_tibble_byredox_raw, TRUE)
+    
+    edges_nodes <- construct_network(input_tibble_byredox, TRUE)
+
+    true_edges <- read_csv(paste0(tibble_path, "contruct_network_edges_Au_byredox.csv"), trim_ws = FALSE)
+    # mean_element_redox redox sd_pauling redox_sign
+    true_nodes <- read_csv(paste0(tibble_path, "contruct_network_nodes_Au_byredox.csv"), trim_ws = FALSE)
+    #num_localities max_age mean_pauling sd_pauling redox pauling
+
+    true_edges %>% replace_na(list(mean_element_redox = 1e5, redox = 1e5, redox_sign = "", sd_pauling = 1e5)) -> true_edges
+    edges_nodes$edges %>% replace_na(list(mean_element_redox = 1e5, redox = 1e5, redox_sign = "", sd_pauling = 1e5)) -> test_edges
+
+
+    true_nodes %>% replace_na(list(num_localities = 1e5, max_age = 1e5, mean_pauling = 1e5, sd_pauling = 1e5, redox = 1e5, pauling = 1e5)) -> true_nodes
+    edges_nodes$nodes %>% replace_na(list(num_localities = 1e5, max_age = 1e5, mean_pauling = 1e5, sd_pauling = 1e5, redox = 1e5, pauling = 1e5)) -> test_nodes
+
+    expect_true( isTRUE( all_equal(true_edges, test_edges, ignore_col_order = T, ignore_row_order = T, convert = TRUE) ) ) 
+    expect_true( isTRUE( all_equal(true_nodes, test_nodes, ignore_col_order = T, ignore_row_order = T, convert = TRUE) ) ) 
+
 })	
