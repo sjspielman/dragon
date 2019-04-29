@@ -283,7 +283,6 @@ dashboardPage(skin = "red",
                                                 #"Average redox state" = "redox",
                                                 "Mean Pauling electronegativity",# = "mean_pauling", 
                                                 "Standard deviation Pauling electronegativity",#  = "sd_pauling", 
-                                                "Louvain Cluster",#      = "cluster_ID",
                                                 "Network degree (normalized)",#   = "network_degree_norm",
                                                 "Number of known localities"), selected="Maximum known age",
                                     ),
@@ -297,7 +296,10 @@ dashboardPage(skin = "red",
                                                 "Network degree (normalized)",#   = "network_degree_norm",
                                                 "Number of known localities"), selected="Mean Pauling electronegativity",
                                 ),
-                                br(),br(),br()
+                                br(),br(),
+                                span(textOutput("model_sanity"), style="color:red;font-weight:bold;font-size:1.25em;"),
+                                br()
+                                
                             ),
                             
                             column(5,

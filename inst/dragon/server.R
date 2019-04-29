@@ -67,7 +67,6 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
     if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle, na.value = na.gray) + guides(colour = guide_legend(title.position="left", title.hjust = 0.5, byrow=TRUE)  )
     if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1, na.value = na.gray)+ guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
 
-    print(ggplot_build(p)$data[[1]])
     data.colors <- ggplot_build(p)$data[[1]] %>% 
                     as_tibble() %>% 
                     bind_cols(dat2) %>%
@@ -611,8 +610,16 @@ server <- function(input, output, session) {
     ############### LINEAR MODEL TAB ###########################
     
     observe({
-      
-       chemistry_network()$nodes %>%
+       
+       
+        output$model_sanity <- renderText({
+            if (input$predictor == input$response)
+            {
+                "ERROR: You cannot build a meaningful model with the same variable selected for response and predictor. Please select new variable(s).\n\n"
+            }      
+        })
+
+        chemistry_network()$nodes %>%
         filter(group == "mineral") %>%
         dplyr::select(cluster_ID, network_degree_norm, num_localities, max_age, mean_pauling, sd_pauling) %>%
         rename("Louvain Cluster" = cluster_ID,
@@ -634,9 +641,11 @@ server <- function(input, output, session) {
         if (input$predictor == "Louvain Cluster")
         {
             ## This part is *extra* dumb. TukeyHSD is not into spaces so we have to muck with louvain name
-            ## Only applies when Cluster is the predictor variable.             
+            ## Only applies when Cluster is the predictor variable. It is NOT ALLOWED as a response because this is a linear model and we need quant response, sheesh.          
             mineral_nodes %>% rename(louvain_cluster = `Louvain Cluster`) -> mineral_nodes2
             aov_fit_string <- paste(response_string, "~louvain_cluster")
+
+            
             aov_fit <- aov(as.formula(aov_fit_string), data = mineral_nodes2, na.action = na.omit )
             
             output$fitted_tukey <- renderDT( rownames= FALSE, server=FALSE, options = list(dom = 't'), { 
@@ -660,9 +669,9 @@ server <- function(input, output, session) {
 
 
 
-        }
+        } 
         else {
-          output$fitted_tukey <- renderDT({})
+            output$fitted_tukey <- renderDT({})
         }
         
         output$fitted_model <- renderDT( rownames= FALSE, server=FALSE, options = list(dom = 't'), { 
@@ -685,10 +694,6 @@ server <- function(input, output, session) {
                             
         if (input$predictor == "Louvain Cluster")
         {
-            #mineral_nodes %>% 
-            #    group_by(!! as.symbol(input$predictor)) %>% 
-            #    summarize(mean_response = mean( !! as.symbol(input$response) ) ) -> mineral_nodes_summary
-        
             fitted_model_plot <- top_plot + 
                                     geom_jitter(aes_string(color = predictor_string), width=0.2, size=1.5) + 
                                     labs(color = input$predictor)  +
