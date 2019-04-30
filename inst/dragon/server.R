@@ -11,8 +11,7 @@ library(magrittr)
 library(cowplot)
 library(igraph)
 library(broom)
-library(grid)
-#library(gridExtra) 
+library(dragon) ## for the extdata
 
 options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Make NA in DT show as NA instead of blank cell
 
