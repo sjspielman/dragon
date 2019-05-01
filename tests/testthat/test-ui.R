@@ -1,15 +1,15 @@
-library(testthat)
-library(shinytest)
+#library(testthat)
+#library(shinytest)
 
 ####### FORTHCOMING ADDITION OF SHINYTEST TESTS.
 ####### Below are various copy/pastes from shinytest documentation for quick reference 
 
-# test_that("Application works", {
-#   # Use compareImages=FALSE because the expected image screenshots were created
-#   # on a Mac, and they will differ from screenshots taken on the CI platform,
-#   # which runs on Linux.
-#   expect_pass(testApp(".", compareImages = FALSE))
-# })
+#test_that("Application works", {
+  # Use compareImages=FALSE because the expected image screenshots were created
+  # on a Mac, and they will differ from screenshots taken on the CI platform,
+  # which runs on Linux.
+#  expect_pass(testApp("../../inst/dragon", compareImages = FALSE))
+#})
 
 # 
 # If you develop on Linux and create the expected test results on Linux, then you should be able to leave out the compareImages argument; it defaults to TRUE.
