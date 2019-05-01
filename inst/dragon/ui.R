@@ -156,7 +156,6 @@ dashboardPage(skin = "red",
             fluidRow(
                     column(6, pickerInput("mineral_size_type", "Mineral node size:", 
                              c("Single size" = "singlesize",
-                               "Size by mean redox state" = "redox",
                                "Size by maximum age"           = "max_age",      
                                "Size by number of localities"  = "num_localities"
                                ), selected = "singlesize")
