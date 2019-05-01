@@ -56,7 +56,6 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
         ungroup() %>%
         dplyr::select( color_variable ) %>% 
         na.omit() -> dat_check
-    print(nrow(dat_check))
     
     shiny::validate(
         shiny::need(nrow(dat_check) > 0, 
