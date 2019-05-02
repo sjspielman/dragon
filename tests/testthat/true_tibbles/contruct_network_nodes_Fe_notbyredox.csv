@@ -1,0 +1,348 @@
+id,group,label,cluster_ID,network_degree,network_degree_norm,num_localities,max_age,mean_pauling,sd_pauling,redox,pauling,title,font.face
+Actinolite,mineral,Actinolite,2,6,0.5,854,4.6,1.9466666666666668,0.8498862669008522,NA,NA,Actinolite,courier
+Aegirine,mineral,Aegirine,2,4,0.3333333333333333,345,2.654,2.025,1.0416173321650646,NA,NA,Aegirine,courier
+Aegirine-augite,mineral,Aegirine-augite,2,7,0.5833333333333334,96,2.68,1.7485714285714287,0.848516913432462,NA,NA,Aegirine-augite,courier
+Aenigmatite,mineral,Aenigmatite,5,5,0.4166666666666667,42,4.567609999999999,1.928,0.9277769128405815,NA,NA,Aenigmatite,courier
+Allanite-(Ce),mineral,Allanite-(Ce),2,7,0.5833333333333334,210,4.888,1.8714285714285714,0.8127408068059699,NA,NA,Allanite-(Ce),courier
+Allanite-(La),mineral,Allanite-(La),2,7,0.5833333333333334,10,2.816,1.8685714285714285,0.8158518773124724,NA,NA,Allanite-(La),courier
+Allanite-(Nd),mineral,Allanite-(Nd),2,7,0.5833333333333334,3,4.888,1.8742857142857143,0.8096883586264768,NA,NA,Allanite-(Nd),courier
+Allanite-(Y),mineral,Allanite-(Y),2,7,0.5833333333333334,15,4.6,1.8857142857142857,0.7980780484567731,NA,NA,Allanite-(Y),courier
+Alluaudite,mineral,Alluaudite,1,9,0.75,40,2.772,1.7366666666666668,0.7557612056727971,NA,NA,Alluaudite,courier
+Almandine,mineral,Almandine,2,4,0.3333333333333333,460,4.888,2.195,0.8391463916782737,NA,NA,Almandine,courier
+Andradite,mineral,Andradite,2,4,0.3333333333333333,451,4.6,2.0425,1.0173945481801376,NA,NA,Andradite,courier
+Angarfite,mineral,Angarfite,1,5,0.4166666666666667,1,2.046,2.118,0.9019257175621505,NA,NA,Angarfite,courier
+Ankerite,mineral,Ankerite,3,4,0.3333333333333333,652,4,2.205,1.0387332028325014,NA,NA,Ankerite,courier
+Annite,mineral,Annite,2,6,0.5,139,2.906,1.9666666666666668,0.859108064603439,NA,NA,Annite,courier
+Arfvedsonite,mineral,Arfvedsonite,4,6,0.5,105,2.5,2.0216666666666665,0.815289314701638,NA,NA,Arfvedsonite,courier
+Argentopentlandite,mineral,Argentopentlandite,4,4,0.3333333333333333,40,2.9,2.0625,0.34769478953051147,NA,NA,Argentopentlandite,courier
+Armalcolite,mineral,Armalcolite,5,4,0.3333333333333333,10,4.567609999999999,2.0300000000000002,0.9637772910100478,NA,NA,Armalcolite,courier
+Arrojadite-(KFe),mineral,Arrojadite-(KFe),2,9,0.75,16,2.046,1.761111111111111,0.8203115939148434,NA,NA,Arrojadite-(KFe),courier
+Arseniosiderite,mineral,Arseniosiderite,1,5,0.4166666666666667,90,2.2229,2.13,0.8789766777338293,NA,NA,Arseniosiderite,courier
+Arsenopyrite,mineral,Arsenopyrite,4,3,0.25,2013,4.46,2.1966666666666668,0.37527767497325676,NA,NA,Arsenopyrite,courier
+Astrophyllite,mineral,Astrophyllite,2,8,0.6666666666666666,89,2.5,2.08,1.1193493007738278,NA,NA,Astrophyllite,courier
+Augite,mineral,Augite,4,6,0.5,381,4.7,1.885,0.8412074654923124,NA,NA,Augite,courier
+Awaruite,mineral,Awaruite,4,2,0.16666666666666666,36,4.62,1.87,0.0565685424949237,NA,NA,Awaruite,courier
+Axinite-(Fe),mineral,Axinite-(Fe),2,7,0.5833333333333334,42,3.2,2.0028571428571427,0.7423097800270514,NA,NA,Axinite-(Fe),courier
+Bafertisite,mineral,Bafertisite,5,7,0.5833333333333334,10,2.5,2.2542857142857144,1.0850477277191872,NA,NA,Bafertisite,courier
+Bannisterite,mineral,Bannisterite,2,9,0.75,5,2.494,1.6977777777777778,0.8079569570493496,NA,NA,Bannisterite,courier
+Barbosalite,mineral,Barbosalite,1,5,0.4166666666666667,17,2.046,2.298,0.6639804213981011,NA,NA,Barbosalite,courier
+Barringerite,mineral,Barringerite,4,3,0.25,2,4.62,1.9766666666666666,0.1890326250501043,NA,NA,Barringerite,courier
+Beaverite-(Cu),mineral,Beaverite-(Cu),1,6,0.5,56,4,2.3033333333333332,0.6250973257554912,NA,NA,Beaverite-(Cu),courier
+Bederite,mineral,Bederite,1,6,0.5,1,2.046,2.035,0.8214316770127629,NA,NA,Bederite,courier
+Beraunite,mineral,Beraunite,1,5,0.4166666666666667,40,2.046,2.298,0.6639804213981011,NA,NA,Beraunite,courier
+Bernalite,mineral,Bernalite,1,3,0.25,5,2.494,2.49,0.8432674546073742,NA,NA,Bernalite,courier
+Berthierine,mineral,Berthierine,4,6,0.5,12,2.81,2.1350000000000002,0.6669557706474994,NA,NA,Berthierine,courier
+Berthierite,mineral,Berthierite,4,3,0.25,63,3.64,2.1533333333333333,0.38552993831002713,NA,NA,Berthierite,courier
+Beudantite,mineral,Beudantite,1,6,0.5,141,2.7,2.35,0.5988655942696991,NA,NA,Beudantite,courier
+Bismutoferrite,mineral,Bismutoferrite,4,5,0.4166666666666667,33,4.6,2.278,0.6645449570947025,NA,NA,Bismutoferrite,courier
+Bobfergusonite,mineral,Bobfergusonite,1,6,0.5,1,2.772,1.925,0.8490406350699594,NA,NA,Bobfergusonite,courier
+Bogdanovite,mineral,Bogdanovite,6,5,0.4166666666666667,4,2,2.048,0.294057817444121,NA,NA,Bogdanovite,courier
+Bonaccordite,mineral,Bonaccordite,4,4,0.3333333333333333,1,3.64,2.305,0.7615991946774453,NA,NA,Bonaccordite,courier
+Bornite,mineral,Bornite,4,3,0.25,1682,4,2.1033333333333335,0.41428653530296317,NA,NA,Bornite,courier
+Botryogen,mineral,Botryogen,2,5,0.4166666666666667,14,2.5,2.2720000000000002,0.8039091988527062,NA,NA,Botryogen,courier
+Brugnatellite,mineral,Brugnatellite,3,5,0.4166666666666667,7,2.046,2.266,0.8011429335642922,NA,NA,Brugnatellite,courier
+Bukovskyite,mineral,Bukovskyite,1,5,0.4166666666666667,3,2.157,2.446,0.6157759332744338,NA,NA,Bukovskyite,courier
+Butlerite,mineral,Butlerite,4,4,0.3333333333333333,10,2.5,2.5125,0.6899939613262326,NA,NA,Butlerite,courier
+Cacoxenite,mineral,Cacoxenite,1,5,0.4166666666666667,55,2.5,2.254,0.7085407539443302,NA,NA,Cacoxenite,courier
+Cafarsite,mineral,Cafarsite,1,7,0.5833333333333334,1,2.816,1.9628571428571429,0.7723711173115828,NA,NA,Cafarsite,courier
+Carminite,mineral,Carminite,1,5,0.4166666666666667,61,2.494,2.3040000000000003,0.657594099730221,NA,NA,Carminite,courier
+Cerite-(Ce),mineral,Cerite-(Ce),7,8,0.6666666666666666,23,2.5,1.7375,0.8160663488432087,NA,NA,Cerite-(Ce),courier
+Chalcopyrite,mineral,Chalcopyrite,4,3,0.25,5794,4.6,2.1033333333333335,0.41428653530296317,NA,NA,Chalcopyrite,courier
+Chamosite,mineral,Chamosite,2,6,0.5,152,4.6,2.0483333333333333,0.7438660273642469,NA,NA,Chamosite,courier
+Chapmanite,mineral,Chapmanite,4,5,0.4166666666666667,9,2.2229,2.284,0.6617627973828689,NA,NA,Chapmanite,courier
+Chevkinite-(Ce),mineral,Chevkinite-(Ce),4,6,0.5,34,2.5,1.9433333333333334,0.7884330451386894,NA,NA,Chevkinite-(Ce),courier
+Chloritoid,mineral,Chloritoid,2,5,0.4166666666666667,54,4,2.196,0.7267255327838701,NA,NA,Chloritoid,courier
+Chromite,mineral,Chromite,5,3,0.25,725,4.7,2.31,0.9822932352408825,NA,NA,Chromite,courier
+Clinoferrosilite,mineral,Clinoferrosilite,1,3,0.25,8,3.074,2.39,0.9099999999999999,NA,NA,Clinoferrosilite,courier
+Coalingite,mineral,Coalingite,3,5,0.4166666666666667,9,2.71,2.266,0.8011429335642922,NA,NA,Coalingite,courier
+Coconinoite,mineral,Coconinoite,1,7,0.5833333333333334,4,3.13113,2.1757142857142857,0.6874313818570583,NA,NA,Coconinoite,courier
+Cohenite,mineral,Cohenite,3,2,0.16666666666666666,3,4.62,2.19,0.5091168824543141,NA,NA,Cohenite,courier
+Columbite-(Fe),mineral,Columbite-(Fe),7,3,0.25,164,3.044,2.29,1.002546757014355,NA,NA,Columbite-(Fe),courier
+Copiapite,mineral,Copiapite,4,5,0.4166666666666667,94,2.638,2.376,0.6709918032286236,NA,NA,Copiapite,courier
+Coquimbite,mineral,Coquimbite,4,4,0.3333333333333333,47,2.638,2.5125,0.6899939613262326,NA,NA,Coquimbite,courier
+Corkite,mineral,Corkite,1,6,0.5,52,3.2,2.3516666666666666,0.5983115130654487,NA,NA,Corkite,courier
+Corrensite,mineral,Corrensite,2,9,0.75,10,2.68,1.6711111111111112,0.8173500542063425,NA,NA,Corrensite,courier
+Coulsonite,mineral,Coulsonite,7,3,0.25,7,4.5685,2.3,0.9923205127376941,NA,NA,Coulsonite,courier
+Cronstedtite,mineral,Cronstedtite,4,6,0.5,16,4.7,2.171666666666667,0.6377277370999843,NA,NA,Cronstedtite,courier
+Cubanite,mineral,Cubanite,4,4,0.3333333333333333,321,4,2.035,0.364828726939094,NA,NA,Cubanite,courier
+Daubreelite,mineral,Daubreelite,5,3,0.25,5,4.62,2.0233333333333334,0.489523577913601,NA,NA,Daubreelite,courier
+Davidite-(La),mineral,Davidite-(La),7,11,0.9166666666666666,11,2.5,1.9827272727272727,0.9140797657654489,NA,NA,Davidite-(La),courier
+Delafossite,mineral,Delafossite,4,3,0.25,73,2.5,2.39,0.9099999999999999,NA,NA,Delafossite,courier
+Delvauxite,mineral,Delvauxite,1,5,0.4166666666666667,5,4.46,2.132,0.8791302520104743,NA,NA,Delvauxite,courier
+Djerfisherite,mineral,Djerfisherite,8,6,0.5,24,2.05,2.033333333333333,0.7892697046426315,NA,NA,Djerfisherite,courier
+Dufrenite,mineral,Dufrenite,1,6,0.5,42,4.46,2.0816666666666666,0.7959250383463675,NA,NA,Dufrenite,courier
+Eleonorite,mineral,Eleonorite,1,4,0.3333333333333333,11,2.494,2.415,0.7046748659251773,NA,NA,Eleonorite,courier
+Emmonsite,mineral,Emmonsite,6,4,0.3333333333333333,23,2.638,2.3925,0.715605803963793,NA,NA,Emmonsite,courier
+Epidote,mineral,Epidote,2,6,0.5,1647,4.6,1.9966666666666666,0.8129616637127896,NA,NA,Epidote,courier
+Eudialyte,mineral,Eudialyte,2,8,0.6666666666666666,105,2.5,1.9737500000000001,0.932461220947782,NA,NA,Eudialyte,courier
+Fayalite,mineral,Fayalite,1,3,0.25,94,4.567609999999999,2.39,0.9099999999999999,NA,NA,Fayalite,courier
+Ferberite,mineral,Ferberite,7,3,0.25,132,2.816,2.5433333333333334,0.8205079727420893,NA,NA,Ferberite,courier
+Ferri-leakeite,mineral,Ferri-leakeite,1,7,0.5833333333333334,4,2,1.7985714285714285,0.8688963991069087,NA,NA,Ferri-leakeite,courier
+Ferri-winchite,mineral,Ferri-winchite,2,7,0.5833333333333334,4,2,1.8014285714285714,0.8657834327249236,NA,NA,Ferri-winchite,courier
+Ferricopiapite,mineral,Ferricopiapite,4,5,0.4166666666666667,13,2.5,2.376,0.6709918032286236,NA,NA,Ferricopiapite,courier
+Ferrihollandite,mineral,Ferrihollandite,5,4,0.3333333333333333,1,2,1.9275,1.082601034545968,NA,NA,Ferrihollandite,courier
+Ferrihydrite,mineral,Ferrihydrite,1,3,0.25,23,2.5,2.49,0.8432674546073742,NA,NA,Ferrihydrite,courier
+Ferrimolybdite,mineral,Ferrimolybdite,9,4,0.3333333333333333,117,2.91,2.4075,0.7080195383368079,NA,NA,Ferrimolybdite,courier
+Ferrisicklerite,mineral,Ferrisicklerite,1,5,0.4166666666666667,36,2.64,1.998,0.9194400469851202,NA,NA,Ferrisicklerite,courier
+Ferrisymplesite,mineral,Ferrisymplesite,1,4,0.3333333333333333,11,2.2229,2.4125,0.7057560957346856,NA,NA,Ferrisymplesite,courier
+Ferro-actinolite,mineral,Ferro-actinolite,2,6,0.5,34,2.92,1.9466666666666668,0.8498862669008522,NA,NA,Ferro-actinolite,courier
+Ferro-edenite,mineral,Ferro-edenite,2,7,0.5833333333333334,22,2.72,1.8442857142857143,0.8445680778334201,NA,NA,Ferro-edenite,courier
+Ferro-holmquistite,mineral,Ferro-holmquistite,1,6,0.5,1,2.527,1.9933333333333334,0.817891598359261,NA,NA,Ferro-holmquistite,courier
+Ferro-hornblende,mineral,Ferro-hornblende,2,6,0.5,57,4.563,1.9966666666666666,0.8129616637127896,NA,NA,Ferro-hornblende,courier
+Ferro-katophorite,mineral,Ferro-katophorite,2,7,0.5833333333333334,12,2.68,1.8442857142857143,0.8445680778334201,NA,NA,Ferro-katophorite,courier
+Ferro-pargasite,mineral,Ferro-pargasite,2,7,0.5833333333333334,17,2.715,1.8442857142857143,0.8445680778334201,NA,NA,Ferro-pargasite,courier
+Ferro-richterite,mineral,Ferro-richterite,2,6,0.5,13,2.1,1.8833333333333333,0.9182301817445705,NA,NA,Ferro-richterite,courier
+Ferro-tschermakite,mineral,Ferro-tschermakite,2,6,0.5,9,2.816,1.9966666666666666,0.8129616637127896,NA,NA,Ferro-tschermakite,courier
+Ferroalluaudite,mineral,Ferroalluaudite,4,5,0.4166666666666667,4,2.046,2.044,0.9086693568069739,NA,NA,Ferroalluaudite,courier
+Ferrobustamite,mineral,Ferrobustamite,2,4,0.3333333333333333,7,2.1,2.0425,1.0173945481801376,NA,NA,Ferrobustamite,courier
+Ferronickelplatinum,mineral,Ferronickelplatinum,4,3,0.25,3,2.05,2.006666666666667,0.24006943440041106,NA,NA,Ferronickelplatinum,courier
+Ferronigerite-2N1S,mineral,Ferronigerite-2N1S,7,6,0.5,6,2.72,2.115,0.6840102338415706,NA,NA,Ferronigerite-2N1S,courier
+Ferrorhodonite,mineral,Ferrorhodonite,2,5,0.4166666666666667,2,2.494,1.944,0.9082015194878282,NA,NA,Ferrorhodonite,courier
+Ferroselite,mineral,Ferroselite,4,2,0.16666666666666666,16,2.1,2.19,0.5091168824543141,NA,NA,Ferroselite,courier
+Ferrosilite,mineral,Ferrosilite,1,3,0.25,24,2.55,2.39,0.9099999999999999,NA,NA,Ferrosilite,courier
+Ferrotitanowodginite,mineral,Ferrotitanowodginite,7,4,0.3333333333333333,1,2.651,2.0775,0.9201585008392122,NA,NA,Ferrotitanowodginite,courier
+Ferrowodginite,mineral,Ferrowodginite,7,4,0.3333333333333333,3,2.7499000000000002,2.1825,0.8604020378094572,NA,NA,Ferrowodginite,courier
+Feruvite,mineral,Feruvite,2,8,0.6666666666666666,7,2.66,1.91625,0.7295974917720044,NA,NA,Feruvite,courier
+Fibroferrite,mineral,Fibroferrite,4,4,0.3333333333333333,30,2.86,2.5125,0.6899939613262326,NA,NA,Fibroferrite,courier
+Fluorannite,mineral,Fluorannite,2,6,0.5,2,2.072,2.263333333333333,1.1967734399904881,NA,NA,Fluorannite,courier
+Fluoro-riebeckite,mineral,Fluoro-riebeckite,2,6,0.5,1,2.072,2.3183333333333334,1.148797922467945,NA,NA,Fluoro-riebeckite,courier
+Foitite,mineral,Foitite,4,6,0.5,28,2.799,2.17,0.6531156099803465,NA,NA,Foitite,courier
+Franklinite,mineral,Franklinite,7,3,0.25,27,3.64,2.3066666666666666,0.9856131763188504,NA,NA,Franklinite,courier
+Freibergite,mineral,Freibergite,4,5,0.4166666666666667,196,2.735,2.058,0.30244007670942025,NA,NA,Freibergite,courier
+Freudenbergite,mineral,Freudenbergite,5,4,0.3333333333333333,3,3.074,1.935,1.0711520278030875,NA,NA,Freudenbergite,courier
+Frohbergite,mineral,Frohbergite,6,2,0.16666666666666666,22,2.858,1.965,0.19091883092036785,NA,NA,Frohbergite,courier
+Gadolinite-(Ce),mineral,Gadolinite-(Ce),7,5,0.4166666666666667,23,2.3104,1.972,0.8757682341807106,NA,NA,Gadolinite-(Ce),courier
+Gadolinite-(Y),mineral,Gadolinite-(Y),7,5,0.4166666666666667,52,2.815,1.992,0.8522734303027403,NA,NA,Gadolinite-(Y),courier
+Gartrellite,mineral,Gartrellite,1,6,0.5,15,2.494,2.236666666666667,0.610857321038773,NA,NA,Gartrellite,courier
+Glaucodot,mineral,Glaucodot,4,4,0.3333333333333333,51,3.074,2.1175,0.34490336810958133,NA,NA,Glaucodot,courier
+Godlevskite,mineral,Godlevskite,4,3,0.25,16,3.64,2.1066666666666665,0.41186567389542594,NA,NA,Godlevskite,courier
+Goethite,mineral,Goethite,1,3,0.25,1418,4.62,2.49,0.8432674546073742,NA,NA,Goethite,courier
+Gonyerite,mineral,Gonyerite,4,6,0.5,6,2.4,2.125,0.676779136794272,NA,NA,Gonyerite,courier
+Greenalite,mineral,Greenalite,4,5,0.4166666666666667,18,4.7,2.24,0.6880043604512982,NA,NA,Greenalite,courier
+Greigite,mineral,Greigite,4,3,0.25,23,3.64,2.08,0.4330127018922193,NA,NA,Greigite,courier
+Grunerite,mineral,Grunerite,4,5,0.4166666666666667,57,4,2.24,0.6880043604512982,NA,NA,Grunerite,courier
+Gudmundite,mineral,Gudmundite,4,3,0.25,87,3.026,2.1533333333333333,0.38552993831002713,NA,NA,Gudmundite,courier
+Guidottiite,mineral,Guidottiite,4,6,0.5,1,2.4,2.125,0.676779136794272,NA,NA,Guidottiite,courier
+Halotrichite,mineral,Halotrichite,4,5,0.4166666666666667,98,2.5,2.332,0.72108945353541265,NA,NA,Halotrichite,courier
+Hastingsite,mineral,Hastingsite,2,8,0.6666666666666666,65,2.72,1.8425,0.7819344144948659,NA,NA,Hastingsite,courier
+Haxonite,mineral,Haxonite,3,3,0.25,1,4.62,2.0966666666666667,0.39463062898529966,NA,NA,Haxonite,courier
+Haycockite,mineral,Haycockite,4,3,0.25,2,2.461,2.1033333333333335,0.41428653530296317,NA,NA,Haycockite,courier
+Hedenbergite,mineral,Hedenbergite,2,4,0.3333333333333333,222,4.567609999999999,2.0425,1.0173945481801376,NA,NA,Hedenbergite,courier
+Hematite,mineral,Hematite,1,2,0.16666666666666666,2565,4.62,2.635,1.1384419177103413,NA,NA,Hematite,courier
+Hemloite,mineral,Hemloite,1,7,0.5833333333333334,1,2.816,2.0614285714285714,0.6644654134823615,NA,NA,Hemloite,courier
+Hercynite,mineral,Hercynite,1,3,0.25,84,4.5685,2.2933333333333334,0.999116276182774,NA,NA,Hercynite,courier
+Heterosite,mineral,Heterosite,1,3,0.25,75,2.278,2.486666666666667,0.8450049309520823,NA,NA,Heterosite,courier
+Hexamolybdenum,mineral,Hexamolybdenum,9,5,0.4166666666666667,2,4.7,2.1180000000000003,0.1619259089830902,NA,NA,Hexamolybdenum,courier
+Hibbingite,mineral,Hibbingite,8,4,0.3333333333333333,6,2.1,2.6575,0.7656968503700838,NA,NA,Hibbingite,courier
+Hibonite-(Fe),mineral,Hibonite-(Fe),2,4,0.3333333333333333,1,4.567609999999999,2.0475,0.9524835956592638,NA,NA,Hibonite-(Fe),courier
+Hisingerite,mineral,Hisingerite,1,4,0.3333333333333333,69,4.46,2.3425000000000002,0.7490605226993788,NA,NA,Hisingerite,courier
+Hulsite,mineral,Hulsite,4,4,0.3333333333333333,7,2.058,2.285,0.7763375554486591,NA,NA,Hulsite,courier
+Hydrobiotite,mineral,Hydrobiotite,2,7,0.5833333333333334,13,4,1.8728571428571428,0.8225917230662748,NA,NA,Hydrobiotite,courier
+Hydrohonessite,mineral,Hydrohonessite,4,5,0.4166666666666667,5,2.71,2.392,0.6554921814941808,NA,NA,Hydrohonessite,courier
+Hydroniumjarosite,mineral,Hydroniumjarosite,4,4,0.3333333333333333,24,2.046,2.5125,0.6899939613262326,NA,NA,Hydroniumjarosite,courier
+Idaite,mineral,Idaite,4,3,0.25,54,2.498,2.1033333333333335,0.41428653530296317,NA,NA,Idaite,courier
+Ilmenite,mineral,Ilmenite,5,3,0.25,922,4.888,2.27,1.0235721762533407,NA,NA,Ilmenite,courier
+Ilvaite,mineral,Ilvaite,4,6,0.5,67,2.698,2.033333333333333,0.7968354075131618,NA,NA,Ilvaite,courier
+Iowaite,mineral,Iowaite,8,5,0.4166666666666667,10,2.742,2.388,0.8960301334218621,NA,NA,Iowaite,courier
+Iron,mineral,Iron,4,1,0.08333333333333333,60,4.7,1.83,NA,NA,NA,Iron,courier
+Isocubanite,mineral,Isocubanite,4,4,0.3333333333333333,6,4.62,2.035,0.364828726939094,NA,NA,Isocubanite,courier
+Isoferroplatinum,mineral,Isoferroplatinum,4,2,0.16666666666666666,26,3.254,2.0549999999999997,0.3181980515339462,NA,NA,Isoferroplatinum,courier
+Izoklakeite,mineral,Izoklakeite,4,6,0.5,5,2.73,2.0416666666666665,0.2773745962893262,NA,NA,Izoklakeite,courier
+Jacobsite,mineral,Jacobsite,1,3,0.25,54,2.735,2.2733333333333334,1.020016339738405,NA,NA,Jacobsite,courier
+Jahnsite-(CaMnFe),mineral,Jahnsite-(CaMnFe),1,7,0.5833333333333334,11,2.74,2.005714285714286,0.7538535919495496,NA,NA,Jahnsite-(CaMnFe),courier
+Jahnsite-(MnMnMn),mineral,Jahnsite-(MnMnMn),1,7,0.5833333333333334,3,2.046,2.0442857142857145,0.6797513551011904,NA,NA,Jahnsite-(MnMnMn),courier
+Jahnsite-(NaFeMg),mineral,Jahnsite-(NaFeMg),1,7,0.5833333333333334,2,2.046,1.9614285714285715,0.7977139957701752,NA,NA,Jahnsite-(NaFeMg),courier
+Jamesonite,mineral,Jamesonite,4,4,0.3333333333333333,220,3.64,2.0825,0.3451931826287033,NA,NA,Jamesonite,courier
+Jarosite,mineral,Jarosite,4,5,0.4166666666666667,649,4.6,2.174,0.9643547065265976,NA,NA,Jarosite,courier
+Kamiokite,mineral,Kamiokite,9,3,0.25,6,4.567609999999999,2.4766666666666666,0.8504312631443727,NA,NA,Kamiokite,courier
+Kankite,mineral,Kankite,1,4,0.3333333333333333,20,2.157,2.4125,0.7057560957346856,NA,NA,Kankite,courier
+Kidwellite,mineral,Kidwellite,1,5,0.4166666666666667,15,2.046,2.118,0.9019257175621505,NA,NA,Kidwellite,courier
+Kingsmountite,mineral,Kingsmountite,1,6,0.5,4,2.527,2.045,0.8146839878136798,NA,NA,Kingsmountite,courier
+Kintoreite,mineral,Kintoreite,1,5,0.4166666666666667,10,2.494,2.306,0.6571377328992758,NA,NA,Kintoreite,courier
+Kirschsteinite,mineral,Kirschsteinite,2,4,0.3333333333333333,8,4.5685,2.0425,1.0173945481801376,NA,NA,Kirschsteinite,courier
+Kobellite,mineral,Kobellite,4,6,0.5,32,2.5,2.0416666666666665,0.2773745962893262,NA,NA,Kobellite,courier
+Kolfanite,mineral,Kolfanite,1,5,0.4166666666666667,2,2.527,2.13,0.8789766777338293,NA,NA,Kolfanite,courier
+Kornelite,mineral,Kornelite,4,4,0.3333333333333333,16,2.5,2.5125,0.6899939613262326,NA,NA,Kornelite,courier
+Kupcikite,mineral,Kupcikite,4,4,0.3333333333333333,4,3.026,2.0825,0.3408200893922384,NA,NA,Kupcikite,courier
+Laueite,mineral,Laueite,1,5,0.4166666666666667,36,2.527,2.242,0.7225441163001743,NA,NA,Laueite,courier
+Lavenite,mineral,Lavenite,2,10,0.8333333333333334,36,2.5,1.91,1.0066335535392763,NA,NA,Lavenite,courier
+Lawrencite,mineral,Lawrencite,8,2,0.16666666666666666,3,4.62,2.495,0.9404520189781083,NA,NA,Lawrencite,courier
+Lepidocrocite,mineral,Lepidocrocite,1,3,0.25,182,3.64,2.49,0.8432674546073742,NA,NA,Lepidocrocite,courier
+Leucophosphite,mineral,Leucophosphite,1,5,0.4166666666666667,42,3.11,2.096,0.9387385152426634,NA,NA,Leucophosphite,courier
+Lindqvistite,mineral,Lindqvistite,1,4,0.3333333333333333,2,2.058,2.1725,0.8569082020068816,NA,NA,Lindqvistite,courier
+Lindsleyite,mineral,Lindsleyite,5,10,0.8333333333333334,4,3.074,1.578,0.7406723672147865,NA,NA,Lindsleyite,courier
+Lipscombite,mineral,Lipscombite,1,5,0.4166666666666667,12,2.046,2.298,0.6639804213981011,NA,NA,Lipscombite,courier
+Lollingite,mineral,Lollingite,1,2,0.16666666666666666,344,3.11,2.005,0.2474873734152917,NA,NA,Lollingite,courier
+Loveringite,mineral,Loveringite,4,12,1,3,2.5,1.6333333333333333,0.6421318660005383,NA,NA,Loveringite,courier
+Ludwigite,mineral,Ludwigite,4,4,0.3333333333333333,39,2.058,2.1550000000000002,0.9099633692261098,NA,NA,Ludwigite,courier
+Mackinawite,mineral,Mackinawite,4,3,0.25,149,4.62,2.1066666666666665,0.41186567389542594,NA,NA,Mackinawite,courier
+Maghemite,mineral,Maghemite,4,3,0.25,55,4.62,2.3666666666666667,0.9295339333952974,NA,NA,Maghemite,courier
+Magnesio-arfvedsonite,mineral,Magnesio-arfvedsonite,2,6,0.5,40,2.639,1.935,0.8658117578319203,NA,NA,Magnesio-arfvedsonite,courier
+Magnesio-riebeckite,mineral,Magnesio-riebeckite,2,6,0.5,12,2,1.935,0.8658117578319203,NA,NA,Magnesio-riebeckite,courier
+Magnetite,mineral,Magnetite,4,3,0.25,2827,4.888,2.3666666666666667,0.9295339333952974,NA,NA,Magnetite,courier
+Manganosegelerite,mineral,Manganosegelerite,1,5,0.4166666666666667,1,2.527,2.242,0.7225441163001743,NA,NA,Manganosegelerite,courier
+Marcasite,mineral,Marcasite,4,2,0.16666666666666666,1216,4.888,2.205,0.5303300858899106,NA,NA,Marcasite,courier
+Mathiasite,mineral,Mathiasite,5,11,0.9166666666666666,2,3.074,1.5845454545454545,0.7239387216659106,NA,NA,Mathiasite,courier
+Mawsonite,mineral,Mawsonite,4,4,0.3333333333333333,38,2.716,2.0675,0.3457720829293964,NA,NA,Mawsonite,courier
+Melanterite,mineral,Melanterite,4,4,0.3333333333333333,237,3.2,2.5125,0.6899939613262326,NA,NA,Melanterite,courier
+Melkovite,mineral,Melkovite,1,6,0.5,2,2.64,2.1366666666666667,0.7864010851128492,NA,NA,Melkovite,courier
+Melonjosephite,mineral,Melonjosephite,1,6,0.5,2,2.046,2.0816666666666666,0.7959250383463675,NA,NA,Melonjosephite,courier
+Messelite,mineral,Messelite,1,5,0.4166666666666667,18,2.046,2.132,0.8791302520104743,NA,NA,Messelite,courier
+Minnesotaite,mineral,Minnesotaite,1,4,0.3333333333333333,12,3.411,2.3425000000000002,0.7490605226993788,NA,NA,Minnesotaite,courier
+Mitridatite,mineral,Mitridatite,1,5,0.4166666666666667,50,2.527,2.132,0.8791302520104742,NA,NA,Mitridatite,courier
+Mooihoekite,mineral,Mooihoekite,4,3,0.25,9,2.6083000000000003,2.1033333333333335,0.41428653530296317,NA,NA,Mooihoekite,courier
+Mountkeithite,mineral,Mountkeithite,2,5,0.4166666666666667,4,2.742,2.2720000000000002,0.8039091988527062,NA,NA,Mountkeithite,courier
+Natanite,mineral,Natanite,4,4,0.3333333333333333,8,2.63,2.3575,0.7377612531616624,NA,NA,Natanite,courier
+Natrodufrenite,mineral,Natrodufrenite,1,6,0.5,15,2.046,2.07,0.8152300288875526,NA,NA,Natrodufrenite,courier
+Natrojarosite,mineral,Natrojarosite,4,5,0.4166666666666667,78,3.64,2.196,0.9262451079492944,NA,NA,Natrojarosite,courier
+Neotocite,mineral,Neotocite,1,5,0.4166666666666667,64,3.411,2.184,0.7392090367412995,NA,NA,Neotocite,courier
+Nickelskutterudite,mineral,Nickelskutterudite,4,4,0.3333333333333333,104,3.64,1.95,0.1568438714135813,NA,NA,Nickelskutterudite,courier
+Niobophyllite,mineral,Niobophyllite,2,9,0.75,5,2.5,2.026666666666667,1.0592096109835862,NA,NA,Niobophyllite,courier
+Nolanite,mineral,Nolanite,4,6,0.5,11,2.68,2.078333333333333,0.7047103423866196,NA,NA,Nolanite,courier
+Nontronite,mineral,Nontronite,2,6,0.5,137,3.411,1.985,0.8304396425990271,NA,NA,Nontronite,courier
+Omphacite,mineral,Omphacite,2,7,0.5833333333333334,18,3.074,1.717142857142857,0.8490723229053043,NA,NA,Omphacite,courier
+Oregonite,mineral,Oregonite,4,3,0.25,4,2.707,1.9733333333333334,0.18339392937971902,NA,NA,Oregonite,courier
+Osumilite,mineral,Osumilite,2,5,0.4166666666666667,5,2.485,1.92,0.9519716382329886,NA,NA,Osumilite,courier
+Pentlandite,mineral,Pentlandite,4,3,0.25,457,4.7,2.1066666666666665,0.41186567389542594,NA,NA,Pentlandite,courier
+Perloffite,mineral,Perloffite,1,6,0.5,4,2.772,2.0166666666666666,0.8498862669008522,NA,NA,Perloffite,courier
+Perrierite-(Ce),mineral,Perrierite-(Ce),7,6,0.5,18,2.06,1.8566666666666667,0.83082288525694,NA,NA,Perrierite-(Ce),courier
+Pharmacosiderite,mineral,Pharmacosiderite,1,5,0.4166666666666667,171,2.742,2.094,0.9384988012778707,NA,NA,Pharmacosiderite,courier
+Phosphosiderite,mineral,Phosphosiderite,1,4,0.3333333333333333,54,2.97,2.415,0.7046748659251773,NA,NA,Phosphosiderite,courier
+Pigeonite,mineral,Pigeonite,2,5,0.4166666666666667,31,4.5685,1.896,0.9400159573113639,NA,NA,Pigeonite,courier
+Pitticite,mineral,Pitticite,1,5,0.4166666666666667,71,2.157,2.446,0.6157759332744338,NA,NA,Pitticite,courier
+Plimerite,mineral,Plimerite,1,5,0.4166666666666667,2,2.494,2.262,0.6996213261472237,NA,NA,Plimerite,courier
+Plumbojarosite,mineral,Plumbojarosite,1,5,0.4166666666666667,177,4,2.384,0.6630460014207158,NA,NA,Plumbojarosite,courier
+Poppiite,mineral,Poppiite,7,9,0.75,3,2.6797,1.8388888888888888,0.6910941405561989,NA,NA,Poppiite,courier
+Potassic-arfvedsonite,mineral,Potassic-arfvedsonite,2,7,0.5833333333333334,9,2.072,1.85,0.8718944890294926,NA,NA,Potassic-arfvedsonite,courier
+Potassic-chloro-hastingsite,mineral,Potassic-chloro-hastingsite,2,8,0.6666666666666666,4,2.06,1.94875,0.9266288747004225,NA,NA,Potassic-chloro-hastingsite,courier
+Potassic-magnesio-arfvedsonite,mineral,Potassic-magnesio-arfvedsonite,2,7,0.5833333333333334,5,2.57,1.7757142857142858,0.8957093491167981,NA,NA,Potassic-magnesio-arfvedsonite,courier
+Priderite,mineral,Priderite,5,4,0.3333333333333333,14,3.074,1.9075,1.1063867617911318,NA,NA,Priderite,courier
+Pseudobrookite,mineral,Pseudobrookite,5,3,0.25,54,2.5,2.27,1.0235721762533407,NA,NA,Pseudobrookite,courier
+Purpurite,mineral,Purpurite,1,4,0.3333333333333333,28,2.918,2.2525,0.8338814863836067,NA,NA,Purpurite,courier
+Pyrite,mineral,Pyrite,4,2,0.16666666666666666,6832,4.6,2.205,0.5303300858899106,NA,NA,Pyrite,courier
+Pyroaurite,mineral,Pyroaurite,3,5,0.4166666666666667,23,2.742,2.266,0.8011429335642922,NA,NA,Pyroaurite,courier
+Pyrosmalite-(Fe),mineral,Pyrosmalite-(Fe),1,4,0.3333333333333333,25,4,2.3425000000000002,0.7490605226993788,NA,NA,Pyrosmalite-(Fe),courier
+Pyrrhotite,mineral,Pyrrhotite,4,3,0.25,2200,4.7,2.08,0.4330127018922193,NA,NA,Pyrrhotite,courier
+Qitianlingite,mineral,Qitianlingite,7,4,0.3333333333333333,2,2.628,2.3075,0.8193239082723429,NA,NA,Qitianlingite,courier
+Ransomite,mineral,Ransomite,4,5,0.4166666666666667,5,2.5,2.39,0.6573431371817918,NA,NA,Ransomite,courier
+Reevesite,mineral,Reevesite,3,5,0.4166666666666667,21,4.62,2.386,0.6534753247062968,NA,NA,Reevesite,courier
+Rhomboclase,mineral,Rhomboclase,4,4,0.3333333333333333,17,2.5,2.5125,0.6899939613262326,NA,NA,Rhomboclase,courier
+Rhonite,mineral,Rhonite,2,7,0.5833333333333334,15,4.5685,1.8042857142857143,0.7835997520600496,NA,NA,Rhonite,courier
+Richetite,mineral,Richetite,7,6,0.5,6,2.1,2.005,0.7771422006299747,NA,NA,Richetite,courier
+Riebeckite,mineral,Riebeckite,4,6,0.5,80,3.033,2.0216666666666665,0.815289314701638,NA,NA,Riebeckite,courier
+Rinneite,mineral,Rinneite,2,4,0.3333333333333333,1,4.33,1.685,1.0824201279232262,NA,NA,Rinneite,courier
+Roaldite,mineral,Roaldite,4,3,0.25,1,4.62,2.26,0.6766830868286867,NA,NA,Roaldite,courier
+Rockbridgeite,mineral,Rockbridgeite,1,5,0.4166666666666667,70,2.494,2.298,0.6639804213981011,NA,NA,Rockbridgeite,courier
+Romerite,mineral,Romerite,4,5,0.4166666666666667,41,2.5,2.376,0.6709918032286236,NA,NA,Romerite,courier
+Rowlandite-(Y),mineral,Rowlandite-(Y),7,5,0.4166666666666667,3,4.6,2.474,1.1745126648955302,NA,NA,Rowlandite-(Y),courier
+Rozenite,mineral,Rozenite,4,4,0.3333333333333333,86,2.724,2.5125,0.6899939613262326,NA,NA,Rozenite,courier
+Samarskite-(Y),mineral,Samarskite-(Y),7,9,0.75,63,2.605,1.6922222222222223,0.689089576502536,NA,NA,Samarskite-(Y),courier
+Saponite,mineral,Saponite,2,8,0.6666666666666666,61,3.2,1.7775,0.8044119413761653,NA,NA,Saponite,courier
+Schorl,mineral,Schorl,2,7,0.5833333333333334,584,4.888,1.9928571428571429,0.7583691775934789,NA,NA,Schorl,courier
+Schorlomite,mineral,Schorlomite,5,5,0.4166666666666667,26,2.639,1.942,0.9092964313137932,NA,NA,Schorlomite,courier
+Schreibersite,mineral,Schreibersite,5,4,0.3333333333333333,12,4.7,1.8975,0.2211146007541489,NA,NA,Schreibersite,courier
+Schwertmannite,mineral,Schwertmannite,4,4,0.3333333333333333,8,2.5,2.5125,0.6899939613262326,NA,NA,Schwertmannite,courier
+Scorodite,mineral,Scorodite,1,4,0.3333333333333333,312,2.739,2.4125,0.7057560957346856,NA,NA,Scorodite,courier
+Scorzalite,mineral,Scorzalite,1,5,0.4166666666666667,28,2.046,2.254,0.7085407539443302,NA,NA,Scorzalite,courier
+Segnitite,mineral,Segnitite,1,6,0.5,42,3.35,2.283333333333333,0.5903445321730918,NA,NA,Segnitite,courier
+Senaite,mineral,Senaite,7,12,1,14,2.57,1.8166666666666667,0.5694388519065117,NA,NA,Senaite,courier
+Siderite,mineral,Siderite,3,3,0.25,1314,4,2.6066666666666665,0.8064944719794013,NA,NA,Siderite,courier
+Siderophyllite,mineral,Siderophyllite,2,6,0.5,32,2.906,1.9666666666666668,0.859108064603439,NA,NA,Siderophyllite,courier
+Siderotil,mineral,Siderotil,4,5,0.4166666666666667,37,4,2.39,0.6573431371817918,NA,NA,Siderotil,courier
+Simferite,mineral,Simferite,1,6,0.5,3,2.24,1.8833333333333333,0.8690147678070073,NA,NA,Simferite,courier
+Smythite,mineral,Smythite,4,3,0.25,25,2.7499000000000002,2.1066666666666665,0.41186567389542594,NA,NA,Smythite,courier
+Stannite,mineral,Stannite,4,4,0.3333333333333333,243,4,2.0675,0.3457720829293964,NA,NA,Stannite,courier
+Stannoidite,mineral,Stannoidite,4,6,0.5,35,2.716,1.9583333333333333,0.32183329017779794,NA,NA,Stannoidite,courier
+Staurolite,mineral,Staurolite,2,5,0.4166666666666667,162,2.906,2.196,0.7267255327838701,NA,NA,Staurolite,courier
+Sternbergite,mineral,Sternbergite,4,3,0.25,30,2.73,2.1133333333333333,0.4072263907623539,NA,NA,Sternbergite,courier
+Stilpnomelane,mineral,Stilpnomelane,2,10,0.8333333333333334,87,2.932,1.687,0.7722413267021305,NA,NA,Stilpnomelane,courier
+Strengite,mineral,Strengite,1,4,0.3333333333333333,79,3.11,2.415,0.7046748659251773,NA,NA,Strengite,courier
+Sturmanite,mineral,Sturmanite,4,6,0.5,6,2.4,2.1816666666666666,0.8102448189693451,NA,NA,Sturmanite,courier
+Sugilite,mineral,Sugilite,2,6,0.5,11,2.499,1.65,0.9955099195889511,NA,NA,Sugilite,courier
+Symplesite,mineral,Symplesite,1,4,0.3333333333333333,41,2.2229,2.4125,0.7057560957346856,NA,NA,Symplesite,courier
+Szomolnokite,mineral,Szomolnokite,4,4,0.3333333333333333,41,2.715,2.5125,0.6899939613262326,NA,NA,Szomolnokite,courier
+Taenite,mineral,Taenite,4,2,0.16666666666666666,20,4.62,1.87,0.0565685424949237,NA,NA,Taenite,courier
+Talnakhite,mineral,Talnakhite,4,3,0.25,15,2.906,2.1033333333333335,0.41428653530296317,NA,NA,Talnakhite,courier
+Tantalite-(Fe),mineral,Tantalite-(Fe),7,3,0.25,33,3.044,2.256666666666667,1.0379948619012203,NA,NA,Tantalite-(Fe),courier
+Tapiolite-(Fe),mineral,Tapiolite-(Fe),7,3,0.25,27,2.7499000000000002,2.256666666666667,1.0379948619012203,NA,NA,Tapiolite-(Fe),courier
+Tarkianite,mineral,Tarkianite,4,5,0.4166666666666667,6,2.716,2.074,0.30964495797606656,NA,NA,Tarkianite,courier
+Taseqite,mineral,Taseqite,2,10,0.8333333333333334,1,2.5,1.834,0.8868696509509038,NA,NA,Taseqite,courier
+Tavorite,mineral,Tavorite,1,5,0.4166666666666667,23,2.046,2.128,0.885590198681083,NA,NA,Tavorite,courier
+Tetraferriphlogopite,mineral,Tetraferriphlogopite,2,6,0.5,14,3.074,1.9166666666666667,0.8921135951585238,NA,NA,Tetraferriphlogopite,courier
+Tetraferroplatinum,mineral,Tetraferroplatinum,4,2,0.16666666666666666,19,2.906,2.0549999999999997,0.3181980515339462,NA,NA,Tetraferroplatinum,courier
+Tetrataenite,mineral,Tetrataenite,4,2,0.16666666666666666,5,4.62,1.87,0.0565685424949237,NA,NA,Tetrataenite,courier
+Tochilinite,mineral,Tochilinite,4,6,0.5,12,4.7,2.1983333333333333,0.7413343824932623,NA,NA,Tochilinite,courier
+Tremolite,mineral,Tremolite,2,6,0.5,656,4,1.9466666666666668,0.8498862669008522,NA,NA,Tremolite,courier
+Trevorite,mineral,Trevorite,4,3,0.25,7,4.62,2.3933333333333335,0.9073220670375726,NA,NA,Trevorite,courier
+Triphylite,mineral,Triphylite,1,4,0.3333333333333333,117,2.685,2.11,1.0215347930116396,NA,NA,Triphylite,courier
+Triplite,mineral,Triplite,1,6,0.5,66,2.772,2.5316666666666667,0.9597378114186533,NA,NA,Triplite,courier
+Tripuhyite,mineral,Tripuhyite,4,3,0.25,17,2.69,2.44,0.8729833904490967,NA,NA,Tripuhyite,courier
+Troilite,mineral,Troilite,4,2,0.16666666666666666,63,4.7,2.205,0.5303300858899106,NA,NA,Troilite,courier
+Tulameenite,mineral,Tulameenite,4,3,0.25,12,2.906,2.0033333333333334,0.24214320831551991,NA,NA,Tulameenite,courier
+Ulvospinel,mineral,Ulvospinel,5,3,0.25,21,2.5,2.27,1.0235721762533407,NA,NA,Ulvospinel,courier
+Valleriite,mineral,Valleriite,4,7,0.5833333333333334,104,3.64,2.1242857142857146,0.7081632849105057,NA,NA,Valleriite,courier
+Vermiculite,mineral,Vermiculite,2,6,0.5,95,2.81,2.0483333333333333,0.7438660273642469,NA,NA,Vermiculite,courier
+Vesuvianite,mineral,Vesuvianite,2,9,0.75,294,4.46,2.022222222222222,1.051282285803601,NA,NA,Vesuvianite,courier
+Vinciennite,mineral,Vinciennite,4,5,0.4166666666666667,6,2.716,2.09,0.3036445290137796,NA,NA,Vinciennite,courier
+Violarite,mineral,Violarite,4,3,0.25,168,4,2.1066666666666665,0.41186567389542594,NA,NA,Violarite,courier
+Vivianite,mineral,Vivianite,1,4,0.3333333333333333,145,2.68,2.415,0.7046748659251773,NA,NA,Vivianite,courier
+Voltaite,mineral,Voltaite,4,7,0.5833333333333334,34,2.816,2.0442857142857145,0.8204238161433626,NA,NA,Voltaite,courier
+Wairauite,mineral,Wairauite,4,2,0.16666666666666666,9,4.5685,1.855,0.03535533905932725,NA,NA,Wairauite,courier
+Wustite,mineral,Wustite,1,2,0.16666666666666666,8,4.62,2.635,1.1384419177103413,NA,NA,Wustite,courier
+Yavapaiite,mineral,Yavapaiite,4,4,0.3333333333333333,3,2.5,2.1675,1.1134144182049497,NA,NA,Yavapaiite,courier
+Yimengite,mineral,Yimengite,5,6,0.5,1,2.605,1.7666666666666666,0.8912388381722751,NA,NA,Yimengite,courier
+Yttrotantalite-(Y),mineral,Yttrotantalite-(Y),7,7,0.5833333333333334,19,2.95,1.8814285714285715,0.7579452172690005,NA,NA,Yttrotantalite-(Y),courier
+Yukonite,mineral,Yukonite,1,5,0.4166666666666667,12,2.589,2.13,0.8789766777338293,NA,NA,Yukonite,courier
+Zircophyllite,mineral,Zircophyllite,2,8,0.6666666666666666,5,2.5,2.05375,1.1361581567470511,NA,NA,Zircophyllite,courier
+Ca,element, Ca,2,60,0.17341040462427745,NA,NA,NA,NA,2,1,Ca,courier
+Mg,element, Mg,2,44,0.12716763005780346,NA,NA,NA,NA,2,1.31,Mg,courier
+Fe,element, Fe,4,346,1,NA,NA,NA,NA,2.5395189003436425,1.83,Fe,courier
+Si,element, Si,2,91,0.2630057803468208,NA,NA,NA,NA,4,1.9,Si,courier
+O,element, O ,1,236,0.6820809248554913,NA,NA,NA,NA,-2,3.44,O,courier
+H,element, H ,1,160,0.4624277456647399,NA,NA,NA,NA,1,2.2,H,courier
+Na,element, Na,2,43,0.12427745664739884,NA,NA,NA,NA,1,0.93,Na,courier
+Ti,element, Ti,5,26,0.07514450867052024,NA,NA,NA,NA,4,1.54,Ti,courier
+Ce,element, Ce,7,7,0.02023121387283237,NA,NA,NA,NA,3,1.12,Ce,courier
+Al,element, Al,2,51,0.14739884393063585,NA,NA,NA,NA,NA,1.61,Al,courier
+La,element, La,7,4,0.011560693641618497,NA,NA,NA,NA,3,1.1,La,courier
+Nd,element, Nd,2,1,0.002890173410404624,NA,NA,NA,NA,NA,1.14,Nd,courier
+Y,element, Y ,7,7,0.02023121387283237,NA,NA,NA,NA,3,1.22,Y,courier
+Mn,element, Mn,1,26,0.07514450867052024,NA,NA,NA,NA,2.1739130434782608,1.55,Mn,courier
+P,element, P ,1,45,0.13005780346820808,NA,NA,NA,NA,5,2.19,P,courier
+C,element, C ,3,8,0.023121387283236993,NA,NA,NA,NA,4,2.55,C,courier
+K,element, K ,2,27,0.07803468208092486,NA,NA,NA,NA,1,0.82,K,courier
+Ag,element, Ag,4,3,0.008670520231213872,NA,NA,NA,NA,1,1.93,Ag,courier
+Ni,element, Ni,4,21,0.06069364161849711,NA,NA,NA,NA,2.5,1.91,Ni,courier
+S,element, S ,4,69,0.1994219653179191,NA,NA,NA,NA,2.5714285714285716,2.58,S,courier
+As,element, As,1,23,0.06647398843930635,NA,NA,NA,NA,4.75,2.18,As,courier
+F,element, F ,2,11,0.031791907514450865,NA,NA,NA,NA,-1,3.98,F,courier
+B,element, B ,4,8,0.023121387283236993,NA,NA,NA,NA,NA,2.04,B,courier
+Ba,element, Ba,5,5,0.014450867052023121,NA,NA,NA,NA,2,0.89,Ba,courier
+Pb,element, Pb,1,15,0.04335260115606936,NA,NA,NA,NA,2,1.87,Pb,courier
+Cu,element, Cu,4,26,0.07514450867052024,NA,NA,NA,NA,1.2857142857142858,1.9,Cu,courier
+Sb,element, Sb,4,8,0.023121387283236993,NA,NA,NA,NA,3.3333333333333335,2.05,Sb,courier
+Bi,element, Bi,4,4,0.011560693641618497,NA,NA,NA,NA,3,2.02,Bi,courier
+Au,element, Au,6,1,0.002890173410404624,NA,NA,NA,NA,NA,2.54,Au,courier
+Te,element, Te,6,3,0.008670520231213872,NA,NA,NA,NA,4,2.1,Te,courier
+Cr,element, Cr,5,9,0.02601156069364162,NA,NA,NA,NA,3,1.66,Cr,courier
+U,element, U ,7,6,0.017341040462427744,NA,NA,NA,NA,4.666666666666667,1.38,U,courier
+Nb,element, Nb,7,8,0.023121387283236993,NA,NA,NA,NA,5,1.6,Nb,courier
+V,element, V ,7,7,0.02023121387283237,NA,NA,NA,NA,3.6666666666666665,1.63,V,courier
+Cl,element, Cl,8,8,0.023121387283236993,NA,NA,NA,NA,-1,3.16,Cl,courier
+Zr,element, Zr,2,7,0.02023121387283237,NA,NA,NA,NA,4,1.33,Zr,courier
+W,element, W ,7,2,0.005780346820809248,NA,NA,NA,NA,6,2.36,W,courier
+Li,element, Li,1,7,0.02023121387283237,NA,NA,NA,NA,1,0.98,Li,courier
+Mo,element, Mo,9,5,0.014450867052023121,NA,NA,NA,NA,5.333333333333333,2.16,Mo,courier
+Pt,element, Pt,4,4,0.011560693641618497,NA,NA,NA,NA,NA,2.28,Pt,courier
+Zn,element, Zn,7,5,0.014450867052023121,NA,NA,NA,NA,2,1.65,Zn,courier
+Sn,element, Sn,4,7,0.02023121387283237,NA,NA,NA,NA,4,1.96,Sn,courier
+Se,element, Se,4,1,0.002890173410404624,NA,NA,NA,NA,NA,2.55,Se,courier
+Ta,element, Ta,7,6,0.017341040462427744,NA,NA,NA,NA,5,1.5,Ta,courier
+Be,element, Be,7,2,0.005780346820809248,NA,NA,NA,NA,2,1.57,Be,courier
+Co,element, Co,4,3,0.008670520231213872,NA,NA,NA,NA,3,1.88,Co,courier
+Ru,element, Ru,9,1,0.002890173410404624,NA,NA,NA,NA,NA,2.2,Ru,courier
+Ir,element, Ir,9,1,0.002890173410404624,NA,NA,NA,NA,NA,2.2,Ir,courier
+Os,element, Os,9,1,0.002890173410404624,NA,NA,NA,NA,NA,2.2,Os,courier
+Sr,element, Sr,5,3,0.008670520231213872,NA,NA,NA,NA,2,0.95,Sr,courier
+N,element, N ,4,1,0.002890173410404624,NA,NA,NA,NA,NA,3.04,N,courier
+Re,element, Re,4,1,0.002890173410404624,NA,NA,NA,NA,NA,1.9,Re,courier
