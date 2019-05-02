@@ -1,5 +1,4 @@
 library(tidyverse)
-library(magrittr)
 library(igraph)
 library(visNetwork)
 source(system.file("dragon/build_network.R", package = "dragon"))
