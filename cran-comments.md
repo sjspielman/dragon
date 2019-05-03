@@ -2,6 +2,7 @@
 This is a resubmission. In this version I have 
 
 * Updated the DESCRIPTION field to no longer capitalize "Earth"
+* Removed extraneous GPL-3 LICENSE file and reference to said file from DESCRIPTION
 
 ## Test environments
 * Local OS X install, R 3.5.3
