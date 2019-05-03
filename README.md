@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/spielmanlab/dragon.svg?branch=master)](https://travis-ci.org/spielmanlab/dragon)
 
-![logo](inst/images/dragon_sticker.png){:height="50%" width="50%"}
+![logo](inst/images/dragon_sticker.png)
 
 The `dragon` (**D**eep time **R**edox **A**nalysis of the **G**eobiology **O**ntology **N**etwork) package provides a Shiny Application for examining mineral-chemistry networks over deep time on Earth, with a specific application of investigating biologically-relevant evolution of element redox states. `dragon` uses `igraph` and `visNetwork` library (a terribly handy R wrapper for `vis.js`) to construct user-friendly interactive networks. 
 
