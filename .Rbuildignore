@@ -4,3 +4,4 @@ rsconnect/
 ^cran-comments\.md$
 .Rapp.history
 ^CRAN-RELEASE$
+^LICENSE$
