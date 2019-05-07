@@ -170,9 +170,9 @@ dashboardPage(skin = "red",
             fluidRow(
                 column(6, colourpicker::colourInput("element_label_color","Element font color",value = "#000000"))
             ),
-            fluidRow(
-                column(12, prettyCheckbox("only_use_element_label_color", "Always use the above color for element labels", value = FALSE, animation="smooth", icon = icon("check"), status="danger"))
-            ),
+            #fluidRow(
+            #    column(12, prettyCheckbox("only_use_element_label_color", "Always use the above color for element labels", value = FALSE, animation="smooth", icon = icon("check"), status="danger"))
+            #),
             fluidRow( 
                 column(6, colourpicker::colourInput("mineral_label_color","Mineral font color",value = "#000000")),
                 column(6, sliderInput("mineral_label_size","Mineral font size",value=0,min=0,max=50))

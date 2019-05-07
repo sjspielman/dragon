@@ -285,16 +285,15 @@ server <- function(input, output, session) {
                                            mutate(color.background = ifelse((id %in% chemistry_network()$elements_of_interest & input$highlight_element), input$highlight_color, color.background), 
                                                   color.background = ifelse(id %in% input$custom_selection_element, input$custom_selection_color, color.background), 
                                                   font.color = ifelse(group == "element", input$element_label_color, input$mineral_label_color),
-                                                  font.color = ifelse(group == "element" & input$element_shape == "text" & input$only_use_element_label_color == FALSE, color.background, font.color),
                                                   font.color = ifelse((id %in% chemistry_network()$elements_of_interest & input$highlight_element & input$element_shape == "text"), input$highlight_color, font.color),
                                                   font.color = ifelse((id %in% input$custom_selection_element & input$element_shape == "text"), input$custom_selection_color, font.color),
                                                   shape = ifelse(group == "element", input$element_shape, input$mineral_shape))
                
         ############################## Deal with certain edge cases at the END ###########################                                
-        if (input$color_by_cluster & input$element_shape == "text" & !(input$only_use_element_label_color))
-        {
-            node_attr[["styled_nodes"]]$font.color <- node_attr[["styled_nodes"]]$color.background
-        } 
+        #if (input$color_by_cluster & input$element_shape == "text" & !(input$only_use_element_label_color))
+        #{
+        #    node_attr[["styled_nodes"]]$font.color <- node_attr[["styled_nodes"]]$color.background
+        #} 
         if (input$elements_by_redox)
         {
              node_attr[["styled_nodes"]] %<>%
