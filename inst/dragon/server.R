@@ -355,7 +355,7 @@ server <- function(input, output, session) {
                 starting_edges <- edge_styler()$styled_edges
 
                     visNetwork(starting_nodes, starting_edges) %>%
-                    visIgraphLayout(layout = "layout_with_fr", type = "full") %>% ## stabilizes
+                    visIgraphLayout(layout = input$network_layout, type = "full", randomSeed = input$network_layout_seed) %>% ## stabilizes
                     visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
                                nodesIdSelection = list(enabled = TRUE, 
                                                        #selected = selected_element,
@@ -382,9 +382,37 @@ server <- function(input, output, session) {
                               font  = list(size = ifelse(input$mineral_label_size == 0, "NA", input$mineral_label_size))) %>%
                     visEdges(color = input$edge_color,
                              width = input$edge_weight,
-                             smooth = FALSE)  ## no visual effect that I can perceive, and improves speed. Cool. 
-            })                 
+                             smooth = FALSE) ## no visual effect that I can perceive, and improves speed. Cool. 
+            })          
         })
+    
+    
+        observe({
+
+            ## visGroups, visNodes, visEdges are global options shared among nodes/edges
+            ## Need to use visUpdateNodes and visUpdateEdges for changing individually. This applies to color schemes.
+            visNetworkProxy("networkplot") %>%
+                visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
+                visUpdateEdges(edges = edge_styler()$styled_edges) %>%
+                visGetSelectedNodes() %>%
+                visGetPositions() %>%
+                visInteraction(dragView          = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
+                               hover             = input$hover, 
+                               selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
+                               zoomView          = input$zoom_view,
+                               multiselect       = input$select_multiple_nodes,
+                               hideEdgesOnDrag   = input$hide_edges_on_drag,
+                               navigationButtons = input$nav_buttons) %>%
+                visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree),
+                           nodesIdSelection = list(enabled = TRUE, main  = "Select node")) 
+
+            network_positions <- enframe(input$networkplot_positions) %>% unnest() %>% unnest()
+            halfrows <- nrow(network_positions)/2
+            network_positions %<>% 
+                rename(coord = value) %>% 
+                mutate(axis = rep(c("x","y"), halfrows)) %>% 
+                spread(axis, coord)    
+        })     
     
 
         ########################## legend ##########################
@@ -579,28 +607,7 @@ server <- function(input, output, session) {
                                 ))
     })
     
-    observe({
-
-        ## visGroups, visNodes, visEdges are global options shared among nodes/edges
-        ## Need to use visUpdateNodes and visUpdateEdges for changing individually. This applies to color schemes.
-        visNetworkProxy("networkplot") %>%
-                visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
-                visUpdateEdges(edges = edge_styler()$styled_edges) %>%
-                visGetSelectedNodes() %>%
-                visGetPositions() %>%
-                visInteraction(dragView          = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
-                               hover             = input$hover, 
-                               selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
-                               zoomView          = input$zoom_view,
-                               multiselect       = input$select_multiple_nodes,
-                               hideEdgesOnDrag   = input$hide_edges_on_drag,
-                               navigationButtons = input$nav_buttons) %>%
-                visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree),
-                           nodesIdSelection = list(enabled = TRUE, main  = "Select node"))
-    
-    })     
-    
-    
+  
     
     
     

@@ -68,9 +68,31 @@ dashboardPage(skin = "red",
             prettyCheckbox("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
             prettyCheckbox("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
             sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = 4.5, step = 0.1, value = 0), #   
-            #checkboxInput("refresh_rruff","Refresh rruff data",value = FALSE), ## Eventually we want an option to requery their server and get latest and greatest. This does slow things down, however.
-
+            
+            
+            fluidRow(
+                column(8,
+                    pickerInput("network_layout", tags$span(style="font-weight:400", "Network layout:"),
+                        choices = list(
+                           `Force-directed` = c("Fruchterman Reingold" = "layout_with_fr",
+                                              "GEM force-directed"      = "layout_with_gem"),
+                            Other = c("Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
+                                              "Multidimensional scaling"    = "layout_with_mds",
+                                              "Layout in circle"             = "layout_in_circle",
+                                              "Layout in sphere"            = "layout_on_sphere")
+                        )
+                    )
+                ),
+                column(4,
+                    conditionalPanel('input.network_layout == "layout_with_fr" | input.network_layout == "layout_with_gem"',{
+                        numericInput("network_layout_seed", tags$span(style="font-weight:400", "Seed:"), min = 0, max = Inf, value = 1)
+                    })
+                
+                )
+            ),     
+            
             br(), 
+
             actionBttn("go", "Initialize Network", size="sm", color = "danger"),
         br(),
         menuItem(text = "Node Colors",
@@ -126,7 +148,8 @@ dashboardPage(skin = "red",
                     ) 
                  )
             ),
-            prettyCheckbox("color_by_cluster","Color by network cluster",value = FALSE, status="danger"),br()
+            prettyCheckbox("color_by_cluster","Color by Louvain Community Cluster",value = FALSE, status="danger",icon = icon("check")),
+            br()
             ),
         menuItem(text = "Color individual elements",
             fluidRow(
@@ -246,25 +269,19 @@ dashboardPage(skin = "red",
         ),
           fluidRow(
                 div(style = "margin-right:1%; margin-left:1%;",
-                    
-                    div(style = "float:left;margin-left:2%;margin-bottom:1%;",
-                        dropdownButton(status = "danger", width="300px", circle=FALSE,icon=icon("gear"), tooltip = tooltipOptions(title = "Network interaction preferences"),
-                            numericInput("selected_degree", "Node selection highlight degree", min=1, max=5, 2, width = "240px"),
-                            switchInput("select_multiple_nodes", "Select multiple nodes at once", value=FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                            switchInput("hover","Emphasize on hover",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                            switchInput("hide_edges_on_drag","Hide edges when dragging nodes (more efficient)",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                            switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                            switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                            switchInput("nav_buttons","Show navigation buttons",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger")
-                        )                                   
-                    ),
-                    
-                    
-                    
-                    
+                                    
                     tabBox(width=12, 
                         tabPanel("Visualize Network",                      
                             div(style = "height:600px; overflow: hidden;", 
+                                dropdownButton(status = "danger", width="300px", circle=FALSE,icon=icon("gear"), tooltip = tooltipOptions(title = "Network interaction preferences"),
+                                    numericInput("selected_degree", "Node selection highlight degree", min=1, max=5, 2, width = "240px"),
+                                    switchInput("select_multiple_nodes", "Select multiple nodes at once", value=FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                                    switchInput("hover","Emphasize on hover",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                                    switchInput("hide_edges_on_drag","Hide edges when dragging nodes (more efficient)",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                                    switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                                    switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                                    switchInput("nav_buttons","Show navigation buttons",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger")
+                                ),
                                 visNetworkOutput("networkplot", height = "90%")
                             ),
                             div(style = "height:80px;",
