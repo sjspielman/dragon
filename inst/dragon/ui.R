@@ -77,7 +77,7 @@ dashboardPage(skin = "red",
                            `Force-directed` = c("Fruchterman Reingold" = "layout_with_fr",
                                               "GEM force-directed"      = "layout_with_gem"),
                             Other = c("Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
-                                              "Multidimensional scaling"    = "layout_with_mds",
+                                              #"Multidimensional scaling"    = "layout_with_mds",
                                               "Layout in circle"             = "layout_in_circle",
                                               "Layout in sphere"            = "layout_on_sphere")
                         )
@@ -90,7 +90,10 @@ dashboardPage(skin = "red",
                 
                 )
             ),     
-            
+            pickerInput("cluster_algorithm", tags$span(style="font-weight:400", "Network community detection (clustering) algorithm:"),
+                choices = c("Louvain",
+                            "Leading eigenvector"), selected = "Louvain"
+                ),
             br(), 
 
             actionBttn("go", "Initialize Network", size="sm", color = "danger"),
@@ -101,7 +104,8 @@ dashboardPage(skin = "red",
                 column(7, 
                     pickerInput("color_element_by", "Element color scheme:",
                                  c("Single color"            = "singlecolor",  
-                                   "Color by network degree" = "network_degree_norm",
+                                   "Color by degree centrality" = "network_degree_norm",
+                                   "Color by closeness centrality" = "closeness",
                                    "Color by redox state"    = "redox",
                                    "Color by Pauling electronegativity" = "pauling"))                            
                 ),
@@ -129,7 +133,8 @@ dashboardPage(skin = "red",
                                        "Color by maximum age"           = "max_age",      
                                        "Color by number of localities"  = "num_localities",
                                        "Color by mean Pauling electronegativity" = "mean_pauling", 
-                                       "Color by std dev Pauling electronegativity" = "sd_pauling"))
+                                       "Color by std dev Pauling electronegativity" = "sd_pauling",
+                                       "Color by COV Pauling electronegativity" = "cov_pauling"))
                 ),
                 column(5,
                     conditionalPanel(condition = "input.color_mineral_by == 'singlecolor'",   
@@ -148,7 +153,7 @@ dashboardPage(skin = "red",
                     ) 
                  )
             ),
-            prettyCheckbox("color_by_cluster","Color by Louvain Community Cluster",value = FALSE, status="danger",icon = icon("check")),
+            prettyCheckbox("color_by_cluster","Color by Community Cluster",value = FALSE, status="danger",icon = icon("check")),
             br()
             ),
         menuItem(text = "Color individual elements",
@@ -166,7 +171,8 @@ dashboardPage(skin = "red",
             fluidRow(
                 column(6, pickerInput("element_size_type", "Element node size:", 
                                      c("Single size" = "singlesize",
-                                       "Size by network degree" = "network_degree_norm"), selected = "singlesize")
+                                       "Size by degree centrality" = "network_degree_norm",
+                                       "Size by closeness centrality"), selected = "singlesize")
                     ),
                 column(6, conditionalPanel(condition = "input.element_size_type == 'singlesize'", 
                             {sliderInput("element_label_size","Size",value=50,min=10,max=100, step=10)}) #### !!!!!!! label size!!!!!!!
@@ -250,17 +256,7 @@ dashboardPage(skin = "red",
                 fluidRow(
                     column(12, sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10))
                 )
-            ) #,
-#         menuItem(text = "Network Interaction Preferences",
-#                 numericInput("selected_degree", "Node selection highlight degree", min=1, max=5, 2, width = "270px"),
-#                 switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="mini",labelWidth = "300px"),
-#                 switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="mini",labelWidth = "300px"),
-#                 switchInput("hide_edges_on_drag","Hide edges when dragging nodes",value = TRUE, size="mini",labelWidth = "300px"),
-#                 switchInput("nav_buttons","Show navigation buttons",value = TRUE, size="mini",labelWidth = "300px"),
-#                 switchInput("hover","Emphasize on hover",value = TRUE, size="mini",labelWidth = "300px"),
-#                 switchInput("select_multiple_nodes", "Select multiple nodes at once", value=TRUE, size="mini",labelWidth = "300px")
-# 
-#             )
+            )
         
     )),
     dashboardBody(
@@ -285,9 +281,11 @@ dashboardPage(skin = "red",
                                 visNetworkOutput("networkplot", height = "90%")
                             ),
                             div(style = "height:80px;",
-                                plotOutput("networklegend", height = "80%", width = "75%")
+                                plotOutput("networklegend", height = "80%", width = "75%"),
+                                div(style = "float:right;font-weight:bold;", textOutput("modularity"))
                             )
                         ),  ## tabPanel
+
                         tabPanel("Analyze Network",
                             helpText("In this tab, you can construct a linear regression model to analyze properties of minerals in the specified network."),
                         
@@ -299,7 +297,9 @@ dashboardPage(skin = "red",
                                                 #"Average redox state" = "redox",
                                                 "Mean Pauling electronegativity",# = "mean_pauling", 
                                                 "Standard deviation Pauling electronegativity",#  = "sd_pauling", 
-                                                "Network degree (normalized)",#   = "network_degree_norm",
+                                                "Coefficient of variation Pauling electronegativity",#  = "cov_pauling", 
+                                                "Degree centrality (normalized)",#   = "network_degree_norm",
+                                                "Closeness centrality", 
                                                 "Number of known localities"), selected="Maximum known age",
                                     ),
 
@@ -308,14 +308,16 @@ dashboardPage(skin = "red",
                                                 #"Average redox state" = "redox",
                                                 "Mean Pauling electronegativity",# = "mean_pauling", 
                                                 "Standard deviation Pauling electronegativity",#  = "sd_pauling", 
-                                                "Louvain Cluster",#      = "cluster_ID",
-                                                "Network degree (normalized)",#   = "network_degree_norm",
+                                                "Coefficient of variation Pauling electronegativity",#  = "cov_pauling", 
+                                                "Community Cluster",#      = "cluster_ID",
+                                                "Degree centrality (normalized)",#   = "network_degree_norm",
+                                                "Closeness centrality", 
                                                 "Number of known localities"), selected="Mean Pauling electronegativity",
                                 ),
                                 br(),br(),
                                 span(textOutput("model_sanity"), style="color:red;font-weight:bold;font-size:1.25em;"),
                                 br()
-                                
+
                             ),
                             
                             column(5,
@@ -324,14 +326,15 @@ dashboardPage(skin = "red",
                                 prettyCheckbox("logy", "Use log scale on Y-axis", status="danger", animation="smooth", icon = icon("check")),
                                 prettyCheckbox("bestfit", "Show regression line (with 95% confidence interval).", status="danger", animation="smooth", icon = icon("check")),
                                 ## LOL no apologies for the line below.
-                                helpText(HTML('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), "Note that these options are not applicable to Louvain Cluster analysis.")
+                                helpText(HTML('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), "Note that these options are not applicable to Community Cluster analysis.")
                             )
                             ), ## fluidrow
                             fluidRow(
                             column(7,
+                                span(textOutput("caution_variance"), style="color:red;font-weight:bold;"),
                                 DT::dataTableOutput("fitted_model"),
                                 br(),br(),
-                                conditionalPanel( condition = "input.predictor == 'Louvain Cluster'", {
+                                conditionalPanel( condition = "input.predictor == 'Community Cluster'", {
                                     DT::dataTableOutput("fitted_tukey")
                                 })
                             ),
@@ -351,7 +354,7 @@ dashboardPage(skin = "red",
                         tabPanel("Associated Mineral Localities", 
                             DT::dataTableOutput("localityTable")
                         ), 
-                        tabPanel("Node Clustering and Degree", 
+                        tabPanel("Node Clustering and Centrality", 
                             DT::dataTableOutput("clusterTable")
                         )                       
                     ), # tabBox

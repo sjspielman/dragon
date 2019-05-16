@@ -10,6 +10,15 @@ rruff_sub            <- rruff %>% select(-mineral_id, -mindat_id, -rruff_chemist
 rruff_chemistry      <- rruff_separated %>% select(-chemistry_elements) %>% unique()
 electronegativity    <- read_csv(form_file_path("element_electronegativities.csv.zip")) %>% select(-allen)
 
+                            
+community_detect_network <- function(network, cluster_algorithm)
+{
+    if (cluster_algorithm == "Louvain")               return (cluster_louvain(network))
+    if (cluster_algorithm == "Leading eigenvector")   return (cluster_leading_eigen(network))
+    if (cluster_algorithm == "Statistical mechanics") return (cluster_spinglass(network))
+    
+}
+
 
 initialize_data <- function(elements_of_interest, force_all_elements)
 { 
@@ -63,7 +72,8 @@ obtain_network_information <- function(elements_only_age, elements_by_redox)
                             left_join(electronegativity, by = "element") %>%
                             group_by(mineral_name) %>%
                             mutate(mean_pauling = mean(pauling),
-                                   sd_pauling   = sd(pauling))
+                                   sd_pauling   = sd(pauling),
+                                   cov_pauling = sd_pauling / mean_pauling )
 
     if (elements_by_redox)
     {
@@ -93,21 +103,22 @@ obtain_network_information <- function(elements_only_age, elements_by_redox)
 }
 
 
-construct_network   <- function(network_information, elements_by_redox)
+construct_network   <- function(network_information, elements_by_redox, cluster_algorithm)
 {
 
     network_data <- network_information %>% select(mineral_name, element)
     
     element_network <- graph.data.frame(network_data, directed=FALSE)
     V(element_network)$type <- bipartite_mapping(element_network)$type 
-    clustered_net <- cluster_louvain(element_network)
-    deg <- degree(element_network, mode="all")
+    clustered_net <- community_detect_network(element_network, cluster_algorithm)
+    deg <- igraph::degree(element_network)
+    closeness <- igraph::closeness(element_network)
 
     ### 1 row per VERTEX, to be joined with nodes
     minerals_as_item <- network_information %>% 
         group_by(mineral_name) %>%
         left_join(network_information) %>%
-        select(mineral_name, num_localities, max_age, mean_pauling, sd_pauling) %>%
+        select(mineral_name, num_localities, max_age, mean_pauling, sd_pauling, cov_pauling) %>%
         rename(item = mineral_name) %>%
         unique() 
     
@@ -118,7 +129,7 @@ construct_network   <- function(network_information, elements_by_redox)
         unique() -> element_redox_electro
 
     vertex_information <- left_join( tibble("item" = clustered_net$names, "cluster_ID"= as.numeric(clustered_net$membership)),
-                                     tibble("item" = names(deg), "network_degree"= as.numeric(deg)) ) %>%
+                                     tibble("item" = names(deg), "network_degree"= as.numeric(deg), "closeness" = as.numeric(closeness)) ) %>%
         mutate(type = ifelse(item %in% network_information$mineral_name, "mineral", "element")) %>%
         group_by(type) %>%
         mutate(network_degree_norm = network_degree / max(network_degree)) %>%
@@ -147,7 +158,7 @@ construct_network   <- function(network_information, elements_by_redox)
                                          group == "element" & nchar(label) == 3+charadd ~ label),  
                        title = id,                      
                        font.face = "courier")
-    return (list("nodes" = nodes, "edges" = edges))
+    return (list("nodes" = nodes, "edges" = edges, "membership" = clustered_net))
 }
   
   

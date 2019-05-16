@@ -21,10 +21,13 @@ source("build_network.R")
 variable_to_title <- list("redox" = "Mean Redox State", 
                           "max_age" = "Maximum Age (Ga)", 
                           "num_localities" = "Number of known localities", 
-                          "network_degree_norm" = "Network degree", 
+                          "network_degree_norm" = "Degree centrality (normalized)", 
+                          "network_degree" = "Degree centrality", 
+                          "closeness" = "Closeness centrality",
                           "pauling" = "Pauling Electronegativity", 
                           "mean_pauling" = "Mean Pauling Electronegativity", 
-                          "sd_pauling" = "Std Dev Pauling Electronegativity")
+                          "sd_pauling" = "Std Dev Pauling Electronegativity",
+                          "cov_pauling" = "Coefficient of Variation Pauling Electronegativity")
                           
 ## mediocre matching here.
 vis_to_gg_shape <- list("circle"  = 19,
@@ -119,7 +122,7 @@ server <- function(input, output, session) {
         force_all_elements   <- input$force_all_elements
         age_limit            <- input$age_limit
         elements_by_redox    <- input$elements_by_redox
-        
+        cluster_algorithm         <- input$cluster_algorithm
         
         elements_only <- initialize_data(elements_of_interest, force_all_elements)
         shiny::validate(
@@ -139,15 +142,14 @@ server <- function(input, output, session) {
             "ERROR: Network could not be constructed. Please adjust input settings.")
         )
         
-        network <- construct_network(network_information, elements_by_redox)
+        network <- construct_network(network_information, elements_by_redox, cluster_algorithm)
 
         nodes <- network$nodes
         edges <- network$edges
+        membership <- network$membership
         return (list("nodes" = nodes, 
                      "edges" = edges, 
-                     #"mineral_indices" = which(nodes$group == "mineral"),
-                     #"element_indices" = which(nodes$group == "element"),
-                     #"mineral_labels"  = nodes$label[nodes$group == "mineral"],
+                     "membership" = membership,   
                      "elements_of_interest" = input$elements_of_interest))
 
     })
@@ -218,7 +220,7 @@ server <- function(input, output, session) {
                                                 mutate(color.background = input$element_color)
             } 
 
-            if ((input$color_element_by == "redox" & input$elements_by_redox == FALSE) |  input$color_element_by == "pauling" | input$color_element_by == "network_degree_norm")
+            if ((input$color_element_by == "redox" & input$elements_by_redox == FALSE) |  input$color_element_by == "pauling" | input$color_element_by == "network_degree_norm" | input$color_element_by == "closeness")
             {  
             
                 chemistry_network()$nodes %>% filter(group == "element") -> legend_data
@@ -340,22 +342,30 @@ server <- function(input, output, session) {
     })
         
 
+    ############################## NETWORK ITSELF AND NETWORK-LEVEL METRICS #############################
     observeEvent(input$go,{
     
-
+        
+        output$modularity <- renderText({
+            membership <- chemistry_network()$membership
+            paste0("Network modularity: ", round( membership$modularity[[1]], 4))    
+        })    
+    
+    
         output$networkplot <- renderVisNetwork({
 
 
             nodes <- chemistry_network()$nodes
             edges <- chemistry_network()$edges
-            #selected_element <- chemistry_network()$elements_of_interest[1]
-        
+            network_layout <- input$network_layout
+            network_layout_seed <- input$network_layout_seed
+                    
             isolate({
                 starting_nodes <- node_styler()$styled_nodes
                 starting_edges <- edge_styler()$styled_edges
 
                     visNetwork(starting_nodes, starting_edges) %>%
-                    visIgraphLayout(layout = input$network_layout, type = "full", randomSeed = input$network_layout_seed) %>% ## stabilizes
+                    visIgraphLayout(layout = network_layout, type = "full", randomSeed = network_layout_seed) %>% ## stabilizes
                     visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
                                nodesIdSelection = list(enabled = TRUE, 
                                                        #selected = selected_element,
@@ -415,7 +425,7 @@ server <- function(input, output, session) {
         })     
     
 
-        ########################## legend ##########################
+        ########################################## legend ######################################
         finallegend <- reactive({
             e <- edge_styler()
             n <- node_styler()
@@ -443,33 +453,15 @@ server <- function(input, output, session) {
             return(finallegend)
         })
 
-
         output$networklegend <- renderPlot({
             ggdraw(finallegend())
         })          
-        
-        output$download_legend <- downloadHandler(
-        filename = function() {
-          paste("dragon_legend-", Sys.Date(), ".pdf", sep="")
-        },
-        content = function(file) {
-          ggsave(file, finallegend())
-        })      
-        ###########################
+        #####################################################################################
 
     })
   
-
-
-
-
-
-
-
-
-
-   
-
+    
+    ##################################### DOWNLOAD LINKS #######################################################
     output$downloadNetwork_html <- downloadHandler(
         #req(input$go > 0)
         filename <- function() { paste0('dragon-', Sys.Date(), '.html') },
@@ -494,36 +486,37 @@ server <- function(input, output, session) {
         {
             write_csv(edge_styler()$styled_edges, con)
         })
+    ###############################################################################################################
 
 
-
+    ################################### NODE TABLES ##############################################
     output$clusterTable <- renderDT(rownames= FALSE,  server = FALSE,
        
-       
-       
-       
-       
        chemistry_network()$nodes %>% 
-            select(id, group, cluster_ID, network_degree, mean_pauling, sd_pauling, pauling, max_age) %>%
+            dplyr::select(id, group, cluster_ID, network_degree, network_degree_norm, closeness, mean_pauling, sd_pauling, pauling, max_age) %>%
             mutate(mean_pauling = round(mean_pauling, 5),
-                   sd_pauling = round(sd_pauling, 5)) %>%
+                   sd_pauling = round(sd_pauling, 5),
+                   cov_pauling = round(sd_pauling, 5), 
+                   closeness = round(closeness, 5),
+                   network_degree_norm = round(network_degree_norm, 5)) %>%
             rename("Node name" = id,
                    "Node type" = group,
-                   "Louvain Cluster"  = cluster_ID,
-                   "Normalized network degree" = network_degree,
+                   "Community Cluster"  = cluster_ID,
+                   "Centrality degree" = network_degree,
+                   "Centrality degree, normalized degree" = network_degree_norm,
+                   "Centrality closeness" = closeness, 
                    "Maximum Age" = max_age, 
                    "Pauling electronegativity (elements)" = pauling,
                    "Mean Pauling electronegativity (minerals)" = mean_pauling,
-                   "Std Dev Pauling electronegativity (minerals)" = sd_pauling) %>%
-            arrange(`Louvain Cluster`, `Normalized network degree`),
+                   "Std Dev Pauling electronegativity (minerals)" = sd_pauling,
+                   "COV Pauling electronegativity (minerals)" = cov_pauling) %>%
+           arrange(`Community Cluster`, `Centrality degree`),
          extensions = c('Buttons', 'ColReorder', 'Responsive'),
                         options = list(
                         dom = 'Bfrtip',
                         colReorder = TRUE
         )
     )
-
-
     observeEvent(input$networkplot_selected, {
 
         sel <- input$networkplot_selected
@@ -533,14 +526,15 @@ server <- function(input, output, session) {
         if (sel %in% e$mineral_name){
             e %>% 
                  filter(mineral_name == sel) %>%
-                 select(mineral_name, mean_pauling, sd_pauling) %>% 
+                 dplyr::select(mineral_name, mean_pauling, sd_pauling, cov_pauling) %>% 
                  left_join(rruff) %>% 
-                 select(mineral_name, mineral_id, mindat_id, at_locality, is_remote, rruff_chemistry, max_age, mean_pauling, sd_pauling) %>%
+                 dplyr::select(mineral_name, mineral_id, mindat_id, at_locality, is_remote, rruff_chemistry, max_age, mean_pauling, sd_pauling, cov_pauling) %>%
                  unique() %>% 
                  mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
                         is_remote   = ifelse(is_remote == 0, "No", "Yes"),
                         mean_pauling = round(mean_pauling, 5),
-                        sd_pauling = round(sd_pauling, 5)) %>%
+                        sd_pauling = round(sd_pauling, 5),
+                        cov_pauling = round(cov_pauling, 5)) %>%
                 rename("Mineral" = mineral_name,
                        "Mineral ID" = mineral_id,
                        "Mindat ID"  = mindat_id,
@@ -549,7 +543,8 @@ server <- function(input, output, session) {
                        "Chemistry"  = rruff_chemistry,
                        "Maximum Age (Ga)" = max_age,
                        "Mean Pauling electronegativity" = mean_pauling,
-                       "Std Dev Pauling electronegativity" = sd_pauling) %>%
+                       "Std Dev Pauling electronegativity" = sd_pauling, 
+                       "COV Pauling electronegativity" = cov_pauling) %>%
                 arrange(`Maximum Age (Ga)`, Mineral) -> node_table 
             locality_table <- node_table %>% select(-`Maximum Age (Ga)`)
             
@@ -570,14 +565,15 @@ server <- function(input, output, session) {
            
             e %>% 
                 filter(element == sel) %>% 
-                select(mineral_name, mean_pauling, sd_pauling) %>%
+                dplyr::select(mineral_name, mean_pauling, sd_pauling, cov_pauling) %>%
                 left_join(rruff) %>% 
                 select(-chemistry_elements) %>%
                 unique() %>%
                 mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
                        is_remote   = ifelse(is_remote == 0, "No", "Yes"),
                        mean_pauling = round(mean_pauling, 5),
-                       sd_pauling = round(sd_pauling, 5)) %>%
+                       sd_pauling = round(sd_pauling, 5),
+                       cov_pauling = round(cov_pauling, 5)) %>%
                 rename("Mineral" = mineral_name,
                        "Mineral ID" = mineral_id,
                        "Mindat ID"  = mindat_id,
@@ -586,7 +582,8 @@ server <- function(input, output, session) {
                        "Is Remote?" = is_remote,
                        "Chemistry"  = rruff_chemistry, 
                        "Mean Pauling electronegativity" = mean_pauling,
-                       "Std Dev Pauling electronegativity" = sd_pauling) -> locality_table
+                       "Std Dev Pauling electronegativity" = sd_pauling,
+                       "COV Pauling electronegativity" = cov_pauling) -> locality_table
         }
             
             
@@ -606,12 +603,13 @@ server <- function(input, output, session) {
                                     colReorder = TRUE
                                 ))
     })
-    
+    #################################################################################################################
+
   
     
     
     
-    ############### LINEAR MODEL TAB ###########################
+    ################################################ LINEAR MODEL TAB ###########################
     
     observe({
        
@@ -625,14 +623,16 @@ server <- function(input, output, session) {
 
         chemistry_network()$nodes %>%
         filter(group == "mineral") %>%
-        dplyr::select(cluster_ID, network_degree_norm, num_localities, max_age, mean_pauling, sd_pauling) %>%
-        rename("Louvain Cluster" = cluster_ID,
-               "Network degree (normalized)" = network_degree_norm,
+        dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, sd_pauling, cov_pauling) %>%
+        rename("Community Cluster" = cluster_ID,
+               "Degree centrality (normalized)"  = network_degree_norm,
+               "Closeness centrality" = closeness,
                "Mean Pauling electronegativity" = mean_pauling,
                "Standard deviation Pauling electronegativity" = sd_pauling, 
+               "Coefficient of variation Pauling electronegativity" = cov_pauling,
                "Number of known localities" = num_localities,
                "Maximum known age" = max_age)  -> mineral_nodes    
-        mineral_nodes$`Louvain Cluster` <- as.factor(mineral_nodes$`Louvain Cluster`)
+        mineral_nodes$`Community Cluster` <- as.factor(mineral_nodes$`Community Cluster`)
         
         response_string <- paste0("`", input$response, "`")
         predictor_string <- paste0("`", input$predictor, "`")
@@ -641,13 +641,17 @@ server <- function(input, output, session) {
         fit_string <- paste(response_string, "~", predictor_string)
         fit <- lm(as.formula(fit_string), data = mineral_nodes, na.action = na.omit )
         
-        
-        if (input$predictor == "Louvain Cluster")
+        output$caution_variance <- renderText("") 
+        if (input$predictor == "Community Cluster")
         {
-            ## This part is *extra* dumb. TukeyHSD is not into spaces so we have to muck with louvain name
+            ## This part is *extra* dumb. TukeyHSD is not into spaces so we have to muck with name
             ## Only applies when Cluster is the predictor variable. It is NOT ALLOWED as a response because this is a linear model and we need quant response, sheesh.          
-            mineral_nodes %>% rename(louvain_cluster = `Louvain Cluster`) -> mineral_nodes2
-            aov_fit_string <- paste(response_string, "~louvain_cluster")
+            mineral_nodes %>% rename(cluster = `Community Cluster`) -> mineral_nodes2
+            aov_fit_string <- paste(response_string, "~cluster")
+    
+            test_variance_pvalue <- bartlett.test(as.formula(aov_fit_string), data = mineral_nodes2, na.action = na.omit)$p.value
+
+            if (test_variance_pvalue <= 0.01) output$caution_variance <- renderText("Caution: Clusters have unequal variances and modeling results may not be precise.")   
 
             
             aov_fit <- aov(as.formula(aov_fit_string), data = mineral_nodes2, na.action = na.omit )
@@ -696,7 +700,7 @@ server <- function(input, output, session) {
                             xlab(input$predictor) + 
                             ylab(input$response)
                             
-        if (input$predictor == "Louvain Cluster")
+        if (input$predictor == "Community Cluster")
         {
             fitted_model_plot <- top_plot + 
                                     geom_jitter(aes_string(color = predictor_string), width=0.2, size=1.5) + 
