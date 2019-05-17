@@ -9,37 +9,8 @@ library(visNetwork)
 library(magrittr)
 library(cowplot)
 library(igraph)
-
-
 library(shinydashboard)
-
-#################################################################################################
-### Code to setup a palette picker, modified from https://dreamrs.github.io/shinyWidgets/articles/palette_picker.html
-brewer.pal.info %>% 
-    rownames_to_column("palette") %>%
-    filter(category != "qual", colorblind == TRUE) %>%
-    arrange(desc(category)) -> brewer.palettes
-divseq.list <- list("Sequential" = brewer.palettes$palette[brewer.palettes$category == "seq"], "Diverging" = brewer.palettes$palette[brewer.palettes$category == "div"]) 
-brewer.palettes.hex <- brewer.palettes %>% mutate(colorlist = map2(maxcolors,palette, brewer.pal))
-palette.list <- setNames(as.list(brewer.palettes.hex$colorlist), brewer.palettes.hex$palette)
-
-linear_gradient <- function(cols) {
-  x <- round(seq(from = 0, to = 100, length.out = length(cols)+1))
-  ind <- c(1, rep(seq_along(x)[-c(1, length(x))], each = 2), length(x))
-  m <- matrix(data = paste0(x[ind], "%"), ncol = 2, byrow = TRUE)
-  res <- lapply(
-    X = seq_len(nrow(m)),
-    FUN = function(i) {
-      paste(paste(cols[i], m[i, 1]), paste(cols[i], m[i, 2]), sep = ", ")
-    }
-  )
-  res <- unlist(res)
-  res <- paste(res, collapse = ", ")
-  paste0("linear-gradient(to right, ", res, ");")
-}
-palette.linear.gradient <- unlist(lapply(X = palette.list, FUN = linear_gradient))
-palette.label.colors <- ifelse(brewer.palettes$category == "seq", "black", "white")
-#################################################################################################
+source("defs.R")
 
 
 
@@ -291,31 +262,18 @@ dashboardPage(skin = "red",
                         
                         fluidRow(
                             column(7, 
-
+                                ### SAME AS variable_to_title!! 
                                 pickerInput("response", tags$b("Select the response (dependent) variable:"), 
-                                    choices = c("Maximum known age" ,#           = "max_age",
-                                                #"Average redox state" = "redox",
-                                                "Mean Pauling electronegativity",# = "mean_pauling", 
-                                                "Standard deviation Pauling electronegativity",#  = "sd_pauling", 
-                                                "Coefficient of variation Pauling electronegativity",#  = "cov_pauling", 
-                                                "Degree centrality (normalized)",#   = "network_degree_norm",
-                                                "Closeness centrality", 
-                                                "Number of known localities"), selected="Maximum known age",
-                                    ),
+                                    choices = model_response_choices, selected="Maximum Age (Ga)"
+                                ),
 
+                                ### SAME AS variable_to_title!! 
                                 pickerInput("predictor", tags$b("Select the predictor (independent) variable:"), 
-                                    choices = c("Maximum known age" ,#           = "max_age",
-                                                #"Average redox state" = "redox",
-                                                "Mean Pauling electronegativity",# = "mean_pauling", 
-                                                "Standard deviation Pauling electronegativity",#  = "sd_pauling", 
-                                                "Coefficient of variation Pauling electronegativity",#  = "cov_pauling", 
-                                                "Community Cluster",#      = "cluster_ID",
-                                                "Degree centrality (normalized)",#   = "network_degree_norm",
-                                                "Closeness centrality", 
-                                                "Number of known localities"), selected="Mean Pauling electronegativity",
+                                    choices = model_predictor_choices, selected="COV electronegativity"
                                 ),
                                 br(),br(),
                                 span(textOutput("model_sanity"), style="color:red;font-weight:bold;font-size:1.25em;"),
+                                span(textOutput("model_sanity_n"), style="color:red;font-weight:bold;font-size:1.25em;"),
                                 br()
 
                             ),

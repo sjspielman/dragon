@@ -14,9 +14,7 @@ electronegativity    <- read_csv(form_file_path("element_electronegativities.csv
 community_detect_network <- function(network, cluster_algorithm)
 {
     if (cluster_algorithm == "Louvain")               return (cluster_louvain(network))
-    if (cluster_algorithm == "Leading eigenvector")   return (cluster_leading_eigen(network))
-    if (cluster_algorithm == "Statistical mechanics") return (cluster_spinglass(network))
-    
+    if (cluster_algorithm == "Leading eigenvector")   return (cluster_leading_eigen(network))    
 }
 
 
