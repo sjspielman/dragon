@@ -284,7 +284,7 @@ server <- function(input, output, session) {
                         is_remote   = ifelse(is_remote == 0, "No", "Yes"),
                         mean_pauling = round(mean_pauling, 5),
                         sd_pauling = round(sd_pauling, 5),
-                        cov_pauling = round(cov_pauling, 5)) # %>%
+                        cov_pauling = round(cov_pauling, 5)) %>%
                 rename(!! variable_to_title[["mineral_name"]] := mineral_name,
                        !! variable_to_title[["mineral_id"]] := mineral_id,
                        !! variable_to_title[["mindat_id"]] := mindat_id,
