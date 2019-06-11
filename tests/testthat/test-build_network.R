@@ -94,13 +94,14 @@ test_that("Test build_network::construct_network() works", {
     
     elements_of_interest <- c("Fe")
     age_to_test <- 2
+    algorithm <- "Louvain"
 
 
     ############### Do not separate by redox ##############
     input_tibble_notbyredox_raw <- initialize_data_age( initialize_data(elements_of_interest, FALSE), age_to_test)
     input_tibble_notbyredox <- obtain_network_information(input_tibble_notbyredox_raw, FALSE)
     
-    edges_nodes <- construct_network(input_tibble_notbyredox, FALSE)
+    edges_nodes <- construct_network(input_tibble_notbyredox, FALSE, algorithm)
 
     true_edges <- read_csv(paste0(tibble_path, "contruct_network_edges_Fe_notbyredox.csv"), trim_ws = FALSE)
     true_nodes <- read_csv(paste0(tibble_path, "contruct_network_nodes_Fe_notbyredox.csv"), trim_ws = FALSE)
@@ -123,7 +124,7 @@ test_that("Test build_network::construct_network() works", {
     input_tibble_byredox_raw <- initialize_data_age( initialize_data(elements_of_interest, TRUE), age_to_test)
     input_tibble_byredox <- obtain_network_information(input_tibble_byredox_raw, TRUE)
     
-    edges_nodes <- construct_network(input_tibble_byredox, TRUE)
+    edges_nodes <- construct_network(input_tibble_byredox, TRUE, algorithm)
 
     true_edges <- read_csv(paste0(tibble_path, "contruct_network_edges_Fe_byredox.csv"), trim_ws = FALSE)
     true_nodes <- read_csv(paste0(tibble_path, "contruct_network_nodes_Fe_byredox.csv"), trim_ws = FALSE)
