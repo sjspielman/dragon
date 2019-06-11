@@ -52,7 +52,7 @@ dashboardPage(skin = "red",
             badgeStatus = NULL,
             headerText = "Information:",
             notificationItem("Source Code", icon = icon("github"), href = "http://github.com/spielmanlab/dragon"),
-            notificationItem("Mineral Evolution Database", icon = icon("globe"), href =  "http://rruff.info/ima/")
+            notificationItem("IMA Database of Mineral Properties", icon = icon("globe"), href =  "http://rruff.info/ima/")
         )),
   dashboardSidebar(width = 350,
     sidebarMenu(
