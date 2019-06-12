@@ -103,7 +103,7 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
         "ERROR: The specified color scheme cannot be applied due to insufficient node information in the MED database.")
     )  
 
-    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_hue(l=50, name = legendtitle, na.value = na.gray) + guides(colour = guide_legend(title.position="left", title.hjust = 0.5, byrow=TRUE)  )
+    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_discrete(name = legendtitle, na.value = na.gray) + guides(colour = guide_legend(title.position="left", title.hjust = 0.5, byrow=TRUE)  )
     if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1, na.value = na.gray)+ guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
 
     data.colors <- ggplot_build(p)$data[[1]] %>% 

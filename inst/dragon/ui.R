@@ -38,8 +38,8 @@ dashboardPage(skin = "red",
                         ),
             prettyCheckbox("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
             prettyCheckbox("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
-            sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = 4.5, step = 0.1, value = 0), #   
-            
+            sliderInput("age_limit", "Age (Ga) range for minerals to include:", min = 0, max = 4.5, step = 0.1, value = c(0, 4.5)), #   
+                    
             
             fluidRow(
                 column(8,
@@ -253,7 +253,7 @@ dashboardPage(skin = "red",
                             ),
                             div(style = "height:80px;",
                                 plotOutput("networklegend", height = "80%", width = "75%"),
-                                div(style = "float:right;font-weight:bold;", textOutput("modularity"))
+                                div(style = "float:left;font-weight:bold;", textOutput("modularity"))
                             )
                         ),  ## tabPanel
 
@@ -261,24 +261,29 @@ dashboardPage(skin = "red",
                             helpText("In this tab, you can construct a linear regression model to analyze properties of minerals in the specified network."),
                         
                         fluidRow(
-                            column(7, 
-                                ### SAME AS variable_to_title!! 
+                            column(4, 
                                 pickerInput("response", tags$b("Select the response (dependent) variable:"), 
                                     choices = model_response_choices, selected="Maximum Age (Ga)"
                                 ),
-
-                                ### SAME AS variable_to_title!! 
-                                pickerInput("predictor", tags$b("Select the predictor (independent) variable:"), 
-                                    choices = model_predictor_choices, selected="COV electronegativity"
-                                ),
-                                br(),br(),
+                                actionBttn("gomodel", "Update linear model", size="sm", color = "danger"),
+                                br(),br(),br(),
                                 span(textOutput("model_sanity"), style="color:red;font-weight:bold;font-size:1.25em;"),
                                 span(textOutput("model_sanity_n"), style="color:red;font-weight:bold;font-size:1.25em;"),
                                 br()
-
                             ),
+                            column(4,
+
+                                pickerInput("predictor", tags$b("Select the predictor (independent) variable:"), 
+                                    choices = model_predictor_choices, selected="COV electronegativity"
+                                ),
+                                
+                                conditionalPanel('input.predictor == "Community Cluster"',{
+                                    uiOutput("choose_community_include_lm")               
+                                })
+                            ),
+
                             
-                            column(5,
+                            column(4,
                                 p(tags$b("Preferences for plot of model results:")),
                                 prettyCheckbox("logx", "Use log scale on X-axis", status="danger", animation="smooth", icon = icon("check")),
                                 prettyCheckbox("logy", "Use log scale on Y-axis", status="danger", animation="smooth", icon = icon("check")),
