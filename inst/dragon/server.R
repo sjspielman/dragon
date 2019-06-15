@@ -256,12 +256,12 @@ server <- function(input, output, session) {
        
        chemistry_network()$nodes %>% 
             dplyr::select(id, group, cluster_ID, network_degree, network_degree_norm, closeness, mean_pauling, sd_pauling, pauling, max_age) %>%
-            filter(max_age >= chemistry_network()$age_lb, max_age <= chemistry_network()$age_ub) %>%
             mutate(mean_pauling = round(mean_pauling, 5),
                    sd_pauling = round(sd_pauling, 5),
                    cov_pauling = round(sd_pauling, 5), 
                    closeness = round(closeness, 5),
                    network_degree_norm = round(network_degree_norm, 5)) %>%
+            arrange(group, id) %>%
             rename(!! variable_to_title[["id"]] := id,
                    !! variable_to_title[["group"]] := group,
                    !! variable_to_title[["cluster_ID"]] := cluster_ID,
