@@ -37,6 +37,7 @@ server <- function(input, output, session) {
         age_limit            <- input$age_limit
         elements_by_redox    <- input$elements_by_redox
         cluster_algorithm         <- input$cluster_algorithm
+         
         
         elements_only <- initialize_data(elements_of_interest, force_all_elements)
         shiny::validate(
@@ -49,7 +50,7 @@ server <- function(input, output, session) {
             shiny::need(nrow(elements_only_age) > 0, 
             "ERROR: No network for selected element(s) at the age specified. Please specify a different age.")
         )
-        
+
         network_information <- obtain_network_information(elements_only_age, elements_by_redox)
         shiny::validate(
             shiny::need(nrow(network_information) > 0, 
@@ -64,7 +65,9 @@ server <- function(input, output, session) {
         return (list("nodes" = nodes, 
                      "edges" = edges, 
                      "membership" = membership,   
-                     "elements_of_interest" = input$elements_of_interest))
+                     "elements_of_interest" = input$elements_of_interest,
+                     "age_lb" = age_limit[1],
+                     "age_ub" = age_limit[2]))
 
     })
     
@@ -78,14 +81,22 @@ server <- function(input, output, session) {
             separate(id, into=c("base_element", "blah")) %>%
             arrange(base_element) -> available_base_elements
         pickerInput("custom_selection_element", "Highlight a set of elements",             
-                        choices = unique(available_base_elements$base_element),
-                               options = list(`actions-box` = TRUE, 
-                                              size = 4
-                                              ), 
-                                              multiple = TRUE
+                        choices = unique(available_base_elements$base_element),options = list(`actions-box` = TRUE, size = 4), multiple = TRUE
                     )
     })
 
+
+    output$choose_community_include_lm <- renderUI({
+        chemistry_network()$nodes %>%
+            dplyr::select(cluster_ID) %>%
+            distinct() %>% 
+            pull(cluster_ID) -> cluster_choices
+        
+        pickerInput("community_include_lm", tags$b("Select which community clusters (at least two) to include in the linear model:"), 
+                    choices = sort(cluster_choices), options = list(`actions-box` = TRUE, size = length(cluster_choices)), multiple = TRUE,
+                    selected = cluster_choices
+                )
+    })
         
 
     ############################## NETWORK ITSELF AND NETWORK-LEVEL METRICS #############################
@@ -250,6 +261,7 @@ server <- function(input, output, session) {
                    cov_pauling = round(sd_pauling, 5), 
                    closeness = round(closeness, 5),
                    network_degree_norm = round(network_degree_norm, 5)) %>%
+            arrange(group, id) %>%
             rename(!! variable_to_title[["id"]] := id,
                    !! variable_to_title[["group"]] := group,
                    !! variable_to_title[["cluster_ID"]] := cluster_ID,
@@ -272,12 +284,15 @@ server <- function(input, output, session) {
         sel <- input$networkplot_selected
         e <- chemistry_network()$edges
 
-        ################ ID table ##################
+        ################ Selected node table ##################
         if (sel %in% e$mineral_name){
+        
+
             e %>% 
                  filter(mineral_name == sel) %>%
                  dplyr::select(mineral_name, mean_pauling, sd_pauling, cov_pauling) %>% 
                  left_join(rruff) %>% 
+                 filter(max_age >= chemistry_network()$age_lb, max_age <= chemistry_network()$age_ub) %>%
                  dplyr::select(mineral_name, mineral_id, mindat_id, at_locality, is_remote, rruff_chemistry, max_age, mean_pauling, sd_pauling, cov_pauling) %>%
                  unique() %>% 
                  mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
@@ -302,6 +317,7 @@ server <- function(input, output, session) {
             e %>% 
                 filter(element == sel) %>% 
                  left_join(rruff) %>% 
+                 filter(max_age >= chemistry_network()$age_lb, max_age <= chemistry_network()$age_ub) %>%
                  select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry, pauling) %>%
                  unique() %>%
                  rename(!! variable_to_title[["element"]] := element,
@@ -316,6 +332,7 @@ server <- function(input, output, session) {
                 filter(element == sel) %>% 
                 dplyr::select(mineral_name, mean_pauling, sd_pauling, cov_pauling) %>%
                 left_join(rruff) %>% 
+                filter(max_age >= chemistry_network()$age_lb, max_age <= chemistry_network()$age_ub) %>%
                 select(-chemistry_elements) %>%
                 unique() %>%
                 mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
@@ -360,7 +377,7 @@ server <- function(input, output, session) {
     
     ################################################ LINEAR MODEL TAB ###########################
     
-    observe({
+    observeEvent(input$gomodel, {
        
        
         output$model_sanity <- renderText({
@@ -383,7 +400,6 @@ server <- function(input, output, session) {
                !! variable_to_title[["max_age"]] := max_age)  -> mineral_nodes  
 
         mineral_nodes$`Community Cluster` <- as.factor(mineral_nodes$`Community Cluster`)
-        print(mineral_nodes)
         
         bad <- FALSE
         if (nrow(mineral_nodes) < 3) {
@@ -392,6 +408,9 @@ server <- function(input, output, session) {
         
         if (input$predictor == "Community Cluster")
         {
+            if (!(is.null(input$community_include_lm))) {
+                mineral_nodes %<>% filter(`Community Cluster` %in% input$community_include_lm)
+            }
             ## There must be at least two minerals per cluster.
             mineral_nodes %>% 
                 group_by(`Community Cluster`) %>%
@@ -434,8 +453,7 @@ server <- function(input, output, session) {
                 ## Only applies when Cluster is the predictor variable. It is NOT ALLOWED as a response because this is a linear model and we need quant response, sheesh.          
                 mineral_nodes %>% rename(community_cluster = `Community Cluster`) -> mineral_nodes2
                 aov_fit_string <- paste(response_string, "~community_cluster")
-            
-            
+
                 test_variance_pvalue <- bartlett.test(as.formula(aov_fit_string), data = mineral_nodes2, na.action = na.omit)$p.value
                 if (test_variance_pvalue <= 0.01) output$caution_variance <- renderText("Caution: Clusters have unequal variances and modeling results may not be precise.")   
 

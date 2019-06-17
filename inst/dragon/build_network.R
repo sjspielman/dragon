@@ -46,6 +46,8 @@ initialize_data <- function(elements_of_interest, force_all_elements)
 
 initialize_data_age <- function(elements_only, age_limit)
 {
+    lb <- age_limit[1]
+    ub <- age_limit[2]
     elements_only %>% 
         group_by(mineral_name) %>% 
         summarize(num_localities = sum(at_locality)) %>%
@@ -54,7 +56,7 @@ initialize_data_age <- function(elements_only, age_limit)
         mutate(overall_max_age = max(max_age)) %>%
         filter(max_age == overall_max_age) %>% 
         ungroup() %>%
-        filter(max_age >= age_limit) -> elements_only_age
+        filter(max_age >= lb, max_age <= ub) -> elements_only_age
     
     elements_only_age
 }
