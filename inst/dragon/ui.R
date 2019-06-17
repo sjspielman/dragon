@@ -13,8 +13,6 @@ library(shinydashboard)
 source("defs.R")
 
 
-
-
 dashboardPage(skin = "red",
     dashboardHeader(title = "dragon: Deep-time Redox Analysis of the Geobiology Ontology Network", titleWidth = "770px",
         dropdownMenu(
@@ -38,7 +36,7 @@ dashboardPage(skin = "red",
                         ),
             prettyCheckbox("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
             prettyCheckbox("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
-            sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = 4.88, step = 0.1, value = c(0,4.88)), #   
+            sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = total_max_age, step = 0.1, value = c(0,total_max_age)), #   
 
             
             fluidRow(
