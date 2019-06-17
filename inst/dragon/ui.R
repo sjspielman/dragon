@@ -38,7 +38,7 @@ dashboardPage(skin = "red",
                         ),
             prettyCheckbox("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
             prettyCheckbox("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
-            sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = 4.5, step = 0.1, value = 0), #   
+            sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = 4.88, step = 0.1, value = 0), #   
             
             
             fluidRow(
