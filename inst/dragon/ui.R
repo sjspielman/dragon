@@ -11,7 +11,7 @@ library(cowplot)
 library(igraph)
 library(shinydashboard)
 source("defs.R")
-
+source("build_network.R")
 
 dashboardPage(skin = "red",
     dashboardHeader(title = "dragon: Deep-time Redox Analysis of the Geobiology Ontology Network", titleWidth = "770px",
