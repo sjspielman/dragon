@@ -20,6 +20,7 @@ dashboardPage(skin = "red",
             icon = icon("question-circle"),
             badgeStatus = NULL,
             headerText = "Information:",
+            notificationItem("You are using dragon version 0.1", icon = icon("box-open")),
             notificationItem("Source Code", icon = icon("github"), href = "http://github.com/spielmanlab/dragon"),
             notificationItem("IMA Database of Mineral Properties", icon = icon("globe"), href =  "http://rruff.info/ima/")
         )),
