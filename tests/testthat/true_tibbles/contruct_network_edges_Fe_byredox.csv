@@ -22,6 +22,13 @@ Allanite-(La),Fe+2,Fe+2,2,Allanite-(La),70,2.816,CaLaFe^2+^Al_2_(Si_2_O_7_)(SiO_
 Allanite-(La),Si+4,Si+4,4,Allanite-(La),70,2.816,CaLaFe^2+^Al_2_(Si_2_O_7_)(SiO_4_)O(OH),4,1.9,1.8685714285714285,0.8158518773124724,0.4366179771549929,Si,+,Allanite-(La)
 Allanite-(La),O-2,O-2,-2,Allanite-(La),70,2.816,CaLaFe^2+^Al_2_(Si_2_O_7_)(SiO_4_)O(OH),-2,3.44,1.8685714285714285,0.8158518773124724,0.4366179771549929,O,-,Allanite-(La)
 Allanite-(La),H+1,H+1,1,Allanite-(La),70,2.816,CaLaFe^2+^Al_2_(Si_2_O_7_)(SiO_4_)O(OH),1,2.2,1.8685714285714285,0.8158518773124724,0.4366179771549929,H,+,Allanite-(La)
+Allanite-(Y),Ca+2,Ca+2,2,Allanite-(Y),105,2.698,CaYAl_2_Fe^2+^(Si_2_O_7_)(SiO_4_)O(OH),2,1,1.8857142857142857,0.7980780484567731,0.42322320751495546,Ca,+,Allanite-(Y)
+Allanite-(Y),Y  ,Y  ,NA,Allanite-(Y),105,2.698,CaYAl_2_Fe^2+^(Si_2_O_7_)(SiO_4_)O(OH),NA,1.22,1.8857142857142857,0.7980780484567731,0.42322320751495546,Y,NA,Allanite-(Y)
+Allanite-(Y),Al  ,Al  ,NA,Allanite-(Y),105,2.698,CaYAl_2_Fe^2+^(Si_2_O_7_)(SiO_4_)O(OH),NA,1.61,1.8857142857142857,0.7980780484567731,0.42322320751495546,Al,NA,Allanite-(Y)
+Allanite-(Y),Fe+2,Fe+2,2,Allanite-(Y),105,2.698,CaYAl_2_Fe^2+^(Si_2_O_7_)(SiO_4_)O(OH),2,1.83,1.8857142857142857,0.7980780484567731,0.42322320751495546,Fe,+,Allanite-(Y)
+Allanite-(Y),Si+4,Si+4,4,Allanite-(Y),105,2.698,CaYAl_2_Fe^2+^(Si_2_O_7_)(SiO_4_)O(OH),4,1.9,1.8857142857142857,0.7980780484567731,0.42322320751495546,Si,+,Allanite-(Y)
+Allanite-(Y),O-2,O-2,-2,Allanite-(Y),105,2.698,CaYAl_2_Fe^2+^(Si_2_O_7_)(SiO_4_)O(OH),-2,3.44,1.8857142857142857,0.7980780484567731,0.42322320751495546,O,-,Allanite-(Y)
+Allanite-(Y),H+1,H+1,1,Allanite-(Y),105,2.698,CaYAl_2_Fe^2+^(Si_2_O_7_)(SiO_4_)O(OH),1,2.2,1.8857142857142857,0.7980780484567731,0.42322320751495546,H,+,Allanite-(Y)
 Alluaudite,Na+1,Na+1,1,Alluaudite,294,2.772,"(Na,Ca)(Mn^2+^,Mg,Fe^2+^)(Fe^3+^,Mn^2+^)_2_(PO_4_)_3_",1,0.93,1.7366666666666668,0.7557612056727971,0.4351791971244513,Na,+,Alluaudite
 Alluaudite,Ca+2,Ca+2,2,Alluaudite,294,2.772,"(Na,Ca)(Mn^2+^,Mg,Fe^2+^)(Fe^3+^,Mn^2+^)_2_(PO_4_)_3_",2,1,1.7366666666666668,0.7557612056727971,0.4351791971244513,Ca,+,Alluaudite
 Alluaudite,Mn+2,Mn+2,2,Alluaudite,294,2.772,"(Na,Ca)(Mn^2+^,Mg,Fe^2+^)(Fe^3+^,Mn^2+^)_2_(PO_4_)_3_",2,1.55,1.7366666666666668,0.7557612056727971,0.4351791971244513,Mn,+,Alluaudite
@@ -30,6 +37,10 @@ Alluaudite,Fe+2,Fe+2,2,Alluaudite,294,2.772,"(Na,Ca)(Mn^2+^,Mg,Fe^2+^)(Fe^3+^,Mn
 Alluaudite,Fe+3,Fe+3,3,Alluaudite,294,2.772,"(Na,Ca)(Mn^2+^,Mg,Fe^2+^)(Fe^3+^,Mn^2+^)_2_(PO_4_)_3_",3,1.83,1.7366666666666668,0.7557612056727971,0.4351791971244513,Fe,+,Alluaudite
 Alluaudite,P  ,P  ,NA,Alluaudite,294,2.772,"(Na,Ca)(Mn^2+^,Mg,Fe^2+^)(Fe^3+^,Mn^2+^)_2_(PO_4_)_3_",NA,2.19,1.7366666666666668,0.7557612056727971,0.4351791971244513,P,NA,Alluaudite
 Alluaudite,O-2,O-2,-2,Alluaudite,294,2.772,"(Na,Ca)(Mn^2+^,Mg,Fe^2+^)(Fe^3+^,Mn^2+^)_2_(PO_4_)_3_",-2,3.44,1.7366666666666668,0.7557612056727971,0.4351791971244513,O,-,Alluaudite
+Almandine,Fe+2,Fe+2,2,Almandine,1804,2.925,Fe^2+^_3_Al_2_(SiO_4_)_3_,2,1.83,2.195,0.8391463916782737,0.382299039488963,Fe,+,Almandine
+Almandine,Al  ,Al  ,NA,Almandine,1804,2.925,Fe^2+^_3_Al_2_(SiO_4_)_3_,NA,1.61,2.195,0.8391463916782737,0.382299039488963,Al,NA,Almandine
+Almandine,Si+4,Si+4,4,Almandine,1804,2.925,Fe^2+^_3_Al_2_(SiO_4_)_3_,4,1.9,2.195,0.8391463916782737,0.382299039488963,Si,+,Almandine
+Almandine,O-2,O-2,-2,Almandine,1804,2.925,Fe^2+^_3_Al_2_(SiO_4_)_3_,-2,3.44,2.195,0.8391463916782737,0.382299039488963,O,-,Almandine
 Angarfite,Na+1,Na+1,1,Angarfite,5,2.046,NaFe^3+^_5_(PO_4_)_4_(OH)_4_·4H_2_O,1,0.93,2.118,0.9019257175621505,0.4258383935609776,Na,+,Angarfite
 Angarfite,Fe+3,Fe+3,3,Angarfite,5,2.046,NaFe^3+^_5_(PO_4_)_4_(OH)_4_·4H_2_O,3,1.83,2.118,0.9019257175621505,0.4258383935609776,Fe,+,Angarfite
 Angarfite,P  ,P  ,NA,Angarfite,5,2.046,NaFe^3+^_5_(PO_4_)_4_(OH)_4_·4H_2_O,NA,2.19,2.118,0.9019257175621505,0.4258383935609776,P,NA,Angarfite
@@ -119,6 +130,11 @@ Beudantite,As+5,As+5,5,Beudantite,972,2.77,Pb^2+^Fe^3+^_3_(As^5+^O_4_)(S^6+^O_4_
 Beudantite,O-2,O-2,-2,Beudantite,972,2.77,Pb^2+^Fe^3+^_3_(As^5+^O_4_)(S^6+^O_4_)(OH)_6_,-2,3.44,2.35,0.5988655942696991,0.254836423093489,O,-,Beudantite
 Beudantite,S+6,S+6,6,Beudantite,972,2.77,Pb^2+^Fe^3+^_3_(As^5+^O_4_)(S^6+^O_4_)(OH)_6_,6,2.58,2.35,0.5988655942696991,0.254836423093489,S,+,Beudantite
 Beudantite,H+1,H+1,1,Beudantite,972,2.77,Pb^2+^Fe^3+^_3_(As^5+^O_4_)(S^6+^O_4_)(OH)_6_,1,2.2,2.35,0.5988655942696991,0.254836423093489,H,+,Beudantite
+Bismutoferrite,Fe+3,Fe+3,3,Bismutoferrite,185,2.2229,Fe^3+^_2_Bi(SiO_4_)_2_(OH),3,1.83,2.278,0.6645449570947025,0.2917229837992548,Fe,+,Bismutoferrite
+Bismutoferrite,Bi  ,Bi  ,NA,Bismutoferrite,185,2.2229,Fe^3+^_2_Bi(SiO_4_)_2_(OH),NA,2.02,2.278,0.6645449570947025,0.2917229837992548,Bi,NA,Bismutoferrite
+Bismutoferrite,Si+4,Si+4,4,Bismutoferrite,185,2.2229,Fe^3+^_2_Bi(SiO_4_)_2_(OH),4,1.9,2.278,0.6645449570947025,0.2917229837992548,Si,+,Bismutoferrite
+Bismutoferrite,O-2,O-2,-2,Bismutoferrite,185,2.2229,Fe^3+^_2_Bi(SiO_4_)_2_(OH),-2,3.44,2.278,0.6645449570947025,0.2917229837992548,O,-,Bismutoferrite
+Bismutoferrite,H+1,H+1,1,Bismutoferrite,185,2.2229,Fe^3+^_2_Bi(SiO_4_)_2_(OH),1,2.2,2.278,0.6645449570947025,0.2917229837992548,H,+,Bismutoferrite
 Bobfergusonite,Na+1,Na+1,1,Bobfergusonite,6,2.772,Na_2_Mn^2+^_5_Fe^3+^Al(PO_4_)_6_,1,0.93,1.925,0.8490406350699594,0.4410600701662127,Na,+,Bobfergusonite
 Bobfergusonite,Mn+2,Mn+2,2,Bobfergusonite,6,2.772,Na_2_Mn^2+^_5_Fe^3+^Al(PO_4_)_6_,2,1.55,1.925,0.8490406350699594,0.4410600701662127,Mn,+,Bobfergusonite
 Bobfergusonite,Fe+3,Fe+3,3,Bobfergusonite,6,2.772,Na_2_Mn^2+^_5_Fe^3+^Al(PO_4_)_6_,3,1.83,1.925,0.8490406350699594,0.4410600701662127,Fe,+,Bobfergusonite
@@ -170,6 +186,12 @@ Cerite-(Ce),Fe+3,Fe+3,3,Cerite-(Ce),128,2.5,"(Ce,La,Ca)_9_(Mg,Fe^3+^)(SiO_4_)_3_
 Cerite-(Ce),Si+4,Si+4,4,Cerite-(Ce),128,2.5,"(Ce,La,Ca)_9_(Mg,Fe^3+^)(SiO_4_)_3_(SiO_3_OH)_4_(OH)_3_",4,1.9,1.7375,0.8160663488432087,0.4696784741543647,Si,+,Cerite-(Ce)
 Cerite-(Ce),O-2,O-2,-2,Cerite-(Ce),128,2.5,"(Ce,La,Ca)_9_(Mg,Fe^3+^)(SiO_4_)_3_(SiO_3_OH)_4_(OH)_3_",-2,3.44,1.7375,0.8160663488432087,0.4696784741543647,O,-,Cerite-(Ce)
 Cerite-(Ce),H+1,H+1,1,Cerite-(Ce),128,2.5,"(Ce,La,Ca)_9_(Mg,Fe^3+^)(SiO_4_)_3_(SiO_3_OH)_4_(OH)_3_",1,2.2,1.7375,0.8160663488432087,0.4696784741543647,H,+,Cerite-(Ce)
+Chamosite,Fe+2,Fe+2,2,Chamosite,864,2.858,Fe^2+^_5_Al(AlSi_3_)O_10_(OH)_8_,2,1.83,2.0483333333333333,0.7438660273642469,0.36315672613388783,Fe,+,Chamosite
+Chamosite,Mg+2,Mg+2,2,Chamosite,864,2.858,Fe^2+^_5_Al(AlSi_3_)O_10_(OH)_8_,2,1.31,2.0483333333333333,0.7438660273642469,0.36315672613388783,Mg,+,Chamosite
+Chamosite,Al  ,Al  ,NA,Chamosite,864,2.858,Fe^2+^_5_Al(AlSi_3_)O_10_(OH)_8_,NA,1.61,2.0483333333333333,0.7438660273642469,0.36315672613388783,Al,NA,Chamosite
+Chamosite,Si+4,Si+4,4,Chamosite,864,2.858,Fe^2+^_5_Al(AlSi_3_)O_10_(OH)_8_,4,1.9,2.0483333333333333,0.7438660273642469,0.36315672613388783,Si,+,Chamosite
+Chamosite,O-2,O-2,-2,Chamosite,864,2.858,Fe^2+^_5_Al(AlSi_3_)O_10_(OH)_8_,-2,3.44,2.0483333333333333,0.7438660273642469,0.36315672613388783,O,-,Chamosite
+Chamosite,H+1,H+1,1,Chamosite,864,2.858,Fe^2+^_5_Al(AlSi_3_)O_10_(OH)_8_,1,2.2,2.0483333333333333,0.7438660273642469,0.36315672613388783,H,+,Chamosite
 Chapmanite,Fe+3,Fe+3,3,Chapmanite,45,2.2229,Fe^3+^_2_Sb^3+^(SiO_4_)_2_(OH),3,1.83,2.284,0.6617627973828689,0.28973852775081826,Fe,+,Chapmanite
 Chapmanite,Sb+3,Sb+3,3,Chapmanite,45,2.2229,Fe^3+^_2_Sb^3+^(SiO_4_)_2_(OH),3,2.05,2.284,0.6617627973828689,0.28973852775081826,Sb,+,Chapmanite
 Chapmanite,Si+4,Si+4,4,Chapmanite,45,2.2229,Fe^3+^_2_Sb^3+^(SiO_4_)_2_(OH),4,1.9,2.284,0.6617627973828689,0.28973852775081826,Si,+,Chapmanite
@@ -982,6 +1004,15 @@ Vermiculite,Al  ,Al  ,NA,Vermiculite,636,2.81,"Mg_0.7_(Mg,Fe^3+^,Al)_6_(Si,Al)_8
 Vermiculite,Si+4,Si+4,4,Vermiculite,636,2.81,"Mg_0.7_(Mg,Fe^3+^,Al)_6_(Si,Al)_8_O_20_(OH)_4_·8H_2_O",4,1.9,2.0483333333333333,0.7438660273642469,0.36315672613388783,Si,+,Vermiculite
 Vermiculite,O-2,O-2,-2,Vermiculite,636,2.81,"Mg_0.7_(Mg,Fe^3+^,Al)_6_(Si,Al)_8_O_20_(OH)_4_·8H_2_O",-2,3.44,2.0483333333333333,0.7438660273642469,0.36315672613388783,O,-,Vermiculite
 Vermiculite,H+1,H+1,1,Vermiculite,636,2.81,"Mg_0.7_(Mg,Fe^3+^,Al)_6_(Si,Al)_8_O_20_(OH)_4_·8H_2_O",1,2.2,2.0483333333333333,0.7438660273642469,0.36315672613388783,H,+,Vermiculite
+Vesuvianite,Ca+2,Ca+2,2,Vesuvianite,2772,2.918,"(Ca,Na)_19_(Al,Mg,Fe^3+^)_13_(SiO_4_)_10_(Si_2_O_7_)_4_(OH,F,O)_10_",2,1,2.022222222222222,1.051282285803601,0.5198648666061764,Ca,+,Vesuvianite
+Vesuvianite,Na+1,Na+1,1,Vesuvianite,2772,2.918,"(Ca,Na)_19_(Al,Mg,Fe^3+^)_13_(SiO_4_)_10_(Si_2_O_7_)_4_(OH,F,O)_10_",1,0.93,2.022222222222222,1.051282285803601,0.5198648666061764,Na,+,Vesuvianite
+Vesuvianite,Al  ,Al  ,NA,Vesuvianite,2772,2.918,"(Ca,Na)_19_(Al,Mg,Fe^3+^)_13_(SiO_4_)_10_(Si_2_O_7_)_4_(OH,F,O)_10_",NA,1.61,2.022222222222222,1.051282285803601,0.5198648666061764,Al,NA,Vesuvianite
+Vesuvianite,Mg+2,Mg+2,2,Vesuvianite,2772,2.918,"(Ca,Na)_19_(Al,Mg,Fe^3+^)_13_(SiO_4_)_10_(Si_2_O_7_)_4_(OH,F,O)_10_",2,1.31,2.022222222222222,1.051282285803601,0.5198648666061764,Mg,+,Vesuvianite
+Vesuvianite,Fe+3,Fe+3,3,Vesuvianite,2772,2.918,"(Ca,Na)_19_(Al,Mg,Fe^3+^)_13_(SiO_4_)_10_(Si_2_O_7_)_4_(OH,F,O)_10_",3,1.83,2.022222222222222,1.051282285803601,0.5198648666061764,Fe,+,Vesuvianite
+Vesuvianite,Si+4,Si+4,4,Vesuvianite,2772,2.918,"(Ca,Na)_19_(Al,Mg,Fe^3+^)_13_(SiO_4_)_10_(Si_2_O_7_)_4_(OH,F,O)_10_",4,1.9,2.022222222222222,1.051282285803601,0.5198648666061764,Si,+,Vesuvianite
+Vesuvianite,O-2,O-2,-2,Vesuvianite,2772,2.918,"(Ca,Na)_19_(Al,Mg,Fe^3+^)_13_(SiO_4_)_10_(Si_2_O_7_)_4_(OH,F,O)_10_",-2,3.44,2.022222222222222,1.051282285803601,0.5198648666061764,O,-,Vesuvianite
+Vesuvianite,H+1,H+1,1,Vesuvianite,2772,2.918,"(Ca,Na)_19_(Al,Mg,Fe^3+^)_13_(SiO_4_)_10_(Si_2_O_7_)_4_(OH,F,O)_10_",1,2.2,2.022222222222222,1.051282285803601,0.5198648666061764,H,+,Vesuvianite
+Vesuvianite,F-1,F-1,-1,Vesuvianite,2772,2.918,"(Ca,Na)_19_(Al,Mg,Fe^3+^)_13_(SiO_4_)_10_(Si_2_O_7_)_4_(OH,F,O)_10_",-1,3.98,2.022222222222222,1.051282285803601,0.5198648666061764,F,-,Vesuvianite
 Vinciennite,Cu  ,Cu  ,NA,Vinciennite,40,2.716,Cu_10_Fe_4_SnAsS_16_,NA,1.9,2.09,0.3036445290137796,0.14528446364295675,Cu,NA,Vinciennite
 Vinciennite,Fe  ,Fe  ,NA,Vinciennite,40,2.716,Cu_10_Fe_4_SnAsS_16_,NA,1.83,2.09,0.3036445290137796,0.14528446364295675,Fe,NA,Vinciennite
 Vinciennite,Sn  ,Sn  ,NA,Vinciennite,40,2.716,Cu_10_Fe_4_SnAsS_16_,NA,1.96,2.09,0.3036445290137796,0.14528446364295675,Sn,NA,Vinciennite
