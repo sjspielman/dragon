@@ -1,7 +1,7 @@
 ############ Recreate the true tibbles #############
 
 library(remotes)
-install_github("spielmanlab/dragon")
+install_github("spielmanlab/dragon", force=TRUE)
 
 library(tidyverse)
 library(igraph)
