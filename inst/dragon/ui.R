@@ -11,9 +11,7 @@ library(cowplot)
 library(igraph)
 library(shinydashboard)
 source("defs.R")
-
-
-
+source("build_network.R")
 
 dashboardPage(skin = "red",
     dashboardHeader(title = "dragon: Deep-time Redox Analysis of the Geobiology Ontology Network", titleWidth = "770px",
@@ -22,6 +20,7 @@ dashboardPage(skin = "red",
             icon = icon("question-circle"),
             badgeStatus = NULL,
             headerText = "Information:",
+            notificationItem("You are using dragon version 0.1", icon = icon("box-open")),
             notificationItem("Source Code", icon = icon("github"), href = "http://github.com/spielmanlab/dragon"),
             notificationItem("IMA Database of Mineral Properties", icon = icon("globe"), href =  "http://rruff.info/ima/")
         )),
@@ -38,8 +37,8 @@ dashboardPage(skin = "red",
                         ),
             prettyCheckbox("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
             prettyCheckbox("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
-            sliderInput("age_limit", "Age (Ga) range for minerals to include:", min = 0, max = 4.5, step = 0.1, value = c(0, 4.5)), #   
-                    
+            sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = total_max_age, step = 0.1, value = c(0,total_max_age)), #   
+
             
             fluidRow(
                 column(8,

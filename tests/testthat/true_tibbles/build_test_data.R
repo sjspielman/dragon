@@ -1,5 +1,8 @@
 ############ Recreate the true tibbles #############
 
+library(remotes)
+install_github("spielmanlab/dragon")
+
 library(tidyverse)
 library(igraph)
 library(visNetwork)

@@ -10,6 +10,7 @@ rruff_sub            <- rruff %>% select(-mineral_id, -mindat_id, -rruff_chemist
 rruff_chemistry      <- rruff_separated %>% select(-chemistry_elements) %>% unique()
 electronegativity    <- read_csv(form_file_path("element_electronegativities.csv.zip")) %>% select(-allen)
 
+total_max_age <- round( max(rruff$max_age) + 0.1, 1)
                             
 community_detect_network <- function(network, cluster_algorithm)
 {
