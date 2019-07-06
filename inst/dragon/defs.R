@@ -7,10 +7,10 @@ variable_to_title <- c("redox"               = quo("Mean Redox State"),
                         "network_degree_norm" = quo("Degree centrality (normalized)"), 
                         "network_degree"      = quo("Degree centrality"), 
                         "closeness"           = quo("Closeness centrality"),
-                        "pauling"             = quo("Electronegativity"), 
-                        "mean_pauling"        = quo("Mean electronegativity"),  
-                        "sd_pauling"          = quo("Std Dev electronegativity"),
-                        "cov_pauling"         = quo("COV electronegativity"),
+                        "pauling"             = quo("Element electronegativity"), 
+                        "mean_pauling"        = quo("Mean mineral electronegativity"),  
+                        "sd_pauling"          = quo("Std Dev mineral electronegativity"),
+                        "cov_pauling"         = quo("COV mineral electronegativity"),
                         "id"                  = quo("Node name"), 
                         "cluster_ID"          = quo("Community Cluster"), 
                         "group"               = quo("Node type"),
@@ -23,9 +23,9 @@ variable_to_title <- c("redox"               = quo("Mean Redox State"),
                         "rruff_chemistry"     = quo("Chemistry"))
     
 model_response_choices <- c("Maximum Age (Ga)", 
-                            "Mean electronegativity",
-                            "Std Dev electronegativity",
-                            "COV electronegativity",
+                            "Mean mineral electronegativity",
+                            "Std Dev mineral electronegativity",
+                            "COV mineral electronegativity",
                             "Degree centrality (normalized)",
                             "Closeness centrality",
                             "Number of known localities")
@@ -87,7 +87,7 @@ theme_set(theme_cowplot() + theme(legend.position = "bottom",
 
 
 
-obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, legendtitle)
+obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, legendtitle, discrete_colors = NA)
 {
     
     cvar <- as.symbol(color_variable)
@@ -103,9 +103,30 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
         "ERROR: The specified color scheme cannot be applied due to insufficient node information in the MED database.")
     )  
 
-    if (variable_type == "d") p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + geom_point(size = geom.point.size) + scale_color_discrete(name = legendtitle, na.value = na.gray) + guides(colour = guide_legend(title.position="left", title.hjust = 0.5, byrow=TRUE)  )
-    if (variable_type == "c") p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + geom_point(size = geom.point.size) + scale_color_distiller(name = legendtitle, palette = palettename, direction = -1, na.value = na.gray)+ guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
-
+    if (variable_type == "d")
+    {
+    
+        p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + 
+                geom_point(size = geom.point.size) + 
+                 guides(colour = guide_legend(title.position="left", title.hjust = 0.5, byrow=TRUE)  )
+        if (!(is.na(discrete_colors))) 
+        {
+            p <- p + scale_color_manual(name = legendtitle, na.value = na.gray, values = discrete_colors)
+        } else {
+            p <- p + scale_color_discrete(name = legendtitle, na.value = na.gray)
+        } 
+    }
+    
+    if (variable_type == "c")
+    {
+    
+        p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + 
+                 geom_point(size = geom.point.size) + 
+                 scale_color_distiller(name = legendtitle, palette = palettename, direction = -1, na.value = na.gray) + 
+                 guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
+    }
+    
+    
     data.colors <- ggplot_build(p)$data[[1]] %>% 
                     as_tibble() %>% 
                     bind_cols(dat2) %>%

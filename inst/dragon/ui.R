@@ -238,88 +238,106 @@ dashboardPage(skin = "red",
                                     
                     tabBox(width=12, 
                         tabPanel("Visualize Network",                      
-                            div(style = "height:600px; overflow: hidden;", 
-                                dropdownButton(status = "danger", width="300px", circle=FALSE,icon=icon("gear"), tooltip = tooltipOptions(title = "Network interaction preferences"),
-                                    numericInput("selected_degree", "Node selection highlight degree", min=1, max=5, 2, width = "240px"),
-                                    switchInput("select_multiple_nodes", "Select multiple nodes at once", value=FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                                    switchInput("hover","Emphasize on hover",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                                    switchInput("hide_edges_on_drag","Hide edges when dragging nodes (more efficient)",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                                    switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                                    switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                                    switchInput("nav_buttons","Show navigation buttons",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger")
+                            div(style = "height:650px; overflow: hidden;", 
+                                div(style = "float:left;font-weight:bold;", 
+                                    textOutput("modularity"),
+                                    textOutput("n_element_nodes"),
+                                    textOutput("n_mineral_nodes"),
+                                    textOutput("n_edges")
+                                ),
+                                div(style = "float:right;", 
+                                    dropdownButton(status = "danger", right=TRUE, width="300px", circle=FALSE, icon=icon("gear"), size = "sm", tooltip = tooltipOptions(title = "Network interaction preferences"),
+                                        numericInput("selected_degree", "Node selection highlight degree", min=1, max=5, 2, width = "240px"),
+                                        switchInput("select_multiple_nodes", "Select multiple nodes at once", value=FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                                        switchInput("hover","Emphasize on hover",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                                        switchInput("hide_edges_on_drag","Hide edges when dragging nodes (more efficient)",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                                        switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                                        switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                                        switchInput("nav_buttons","Show navigation buttons",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger")
+                                    )
                                 ),
                                 visNetworkOutput("networkplot", height = "90%")
                             ),
                             div(style = "height:80px;",
-                                plotOutput("networklegend", height = "80%", width = "75%"),
-                                div(style = "float:left;font-weight:bold;", textOutput("modularity"))
+                                plotOutput("networklegend", height = "80%", width = "75%")
                             )
                         ),  ## tabPanel
+                        
+                        
+                        tabPanel("Network Information",
+                            div(style = "font-size:85%;",
+                                DT::dataTableOutput("networkTable")
+                            )
+                        ),
+
 
                         tabPanel("Analyze Network",
                             helpText("In this tab, you can construct a linear regression model to analyze properties of minerals in the specified network."),
                         
-                        fluidRow(
-                            column(4, 
-                                pickerInput("response", tags$b("Select the response (dependent) variable:"), 
-                                    choices = model_response_choices, selected="Maximum Age (Ga)"
+                            fluidRow(
+                                column(4, 
+                                    pickerInput("response", tags$b("Select the response (dependent) variable:"), 
+                                        choices = model_response_choices, selected="Maximum Age (Ga)"
+                                    ),
+                                    actionBttn("gomodel", "Update linear model", size="sm", color = "danger"),
+                                    br(),br(),br(),
+                                    span(textOutput("model_sanity"), style="color:red;font-weight:bold;font-size:1.25em;"),
+                                    span(textOutput("model_sanity_n"), style="color:red;font-weight:bold;font-size:1.25em;"),
+                                    br()
                                 ),
-                                actionBttn("gomodel", "Update linear model", size="sm", color = "danger"),
-                                br(),br(),br(),
-                                span(textOutput("model_sanity"), style="color:red;font-weight:bold;font-size:1.25em;"),
-                                span(textOutput("model_sanity_n"), style="color:red;font-weight:bold;font-size:1.25em;"),
-                                br()
-                            ),
-                            column(4,
+                                column(4,
 
-                                pickerInput("predictor", tags$b("Select the predictor (independent) variable:"), 
-                                    choices = model_predictor_choices, selected="COV electronegativity"
-                                ),
+                                    pickerInput("predictor", tags$b("Select the predictor (independent) variable:"), 
+                                        choices = model_predictor_choices, selected="COV electronegativity"
+                                    ),
                                 
-                                conditionalPanel('input.predictor == "Community Cluster"',{
-                                    uiOutput("choose_community_include_lm")               
-                                })
-                            ),
+                                    conditionalPanel('input.predictor == "Community Cluster"',{
+                                        uiOutput("choose_community_include_lm")               
+                                    })
+                                ),
 
                             
-                            column(4,
-                                p(tags$b("Preferences for plot of model results:")),
-                                prettyCheckbox("logx", "Use log scale on X-axis", status="danger", animation="smooth", icon = icon("check")),
-                                prettyCheckbox("logy", "Use log scale on Y-axis", status="danger", animation="smooth", icon = icon("check")),
-                                prettyCheckbox("bestfit", "Show regression line (with 95% confidence interval).", status="danger", animation="smooth", icon = icon("check")),
-                                ## LOL no apologies for the line below.
-                                helpText(HTML('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), "Note that these options are not applicable to Community Cluster analysis.")
-                            )
-                            ), ## fluidrow
-                            fluidRow(
-                            column(7,
-                                span(textOutput("caution_variance"), style="color:red;font-weight:bold;"),
-                                DT::dataTableOutput("fitted_model"),
-                                br(),br(),
-                                conditionalPanel( condition = "input.predictor == 'Community Cluster'", {
-                                    DT::dataTableOutput("fitted_tukey")
-                                })
-                            ),
-                            column(5,
-                                plotOutput("fitted_model_plot"),
-                                div(style="display:inline-block; float:right;",downloadBttn("download_model_plot", "Download Plot", size = "sm", style = "minimal", color = "danger"))                                
-                            )), br()
+                                column(4,
+                                    p(tags$b("Preferences for plot of model results:")),
+                                    prettyCheckbox("logx", "Use log scale on X-axis", status="danger", animation="smooth", icon = icon("check")),
+                                    prettyCheckbox("logy", "Use log scale on Y-axis", status="danger", animation="smooth", icon = icon("check")),
+                                    prettyCheckbox("bestfit", "Show regression line (with 95% confidence interval).", status="danger", animation="smooth", icon = icon("check")),
+                                    ## LOL no apologies for the line below.
+                                    helpText(HTML('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'), "Note that these options are not applicable to Community Cluster analysis.")
+                                )
+                                ), ## fluidrow
+                                fluidRow(
+                                column(7,
+                                    span(textOutput("caution_variance"), style="color:red;font-weight:bold;"),
+                                    DT::dataTableOutput("fitted_model"),
+                                    br(),br(),
+                                    conditionalPanel( condition = "input.predictor == 'Community Cluster'", {
+                                        DT::dataTableOutput("fitted_tukey")
+                                    })
+                                ),
+                                column(5,
+                                    plotOutput("fitted_model_plot"),
+                                    div(style="display:inline-block; float:right;",downloadBttn("download_model_plot", "Download Plot", size = "sm", style = "minimal", color = "danger"))                                
+                                )
+                            ), br()
                         ) ## tabPanel                 
                     ), # tabBox
                     
-                    
                     br(),br(),br(),
-                    tabBox(width=12, 
-                        tabPanel("Selected Node Information", 
-                            DT::dataTableOutput("nodeTable")
-                        ),
-                        tabPanel("Associated Mineral Localities", 
-                            DT::dataTableOutput("localityTable")
-                        ), 
-                        tabPanel("Node Clustering and Centrality", 
-                            DT::dataTableOutput("clusterTable")
-                        )                       
-                    ), # tabBox
+                    box(width=12,status = "primary",
+                        div(style="font-size:90%;",
+                         DT::dataTableOutput("nodeTable"))
+                    ),
+                    
+                    #br(),br(),br(),
+                    #tabBox(width=12, 
+                    #    tabPanel("Selected Node Information", 
+                    #        DT::dataTableOutput("nodeTable")
+                    #    ),
+                    #    tabPanel("Node Clustering and Centrality", 
+                    #        DT::dataTableOutput("clusterTable")
+                    #    )                       
+                    #), # tabBox
                     box(width = 12,status = "primary",
                         fluidRow(
                             column(3,

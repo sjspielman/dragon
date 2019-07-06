@@ -36,7 +36,6 @@ server <- function(input, output, session) {
         force_all_elements   <- input$force_all_elements
         age_limit            <- input$age_limit
         elements_by_redox    <- input$elements_by_redox
-        cluster_algorithm         <- input$cluster_algorithm
          
         
         elements_only <- initialize_data(elements_of_interest, force_all_elements)
@@ -57,19 +56,40 @@ server <- function(input, output, session) {
             "ERROR: Network could not be constructed. Please adjust input settings.")
         )
         
-        network <- construct_network(network_information, elements_by_redox, cluster_algorithm)
+        network <- construct_network(network_information, elements_by_redox)
 
         nodes <- network$nodes
         edges <- network$edges
-        membership <- network$membership
+        graph <- network$graph
+        #membership <- network$membership
+        
+        
         return (list("nodes" = nodes, 
                      "edges" = edges, 
-                     "membership" = membership,   
+                     "graph" = graph, 
+                     #"membership" = membership,   
                      "elements_of_interest" = input$elements_of_interest,
                      "age_lb" = age_limit[1],
                      "age_ub" = age_limit[2]))
 
     })
+    
+    
+    network_cluster <- reactive({
+    
+        clustered_net <- community_detect_network(chemistry_network()$graph, input$cluster_algorithm)
+        cluster_tibble <- tibble( "id" = clustered_net$names, "cluster_ID" = as.numeric(clustered_net$membership) )
+
+        ### Set cluster colors forever ### 
+        n_clusters <- length(unique(cluster_tibble$cluster_ID))
+        cluster_colors_gghack <- tibble(x=1:n_clusters, y = factor(1:n_clusters)) %>% ggplot(aes(x = x, y = y, color = y)) + geom_point() 
+        ggplot_build(cluster_colors_gghack)$data[[1]] %>% 
+            as_tibble() %>% 
+            pull(colour) -> cluster_colors
+        return( list("clustering" = clustered_net, "tib" = cluster_tibble, "cluster_colors" = cluster_colors) )
+    })
+                                
+                        
     
 
 
@@ -87,7 +107,7 @@ server <- function(input, output, session) {
 
 
     output$choose_community_include_lm <- renderUI({
-        chemistry_network()$nodes %>%
+        network_cluster()$tib %>%
             dplyr::select(cluster_ID) %>%
             distinct() %>% 
             pull(cluster_ID) -> cluster_choices
@@ -104,10 +124,56 @@ server <- function(input, output, session) {
     
         
         output$modularity <- renderText({
-            membership <- chemistry_network()$membership
+            membership <- network_cluster()$clustering
             paste0("Network modularity: ", round( membership$modularity[[1]], 4))    
         })    
+
+        output$n_element_nodes <- renderText({
+            chemistry_network()$nodes %>% 
+                filter(group == "element") %>%
+                distinct() %>%
+                nrow() -> n_element_nodes
+
+            if (input$elements_by_redox)
+            {
+                chemistry_network()$nodes %>% 
+                   filter(group == "element") %>%
+                   separate(id, c("base_element", "jazz"), sep = "[\\s\\+\\-]") %>%
+                   dplyr::select(base_element) %>%
+                   distinct() %>%
+                   nrow() -> n_base_elements
+                element_phrase <- paste0("Number of elements: ", n_base_elements, ". Number of element nodes: ", n_element_nodes)    
+            } else
+            {
+                element_phrase <- paste0("Number of element nodes: ", n_element_nodes)    
+            }
+
+            paste0(element_phrase)    
+        })  
     
+  
+
+        output$n_mineral_nodes <- renderText({
+            chemistry_network()$nodes %>% 
+                filter(group == "mineral") %>%
+                distinct() %>%
+                nrow() -> n_mineral_nodes
+            paste0("Number of mineral nodes: ", n_mineral_nodes)  
+        })  
+    
+
+        output$n_edges <- renderText({
+            n_edges <- nrow(unique(chemistry_network()$edges))
+            paste0("Number of edges: ", n_edges)
+        })  
+    
+    
+    
+    
+
+
+
+                        
     
         output$networkplot <- renderVisNetwork({
 
@@ -116,6 +182,12 @@ server <- function(input, output, session) {
             edges <- chemistry_network()$edges
             network_layout <- input$network_layout
             network_layout_seed <- input$network_layout_seed
+
+            #restore_positions <- input$cache_positions
+            #if (restore_positions){
+            #    print(input$networkplot_positions)
+            #}
+
                     
             isolate({
                 starting_nodes <- node_styler()$styled_nodes
@@ -128,7 +200,7 @@ server <- function(input, output, session) {
                                                        #selected = selected_element,
                                                        values = c( sort(nodes$id[nodes$group == "element"]), sort(nodes$id[nodes$group == "mineral"]) ),
                                                        main    = "Select node",
-                                                       style   = "float:left; width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: -1.25em 0.5em 0em 0em;")  ##t r b l 
+                                                       style   = "float:right; width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: -1.4em 0.5em 0em 0em;")  ##t r b l 
                            ) %>%
                     visInteraction(dragView          = TRUE, 
                                    dragNodes         = TRUE, 
@@ -153,6 +225,7 @@ server <- function(input, output, session) {
             })          
         })
     
+
     
         observe({
 
@@ -161,6 +234,7 @@ server <- function(input, output, session) {
             visNetworkProxy("networkplot") %>%
                 visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
                 visUpdateEdges(edges = edge_styler()$styled_edges) %>%
+                visGetNodes(input = "nodes_coord") %>%  ### retains last position
                 visGetSelectedNodes() %>%
                 visGetPositions() %>%
                 visInteraction(dragView          = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
@@ -172,13 +246,7 @@ server <- function(input, output, session) {
                                navigationButtons = input$nav_buttons) %>%
                 visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree),
                            nodesIdSelection = list(enabled = TRUE, main  = "Select node")) 
-
-            network_positions <- enframe(input$networkplot_positions) %>% unnest() %>% unnest()
-            halfrows <- nrow(network_positions)/2
-            network_positions %<>% 
-                rename(coord = value) %>% 
-                mutate(axis = rep(c("x","y"), halfrows)) %>% 
-                spread(axis, coord)    
+ 
         })     
     
 
@@ -252,15 +320,19 @@ server <- function(input, output, session) {
 
 
     ################################### NODE TABLES ##############################################
-    output$clusterTable <- renderDT(rownames= FALSE,  server = FALSE,
+    output$networkTable <- renderDT(rownames= FALSE,  server = FALSE,
        
-       chemistry_network()$nodes %>% 
-            dplyr::select(id, group, cluster_ID, network_degree, network_degree_norm, closeness, mean_pauling, sd_pauling, pauling, max_age) %>%
-            mutate(mean_pauling = round(mean_pauling, 5),
-                   sd_pauling = round(sd_pauling, 5),
-                   cov_pauling = round(sd_pauling, 5), 
-                   closeness = round(closeness, 5),
-                   network_degree_norm = round(network_degree_norm, 5)) %>%
+        chemistry_network()$nodes %>% 
+            left_join(network_cluster()$tib) %>%
+            dplyr::select(-label, -title, -font.face) %>%
+            #dplyr::select(id, group, cluster_ID, network_degree, network_degree_norm, closeness, mean_pauling, sd_pauling, pauling, max_age) %>%
+            mutate(mean_pauling        = round(mean_pauling, 5),
+                   sd_pauling          = round(sd_pauling, 5),
+                   cov_pauling         = round(sd_pauling, 5), 
+                   closeness           = round(closeness, 5),
+                   network_degree_norm = round(network_degree_norm, 5), 
+                   redox               = round(redox, 5)) %>%
+            dplyr::select(id, group, max_age, num_localities, cluster_ID, network_degree, network_degree_norm, closeness, redox, pauling, mean_pauling, sd_pauling, cov_pauling) %>%
             arrange(group, id) %>%
             rename(!! variable_to_title[["id"]] := id,
                    !! variable_to_title[["group"]] := group,
@@ -269,6 +341,8 @@ server <- function(input, output, session) {
                    !! variable_to_title[["network_degree_norm"]] := network_degree_norm,
                    !! variable_to_title[["closeness"]] := closeness, 
                    !! variable_to_title[["max_age"]] := max_age, 
+                   !! variable_to_title[["redox"]] := redox,
+                   !! variable_to_title[["num_localities"]] := num_localities,
                    !! variable_to_title[["pauling"]] := pauling,
                    !! variable_to_title[["mean_pauling"]] := mean_pauling,
                    !! variable_to_title[["sd_pauling"]] := sd_pauling,
@@ -311,7 +385,6 @@ server <- function(input, output, session) {
                        !! variable_to_title[["sd_pauling"]] := sd_pauling, 
                        !! variable_to_title[["cov_pauling"]] := cov_pauling) -> node_table 
             
-            locality_table <- node_table %>% select(- !! variable_to_title[["max_age"]] )
             
         } else{
             e %>% 
@@ -361,21 +434,19 @@ server <- function(input, output, session) {
                                     dom = 'Bfrtip',
                                     colReorder = TRUE
                                 ))
-        output$localityTable <- renderDT( rownames= FALSE, server=FALSE, 
-                                locality_table, 
-                                extensions = c('Buttons', 'ColReorder', 'Responsive'),
-                                options = list(
-                                    dom = 'Bfrtip',
-                                    colReorder = TRUE
-                                ))
+
     })
     #################################################################################################################
 
+
+
+    ######################################## DATA EXPLORATION TAB ###################################################
+    
   
     
     
     
-    ################################################ LINEAR MODEL TAB ###########################
+    ################################################ LINEAR MODEL TAB ###############################################
     
     observeEvent(input$gomodel, {
        
@@ -388,17 +459,18 @@ server <- function(input, output, session) {
         })
 
         chemistry_network()$nodes %>%
-        filter(group == "mineral") %>%
-        dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, sd_pauling, cov_pauling) %>%
-        rename(!! variable_to_title[["cluster_ID"]] := cluster_ID,   ###`Community Cluster`
-               !! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
-               !! variable_to_title[["closeness"]] := closeness,
-               !! variable_to_title[["mean_pauling"]] := mean_pauling,
-               !! variable_to_title[["sd_pauling"]] := sd_pauling, 
-               !! variable_to_title[["cov_pauling"]] := cov_pauling,
-               !! variable_to_title[["num_localities"]] := num_localities,
-               !! variable_to_title[["max_age"]] := max_age)  -> mineral_nodes  
-
+            left_join(network_cluster()$tib) %>%
+            filter(group == "mineral") %>%
+            dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, sd_pauling, cov_pauling) %>%
+            rename(!! variable_to_title[["cluster_ID"]] := cluster_ID,   ###`Community Cluster`
+                   !! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
+                   !! variable_to_title[["closeness"]] := closeness,
+                   !! variable_to_title[["mean_pauling"]] := mean_pauling,
+                   !! variable_to_title[["sd_pauling"]] := sd_pauling, 
+                   !! variable_to_title[["cov_pauling"]] := cov_pauling,
+                   !! variable_to_title[["num_localities"]] := num_localities,
+                   !! variable_to_title[["max_age"]] := max_age)  -> mineral_nodes  
+        print(mineral_nodes)
         mineral_nodes$`Community Cluster` <- as.factor(mineral_nodes$`Community Cluster`)
         
         bad <- FALSE
@@ -411,6 +483,7 @@ server <- function(input, output, session) {
             if (!(is.null(input$community_include_lm))) {
                 mineral_nodes %<>% filter(`Community Cluster` %in% input$community_include_lm)
             }
+            
             ## There must be at least two minerals per cluster.
             mineral_nodes %>% 
                 group_by(`Community Cluster`) %>%
@@ -477,9 +550,18 @@ server <- function(input, output, session) {
                                                          "95% CI Upper bound" = conf.high,
                                                          "Adjusted P-value" = adj.p.value)
                                          })
+                                         
+
+                if (!(is.null(input$community_include_lm))) {
+                    mineral_nodes %<>% filter(`Community Cluster` %in% input$community_include_lm)
+                    use_cluster_colors <- network_cluster()$cluster_colors[ as.numeric(input$community_include_lm) ]
+                } else
+                {
+                    use_cluster_colors <- network_cluster()$cluster_colors
+                }                                         
                 fitted_model_plot <- top_plot + 
                                         geom_jitter(aes_string(color = predictor_string), width=0.2, size=1.5) + 
-                                        labs(color = input$predictor)  +
+                                        scale_color_manual(values = use_cluster_colors, name = input$predictor) +
                                         stat_summary(geom="errorbar", width=0, color = "grey30", size=1)+
                                         stat_summary(geom="point", color = "grey30", size=2.5) + 
                                         theme(legend.text=element_text(size=12), legend.title=element_text(size=13))
@@ -527,9 +609,11 @@ server <- function(input, output, session) {
 
     })
     #################################### NODE AND EDGE STYLING #############################################
-        ######################### Node colors, shape, size, labels #########################
+    ######################### Node colors, shape, size, labels #############################################
     node_styler <- reactive({
                         
+        full_nodes <- left_join(chemistry_network()$nodes, network_cluster()$tib)
+            
         node_attr <- list()   
         node_attr[["both_legend"]] <- NA 
         node_attr[["element_legend"]] <- NA     
@@ -537,7 +621,7 @@ server <- function(input, output, session) {
         ################ Colors ####################
         if (input$color_by_cluster) 
         {        
-            out <- obtain_colors_legend(chemistry_network()$nodes, "cluster_ID", "d", "NA", "Network cluster identity")
+            out <- obtain_colors_legend(full_nodes, "cluster_ID", "d", "NA", "Network cluster identity", network_cluster()$cluster_colors)
             node_attr[["both_legend"]] <- out$leg
             node_attr[["colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
         } else 
@@ -546,14 +630,14 @@ server <- function(input, output, session) {
             {
                 out <- obtain_colors_legend_single("Mineral", vis_to_gg_shape[input$mineral_shape], input$mineral_color)
                 node_attr[["mineral_legend"]] <- out$leg
-                node_attr[["mineral_colors"]] <- chemistry_network()$nodes %>% 
+                node_attr[["mineral_colors"]] <- full_nodes %>% 
                                                 filter(group == "mineral") %>% 
                                                 select(label, id) %>%
                                                 mutate(color.background = input$mineral_color)
                 
             } else
             {  
-                out <- obtain_colors_legend(chemistry_network()$nodes %>% filter(group == "mineral"), input$color_mineral_by, "c", input$mineralpalette, variable_to_title[[input$color_mineral_by]])
+                out <- obtain_colors_legend(full_nodes %>% filter(group == "mineral"), input$color_mineral_by, "c", input$mineralpalette, variable_to_title[[input$color_mineral_by]])
                 node_attr[["mineral_legend"]] <- out$leg
                 node_attr[["mineral_colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
             } 
@@ -567,7 +651,7 @@ server <- function(input, output, session) {
                 if (input$element_shape == "text") { this_color <- input$element_label_color} else { this_color <- input$element_color}
                 out <- obtain_colors_legend_single("Element", vis_to_gg_shape[input$element_shape], this_color)
                 node_attr[["element_legend"]] <- out$leg
-                node_attr[["element_colors"]] <- chemistry_network()$nodes %>% 
+                node_attr[["element_colors"]] <- full_nodes %>% 
                                                 filter(group == "element") %>% 
                                                 select(label, id) %>%
                                                 mutate(color.background = input$element_color)
@@ -577,7 +661,7 @@ server <- function(input, output, session) {
                 
             {  
             
-                chemistry_network()$nodes %>% filter(group == "element") -> legend_data
+                full_nodes %>% filter(group == "element") -> legend_data
                 out <- obtain_colors_legend(legend_data, input$color_element_by, "c", input$elementpalette, variable_to_title[[input$color_element_by]])
                 node_attr[["element_legend"]] <- out$leg
                 node_attr[["element_colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
@@ -591,7 +675,7 @@ server <- function(input, output, session) {
                 node_attr[["element_colors"]] <- out$cols %>% 
                                                     select(element, color) %>% 
                                                     rename(id = element, color.background = color) %>% 
-                                                    left_join(chemistry_network()$nodes) %>% 
+                                                    left_join(full_nodes) %>% 
                                                     filter(group == "element") %>%
                                                     select(label, id, color.background) %>%
                                                     unique()
@@ -602,14 +686,14 @@ server <- function(input, output, session) {
         ################ Sizes ####################
         if (input$element_size_type != "singlesize") 
         {
-            node_attr[["sizes"]] <- obtain_node_sizes(chemistry_network()$nodes %>% filter(group == "element"), 
+            node_attr[["sizes"]] <- obtain_node_sizes(full_nodes %>% filter(group == "element"), 
                                                             input$element_size_type, 1, 4, size_scale = input$size_scale) %>%
                                                         select(label, id, size) %>%
                                                         mutate(group = "element") 
 
         } else
         {
-            node_attr[["sizes"]] <- chemistry_network()$nodes %>% 
+            node_attr[["sizes"]] <- full_nodes %>% 
                                                 filter(group == "element") %>% 
                                                 select(label, id, group) %>%
                                                 mutate(size = input$element_label_size)
@@ -617,14 +701,14 @@ server <- function(input, output, session) {
         }                     
          
         if (input$mineral_size_type != "singlesize") {
-             minsizes <- obtain_node_sizes(chemistry_network()$nodes %>% filter(group == "mineral"), 
+             minsizes <- obtain_node_sizes(full_nodes %>% filter(group == "mineral"), 
                                                             input$mineral_size_type, 5, 30) %>%
                                                             select(label, id, size) %>%
                                                             mutate(group = "mineral")
  
         } else 
         {
-            minsizes <- chemistry_network()$nodes %>% 
+            minsizes <- full_nodes %>% 
                             filter(group == "mineral") %>% 
                             mutate(size = input$mineral_size) %>%
                             select(label, id, size, group)
@@ -635,7 +719,7 @@ server <- function(input, output, session) {
 
 
         ########## Merge and add in remaining attributes including shape, highlight, label #################
-        node_attr[["styled_nodes"]] <- chemistry_network()$nodes %>% 
+        node_attr[["styled_nodes"]] <- full_nodes %>% 
                                            left_join( node_attr[["colors"]] ) %>%
                                            left_join( node_attr[["sizes"]]   ) %>% 
                                            mutate(color.background = ifelse((id %in% chemistry_network()$elements_of_interest & input$highlight_element), input$highlight_color, color.background), 

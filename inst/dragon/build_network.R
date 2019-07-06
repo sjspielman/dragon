@@ -104,14 +104,14 @@ obtain_network_information <- function(elements_only_age, elements_by_redox)
 }
 
 
-construct_network   <- function(network_information, elements_by_redox, cluster_algorithm)
+construct_network   <- function(network_information, elements_by_redox)
 {
 
     network_data <- network_information %>% select(mineral_name, element)
     
     element_network <- graph.data.frame(network_data, directed=FALSE)
     V(element_network)$type <- bipartite_mapping(element_network)$type 
-    clustered_net <- community_detect_network(element_network, cluster_algorithm)
+    #clustered_net <- community_detect_network(element_network, cluster_algorithm)
     deg <- igraph::degree(element_network)
     closeness <- igraph::closeness(element_network)
 
@@ -129,8 +129,9 @@ construct_network   <- function(network_information, elements_by_redox, cluster_
         rename(id = element, redox = mean_element_redox) %>%
         unique() -> element_redox_electro
 
-    vertex_information <- left_join( tibble("item" = clustered_net$names, "cluster_ID"= as.numeric(clustered_net$membership)),
-                                     tibble("item" = names(deg), "network_degree"= as.numeric(deg), "closeness" = as.numeric(closeness)) ) %>%
+    #vertex_information <- left_join( tibble("item" = clustered_net$names, "cluster_ID"= as.numeric(clustered_net$membership)),
+    #                                 tibble("item" = names(deg), "network_degree"= as.numeric(deg), "closeness" = as.numeric(closeness)) ) %>%
+    vertex_information <- tibble("item" = names(deg), "network_degree"= as.numeric(deg), "closeness" = as.numeric(closeness)) %>%
         mutate(type = ifelse(item %in% network_information$mineral_name, "mineral", "element")) %>%
         group_by(type) %>%
         mutate(network_degree_norm = network_degree / max(network_degree)) %>%
@@ -159,7 +160,7 @@ construct_network   <- function(network_information, elements_by_redox, cluster_
                                          group == "element" & nchar(label) == 3+charadd ~ label),  
                        title = id,                      
                        font.face = "courier")
-    return (list("nodes" = nodes, "edges" = edges, "membership" = clustered_net))
+    return (list("nodes" = nodes, "edges" = edges, "graph" = element_network)) #, "membership" = clustered_net))
 }
   
   
