@@ -142,7 +142,7 @@ dashboardPage(skin = "red",
                 column(6, pickerInput("element_size_type", "Element node size:", 
                                      c("Single size" = "singlesize",
                                        "Size by degree centrality" = "network_degree_norm",
-                                       "Size by closeness centrality"), selected = "singlesize")
+                                       "Size by closeness centrality" =  "closeness"), selected = "singlesize")
                     ),
                 column(6, conditionalPanel(condition = "input.element_size_type == 'singlesize'", 
                             {sliderInput("element_label_size","Size",value=50,min=10,max=100, step=10)}) #### !!!!!!! label size!!!!!!!
@@ -324,7 +324,7 @@ dashboardPage(skin = "red",
                     ), # tabBox
                     
                     br(),br(),br(),
-                    box(width=12,status = "primary",
+                    box(width=12,status = "primary", title = "Selected Node Information",
                         div(style="font-size:90%;",
                          DT::dataTableOutput("nodeTable"))
                     ),
@@ -338,7 +338,7 @@ dashboardPage(skin = "red",
                     #        DT::dataTableOutput("clusterTable")
                     #    )                       
                     #), # tabBox
-                    box(width = 12,status = "primary",
+                    box(width = 12,status = "primary", title = "Network Export",
                         fluidRow(
                             column(3,
                                 downloadBttn("exportNodes", "Export nodes as CSV", size = "sm", style = "minimal", color = "danger")

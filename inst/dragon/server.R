@@ -350,7 +350,8 @@ server <- function(input, output, session) {
          extensions = c('Buttons', 'ColReorder', 'Responsive'),
                         options = list(
                         dom = 'Bfrtip',
-                        colReorder = TRUE
+                        colReorder = TRUE, 
+                        buttons = c('copy', 'csv', 'excel')
         )
     )
     observeEvent(input$networkplot_selected, {
@@ -432,7 +433,8 @@ server <- function(input, output, session) {
                                 extensions = c('Buttons', 'ColReorder', 'Responsive'),
                                 options = list(
                                     dom = 'Bfrtip',
-                                    colReorder = TRUE
+                                    colReorder = TRUE, 
+                                    buttons = c('copy', 'csv', 'excel')
                                 ))
 
     })
@@ -533,7 +535,7 @@ server <- function(input, output, session) {
             
                 aov_fit <- aov(as.formula(aov_fit_string), data = mineral_nodes2, na.action = na.omit )
 
-                output$fitted_tukey <- renderDT( rownames= FALSE, server=FALSE, options = list(dom = 't', autoWidth = TRUE), { 
+                output$fitted_tukey <- renderDT( rownames= FALSE, server=FALSE, options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
                                     
                                  
                                             TukeyHSD(aov_fit) %>% 
@@ -573,9 +575,9 @@ server <- function(input, output, session) {
                 if (input$logy) fitted_model_plot <- fitted_model_plot + scale_y_log10()
                 if (input$bestfit) fitted_model_plot <- fitted_model_plot + geom_smooth(method = "lm")
             }
+
         
-        
-            output$fitted_model <- renderDT( rownames= FALSE, server=FALSE, options = list(dom = 't'), { 
+            output$fitted_model <- renderDT( rownames= FALSE, server=FALSE, options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
                                                     broom::tidy(fit) %>%
                                                     mutate(term = str_replace_all(term, "`", ""),
                                                            estimate = round(estimate, 6),
@@ -775,7 +777,7 @@ server <- function(input, output, session) {
              colorlegend_edge <- out$leg
          }
          
-         edge_colors %<>% mutate(width = input$edge_weight)
+        edge_colors %<>% mutate(width = input$edge_weight)
         return (list("edge_legend" = colorlegend_edge, "styled_edges" = edge_colors) )
     })
     
