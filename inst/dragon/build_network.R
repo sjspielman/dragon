@@ -1,16 +1,19 @@
 form_file_path <- function(filename)
 {
+    #return(paste0("~/Projects/dragon/inst/extdata/", filename))
     return( system.file("extdata", filename, package = "dragon") ) 
 }
 
-rruff                <- read_csv(form_file_path("rruff_minerals.csv.zip")) %>% mutate(max_age = max_age/1000) 
+rruff                <- read_csv(form_file_path("rruff_minerals.csv.zip")) %>% mutate(max_age = max_age/1000, min_age = min_age/1000) 
 element_redox_states <- read_csv(form_file_path("rruff_redox_states.csv.zip"))
 rruff_separated      <- read_csv(form_file_path("rruff_separated_elements.csv.zip"))
-rruff_sub            <- rruff %>% select(-mineral_id, -mindat_id, -rruff_chemistry)
+#rruff_sub            <- rruff %>% select(-mineral_id, -rruff_chemistry)
 rruff_chemistry      <- rruff_separated %>% select(-chemistry_elements) %>% unique()
-electronegativity    <- read_csv(form_file_path("element_electronegativities.csv.zip")) %>% select(-allen)
+element_info         <- read_csv(form_file_path("element_information.csv")) 
 
 total_max_age <- round( max(rruff$max_age) + 0.1, 1)
+hsab_levels <- c("Hard acid", "Int. acid", "Soft acid", "Soft base", "Int. base", "Hard base")
+
                             
 community_detect_network <- function(network, cluster_algorithm)
 {
@@ -31,7 +34,7 @@ initialize_data <- function(elements_of_interest, force_all_elements)
             mutate(has_element = if_else( sum(chemistry_elements %in% elements_of_interest) == n_elements, TRUE, FALSE)) %>% 
             filter(has_element == TRUE) %>%
             select(mineral_name) %>%
-            inner_join(rruff_sub) -> elements_only
+            inner_join(rruff) -> elements_only
     } else 
     { ## Has at least one element
         rruff_separated %>%
@@ -39,66 +42,102 @@ initialize_data <- function(elements_of_interest, force_all_elements)
             mutate(has_element = if_else( chemistry_elements %in% elements_of_interest, TRUE, FALSE)) %>% 
             filter(has_element == TRUE) %>%
             select(mineral_name) %>%
-            inner_join(rruff_sub) -> elements_only
+            inner_join(rruff) -> elements_only
  
     }  
     elements_only
 }
 
-initialize_data_age <- function(elements_only, age_limit)
+initialize_data_age <- function(elements_only, age_limit, max_age_type)
 {
     lb <- age_limit[1]
     ub <- age_limit[2]
-    elements_only %>% 
-        group_by(mineral_name) %>% 
-        summarize(num_localities = sum(at_locality)) %>%
-        left_join(elements_only) %>%
-        ungroup() %>% group_by(mineral_name) %>%
-        mutate(overall_max_age = max(max_age)) %>%
-        filter(max_age == overall_max_age) %>% 
-        ungroup() %>%
-        filter(max_age >= lb, max_age <= ub) -> elements_only_age
     
-    elements_only_age
+    if (max_age_type == "Minimum")
+    {
+        elements_only %<>%
+            dplyr::select(-max_age) %>%
+            rename(max_age = min_age)
+    } else {
+        elements_only %<>% dplyr::select(-min_age)
+    }
+    
+    elements_only %<>% 
+        filter(max_age >= lb, max_age <= ub) %>% 
+        group_by(mineral_name) %>%
+        mutate(num_localities_mineral = sum(at_locality)) 
+    elements_only %>% 
+        dplyr::select(mineral_name, mineral_id, max_age, mindat_id, locality_longname, age_type) %>%
+        rename(max_age_locality = max_age) %>%
+        ungroup() -> locality_info
+    elements_only %>%
+        mutate(overall_age = max(max_age)) %>%
+        filter(max_age == max(max_age)) %>% 
+        dplyr::select(mineral_name, mineral_id, ima_chemistry, rruff_chemistry, chemistry_elements, num_localities_mineral, max_age) %>%
+        ungroup() %>% 
+        distinct()-> elements_only_age
+    
+    list("elements_only_age" = elements_only_age, "locality_info" = locality_info)
+    
+#>  names(elements_only_age)
+# [1] "mineral_name"           "ima_chemistry"          "mindat_id"             
+# [4] "locality_longname"      "age_type"               "min_age"               
+# [7] "max_age"                "chemistry_elements"     "num_localities_mineral"
+#[10] "max_age_locality" 
 }
 
 obtain_network_information <- function(elements_only_age, elements_by_redox)
 {      
+
+    ima <- rruff %>% 
+            dplyr::select(mineral_name, ima_chemistry) %>%
+            distinct()
     network_information <- elements_only_age %>%    
-                            select(mineral_name, num_localities, max_age, chemistry_elements) %>%
-                            unique() %>%
+                            dplyr::select(mineral_name, mineral_id, num_localities_mineral, max_age, chemistry_elements) %>%
+                            distinct() %>%
                             separate_rows(chemistry_elements,sep=" ") %>%
                             rename(element = chemistry_elements) %>%
-                            left_join(element_redox_states) %>% 
-                            left_join(electronegativity, by = "element") %>%
+                            left_join(element_info, by = "element") %>%
+                            left_join(element_redox_states, by = c("element", "mineral_name")) %>%
+                            left_join(ima, by = "mineral_name") %>%
                             group_by(mineral_name) %>%
                             mutate(mean_pauling = mean(pauling),
-                                   sd_pauling   = sd(pauling),
-                                   cov_pauling = sd_pauling / mean_pauling )
+                                   #sd_pauling   = sd(pauling),
+                                   cov_pauling = sd(pauling) / mean_pauling ) %>%
+                            ungroup()
 
     if (elements_by_redox)
     {
-        network_information %>%
+        network_information %<>%
             mutate(base_element = element, 
-                   redox_sign = case_when(redox == 0 ~ "+",
-                                          redox == abs(redox) ~ "+",
-                                          redox != abs(redox) ~ "-"),
-                   element = ifelse(is.na(redox), paste0(element, "  "), 
-                                                  paste0(element, redox_sign, abs(redox)))) %>%
-            unique() %>%
-            ungroup() -> network_information       
+                   element_redox_mineral_sign = case_when(element_redox_mineral == 0 ~ "+",
+                                                          element_redox_mineral == abs(element_redox_mineral) ~ "+",
+                                                          element_redox_mineral != abs(element_redox_mineral) ~ "-"),
+                   element = ifelse(is.na(element_redox_mineral), paste0(element, "  "), 
+                                                  paste0(element, element_redox_mineral_sign, abs(element_redox_mineral)))) %>%
+            dplyr::select(-element_redox_mineral_sign) %>%
+            distinct() %>%
+            ungroup()    
     }
-    
-    ### STARTS multiple redox states, one per element per mineral, regardless of if/else above
+
+    #network_information %<>%
+    #    group_by(element) %>%
+    #    mutate(num_localities_element = sum(num_localities_mineral)) %>%
+    #    ungroup()
+
     network_information %<>%
-        select(element, redox) %>%
-        unique() %>%
+        #dplyr::select(element, element_redox_mineral) %>%
+        #distinct() %>%
         group_by(element) %>%
-        summarize(mean_element_redox = mean(redox, na.rm=TRUE)) %>%
-        right_join(network_information) %>%
-        mutate(redox = ifelse(is.nan(redox), NA, redox),
-               mean_element_redox = ifelse(is.nan(mean_element_redox), NA, mean_element_redox))
-    ### ENDS with two redox columns: redox is the element in the mineral (sometimes unknown), and mean_element_redox will be a unique per node. 
+        mutate(element_redox_network = mean(element_redox_mineral, na.rm=TRUE),#### TODO: KEEP OR CHUCK NA.RM???
+               num_localities_element = sum(num_localities_mineral)) %>% 
+        ungroup() %>%
+        group_by(element, mineral_name) %>%
+        mutate(element_redox_mineral = mean(element_redox_mineral, na.rm=TRUE), #### TODO: KEEP OR CHUCK NA.RM???
+               element_redox_mineral = ifelse(is.nan(element_redox_mineral), NA, element_redox_mineral),
+               element_redox_network = ifelse(is.nan(element_redox_network), NA, element_redox_network)) %>%
+        ungroup() %>%
+        distinct()
 
     network_information    
 }
@@ -107,7 +146,9 @@ obtain_network_information <- function(elements_only_age, elements_by_redox)
 construct_network   <- function(network_information, elements_by_redox)
 {
 
-    network_data <- network_information %>% select(mineral_name, element)
+    network_data <- network_information %>% 
+                        dplyr::select(mineral_name, element) %>%
+                        distinct()
     
     element_network <- graph.data.frame(network_data, directed=FALSE)
     V(element_network)$type <- bipartite_mapping(element_network)$type 
@@ -115,40 +156,56 @@ construct_network   <- function(network_information, elements_by_redox)
     deg <- igraph::degree(element_network)
     closeness <- igraph::closeness(element_network)
 
+
     ### 1 row per VERTEX, to be joined with nodes
-    minerals_as_item <- network_information %>% 
-        group_by(mineral_name) %>%
-        left_join(network_information) %>%
-        select(mineral_name, num_localities, max_age, mean_pauling, sd_pauling, cov_pauling) %>%
+    mineral_information <- network_information %>% 
+        dplyr::select(mineral_name, mineral_id, num_localities_mineral, max_age, mean_pauling, cov_pauling, rruff_chemistry, ima_chemistry) %>% #sd_pauling,
         rename(item = mineral_name) %>%
-        unique() 
+        distinct() 
+
     
     ## TWO COLUMNS, ID IS NOW UNIQUE NODE
-    network_information %>% 
-        select(element, mean_element_redox, pauling) %>%
-        rename(id = element, redox = mean_element_redox) %>%
-        unique() -> element_redox_electro
+    element_information <- network_information %>% 
+        dplyr::select(-mineral_name, -mineral_id, -num_localities_mineral, -max_age, -mean_pauling, -cov_pauling, -rruff_chemistry, -ima_chemistry, -element_redox_mineral) %>% 
+        rename(id = element) %>%
+        distinct()
+    element_information$element_hsab <- factor(element_information$element_hsab, levels = hsab_levels)
+    element_information$TablePeriod <- factor(element_information$TablePeriod)
+    element_information$TableGroup <- factor(element_information$TableGroup)
 
     #vertex_information <- left_join( tibble("item" = clustered_net$names, "cluster_ID"= as.numeric(clustered_net$membership)),
     #                                 tibble("item" = names(deg), "network_degree"= as.numeric(deg), "closeness" = as.numeric(closeness)) ) %>%
+
     vertex_information <- tibble("item" = names(deg), "network_degree"= as.numeric(deg), "closeness" = as.numeric(closeness)) %>%
         mutate(type = ifelse(item %in% network_information$mineral_name, "mineral", "element")) %>%
         group_by(type) %>%
         mutate(network_degree_norm = network_degree / max(network_degree)) %>%
         ungroup() %>%        
-        left_join(minerals_as_item) %>%  
-        rename(id = item) %>%
-        left_join(element_redox_electro, by="id")
-
+        left_join(mineral_information) %>%  
+        rename(id = item) %>% ##???
+        left_join(element_information) %>%
+        mutate(num_localities = ifelse(is.na(num_localities_mineral), num_localities_element, num_localities_mineral)) %>%
+        dplyr::select(-num_localities_mineral, -num_localities_element)
     
     net <- toVisNetworkData(element_network)
 
-    edges <- as_tibble(net$edges) %>% bind_cols(network_information) %>% left_join(minerals_as_item)
+    #write_csv(as_tibble(net$edges), "edges.csv")
+    #write_csv(network_information, "info.csv")
+    #print.data.frame(head(as_tibble(net$edges)))
+   # print.data.frame(head(network_information))
+    
+    edges <- as_tibble(net$edges) %>%
+                bind_cols(network_information) %>% 
+                left_join(mineral_information) %>% 
+                dplyr::select(-item) %>%
+                distinct()
+    
 
     charadd <- 0
     if (elements_by_redox){
         charadd <- 2
     }
+    
     nodes <- as_tibble(net$nodes) %>%
                 mutate(type = ifelse(type == FALSE, "mineral", "element")) %>% 
                 left_join(vertex_information) %>%
@@ -158,9 +215,29 @@ construct_network   <- function(network_information, elements_by_redox)
                                          group == "element" & nchar(label) == 1+charadd ~ paste0(" ", label, " "),
                                          group == "element" & nchar(label) == 2+charadd ~ paste0(" ", label),
                                          group == "element" & nchar(label) == 3+charadd ~ label),  
-                       title = id,                      
-                       font.face = "courier")
-    return (list("nodes" = nodes, "edges" = edges, "graph" = element_network)) #, "membership" = clustered_net))
+                       title = case_when(group == "mineral" ~ paste0("<p>", 
+                                                                     id, "<br>", 
+                                                                     ima_chemistry, "<br>", 
+                                                                     paste0("Maximum known age: ", max_age, " Ga"), "</p>"), 
+                                         group == "element" & elements_by_redox == TRUE ~ "",  
+                                         group == "element" & elements_by_redox == FALSE ~ paste0("<p>", 
+                                                                                                  element_name, "<br>", 
+                                                                                                  ifelse(is.na(AtomicMass), "", paste0("Atomic mass: ", AtomicMass)), "<br>",  
+                                                                                                  ifelse(is.na(pauling), "", paste0("Electronegativity: ", pauling)), "</p>")),                   
+                       font.face = "courier") %>%
+                distinct() 
+    
+    if (elements_by_redox)
+    {
+        nodes %<>% 
+            mutate(title = ifelse(group == "mineral", title, paste0("<p>", 
+                                                                     element_name, "<br>",
+                                                                     ifelse(is.na(element_redox_network), "", paste0("Redox state: ", element_redox_network)), "<br>",    
+                                                                     ifelse(is.na(AtomicMass), "", paste0("Atomic mass: ", AtomicMass)), "<br>",  
+                                                                     ifelse(is.na(pauling), "", paste0("Electronegativity: ", pauling)), "</p>")))
+    }
+        
+    return (list("nodes" = nodes, "edges" = edges, "graph" = element_network))
 }
   
   

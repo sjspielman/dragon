@@ -1,36 +1,109 @@
 ##### Global variables, functions, strings used in dragon #####
 
-## Legend titles and renamed columns for DT
-variable_to_title <- c("redox"               = quo("Mean Redox State"), 
-                        "max_age"             = quo("Maximum Age (Ga)"), 
-                        "num_localities"      = quo("Number of known localities"), 
-                        "network_degree_norm" = quo("Degree centrality (normalized)"), 
-                        "network_degree"      = quo("Degree centrality"), 
-                        "closeness"           = quo("Closeness centrality"),
-                        "pauling"             = quo("Element electronegativity"), 
-                        "mean_pauling"        = quo("Mean mineral electronegativity"),  
-                        "sd_pauling"          = quo("Std Dev mineral electronegativity"),
-                        "cov_pauling"         = quo("COV mineral electronegativity"),
-                        "id"                  = quo("Node name"), 
-                        "cluster_ID"          = quo("Community Cluster"), 
-                        "group"               = quo("Node type"),
-                        "element"             = quo("Element"),
-                        "mineral_name"        = quo("Mineral"),
-                        "mineral_id"          = quo("Mineral ID"),
-                        "mindat_id"           = quo("Mindat ID"),
-                        "at_locality"         = quo("At Locality"),
-                        "is_remote"           = quo("Is Remote"),
-                        "rruff_chemistry"     = quo("Chemistry"))
-    
-model_response_choices <- c("Maximum Age (Ga)", 
-                            "Mean mineral electronegativity",
-                            "Std Dev mineral electronegativity",
-                            "COV mineral electronegativity",
-                            "Degree centrality (normalized)",
-                            "Closeness centrality",
-                            "Number of known localities")
+all_elements = c("Ag", "Al", "As", "Au", "B", "Ba", "Be", "Bi", "Br", "C", "Ca", "Cd", "Ce", "Cl", "Co", "Cr", "Cs", "Cu", "Dy", "Er", "F", "Fe", "Ga", "Gd", "Ge", "H", "Hf", "Hg", "I", "In", "Ir", "K", "La", "Li", "Mg", "Mn", "Mo", "N", "Na", "Nb", "Nd", "Ni", "O", "Os", "P", "Pb", "Pd", "Pt", "Rb", "Re", "REE", "Rh", "Ru", "S", "Sb", "Sc", "Se", "Si", "Sm", "Sn", "Sr", "Ta", "Te", "Th", "Ti", "Tl", "U", "V", "W", "Y", "Yb", "Zn", "Zr")
+options(scipen=10000)
 
-model_predictor_choices <- c(model_response_choices, "Community Cluster")
+element_redox_mineral_str   <- "Element redox in mineral" 
+element_redox_network_str   <- "Mean element redox in network"
+max_age_str                 <- "Maximum known age (Ga) of mineral" 
+max_age_locality_str        <- "Maximum age (Ga) of mineral at locality" 
+num_localities_mineral_str  <- "Number of known mineral localities" 
+num_localities_element_str  <- "Number of known element localities" 
+num_localities_str          <- "Number of known localities" 
+network_degree_norm_str     <- "Degree centrality (normalized)" 
+network_degree_str          <- "Degree centrality" 
+closeness_str               <- "Closeness centrality"
+pauling_str                 <- "Element electronegativity" 
+mean_pauling_str            <- "Mean mineral electronegativity"  
+sd_pauling_str              <- "Std Dev mineral electronegativity"
+cov_pauling_str             <- "COV mineral electronegativity"
+id_str                      <- "Node name" 
+cluster_ID_str              <- "Community cluster" 
+group_str                   <- "Node type"
+element_str                 <- "Element"
+element_name_str            <- "Full element name"
+mineral_name_str            <- "Mineral"
+mineral_name_node_table_str <- "Minerals containing element"
+element_node_table_str      <- "Elements in mineral"
+mineral_id_str              <- "Mineral ID"
+mindat_id_str               <- "Mindat ID"
+locality_longname_str       <- "Locality name"
+age_type_str                <- "Age type"
+rruff_chemistry_str         <- "RRUFF formula"
+ima_chemistry_str           <- "IMA formula"
+element_hsab_str            <- "Element HSAB theory"
+element_mass_str            <- "Atomic mass"
+element_protons_str         <- "Number of protons"
+element_group_str           <- "Element group"
+element_period_str          <- "Element period"
+element_metaltype_str       <- "Element metal type"
+element_density_str         <- "Element density"
+element_specificheat_str    <- "Element specific heat"
+
+
+discrete_color_variables <- c("element_hsab", "MetalType", "TablePeriod", "TableGroup")
+# 
+#  [1] "id"                     "element_hsab"           "element_pH"            
+#  [4] "AtomicMass"             "NumberofNeutrons"       "NumberofProtons"       
+#  [7] "NumberofElectrons"      "Period"                 "Group"                 
+# [10] "Radioactive"            "AtomicRadius"           "pauling"               
+# [13] "MetalType"              "Density"                "MeltingPoint"          
+# [16] "BoilingPoint"           "SpecificHeat"           "NumberofShells"        
+# [19] "NumberofValence"        "base_element"           "element_redox_network" 
+
+## Legend titles and renamed columns for DT
+variable_to_title <-  c("element_redox_mineral" = element_redox_mineral_str, 
+                        "element_redox_network" = element_redox_network_str,
+                        "max_age" = max_age_str, 
+                        "num_localities_mineral" = num_localities_mineral_str, 
+                        "num_localities_element" = num_localities_element_str, 
+                        "num_localities" = num_localities_str, # MODELING ONLY
+                        "locality_longname"      = locality_longname_str,
+                        "network_degree_norm" = network_degree_norm_str, 
+                        "network_degree" = network_degree_str, 
+                        "closeness" = closeness_str,
+                        "pauling" = pauling_str, 
+                        "mean_pauling" = mean_pauling_str,  
+                        "sd_pauling" = sd_pauling_str,
+                        "cov_pauling" = cov_pauling_str,
+                        "id" = id_str, 
+                        "cluster_ID" = cluster_ID_str, 
+                        "group" = group_str,
+                        "element" = element_str,
+                        "element_name" = element_name_str,
+                        "mineral_name" = mineral_name_str,
+                        "mineral_id" = mineral_id_str,
+                        "mindat_id" = mindat_id_str,
+                        "age_type" = age_type_str,
+                        "rruff_chemistry" = rruff_chemistry_str,
+                        "ima_chemistry" = ima_chemistry_str,
+                        "element_hsab" = element_hsab_str, 
+                        "NumberofProtons" = element_protons_str, 
+                        "AtomicMass" = element_mass_str,
+                        "TableGroup" = element_group_str,
+                        "TablePeriod" = element_period_str, 
+                        "MetalType" = element_metaltype_str,
+                        "Density" = element_density_str,
+                        "SpecificHeat" = element_specificheat_str, 
+                        "max_age_locality" = max_age_locality_str)
+
+
+selected_node_table_column_choices_mineral   <- c(mineral_name_str, mineral_id_str, rruff_chemistry_str, ima_chemistry_str, max_age_str, num_localities_mineral_str, element_redox_mineral_str, mean_pauling_str, cov_pauling_str) #sd_pauling_str
+selected_node_table_column_choices_element   <- c(element_str, element_name_str, element_redox_network_str, pauling_str, element_hsab_str, num_localities_element_str, element_group_str, element_period_str, element_metaltype_str)
+selected_node_table_column_choices_netinfo   <- c(cluster_ID_str, network_degree_norm_str, closeness_str)
+selected_node_table_column_choices_locality  <- c(mindat_id_str, locality_longname_str, max_age_locality_str)
+
+
+    
+model_response_choices <- c(max_age_str, 
+                            mean_pauling_str,
+                            cov_pauling_str,
+                            network_degree_norm_str,
+                            closeness_str,
+                            num_localities_str) #sd_pauling_str,
+
+
+model_predictor_choices <- c(model_response_choices, cluster_ID_str)
 
 
 
@@ -87,7 +160,7 @@ theme_set(theme_cowplot() + theme(legend.position = "bottom",
 
 
 
-obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, legendtitle, discrete_colors = NA)
+obtain_colors_legend <- function(session, dat, color_variable, variable_type, palettename, legendtitle, discrete_colors = NA)
 {
     
     cvar <- as.symbol(color_variable)
@@ -98,17 +171,22 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
         dplyr::select( color_variable ) %>% 
         na.omit() -> dat_check
     
-    shiny::validate(
-        shiny::need(nrow(dat_check) > 0, 
-        "ERROR: The specified color scheme cannot be applied due to insufficient node information in the MED database.")
-    )  
+    
+            
+    if (nrow(dat_check) <= 0)
+    {
+        createAlert(session, "alert", "bad_network", title = '<h4 style="color:black;">Error</h4>', style = "warning",
+            content = '<p style="color:black;">The specified color scheme cannot be applied due to insufficient node information in the MED database. Please select a different color scheme.</p>')
+        shiny::validate( shiny::need(nrow(dat_check) > 0, ""))
+    }
 
     if (variable_type == "d")
     {
     
         p <- ggplot(dat2, aes(x = x, y = factor(!!cvar), color = factor(!!cvar))) + 
                 geom_point(size = geom.point.size) + 
-                 guides(colour = guide_legend(title.position="left", title.hjust = 0.5, byrow=TRUE)  )
+                 guides(colour = guide_legend(title.position="top",  title.hjust = 0.5, byrow=TRUE, nrow=2)  ) +
+                 theme(legend.key.size = unit(0.05, 'lines'), legend.title = element_text(size = rel(0.8)))
         if (!(is.na(discrete_colors))) 
         {
             p <- p + scale_color_manual(name = legendtitle, na.value = na.gray, values = discrete_colors)
@@ -123,7 +201,9 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
         p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + 
                  geom_point(size = geom.point.size) + 
                  scale_color_distiller(name = legendtitle, palette = palettename, direction = -1, na.value = na.gray) + 
-                 guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5), size = guide_legend(title.position="top", title.hjust = 0.5))
+                 guides(colour = guide_colourbar(title.position="top", title.hjust = 0.5, frame.colour = "black", ticks.colour = "black"), 
+                        size = guide_legend(title.position="top", title.hjust = 0.5)) +
+                theme(legend.text = element_text(size = rel(0.8)))
     }
     
     

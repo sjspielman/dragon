@@ -1,6 +1,8 @@
 library(shiny)
 library(shinythemes)
 library(shinyWidgets)
+library(shinydashboard)
+library(shinyBS)
 library(colourpicker)
 library(colorspace)
 library(RColorBrewer)  ## colorspace conflict? something strange has been happening but not fully reprexable THIS IS A WORD.
@@ -28,6 +30,8 @@ server <- function(input, output, session) {
     
     
     ################################# Build network ####################################
+    
+    
     chemistry_network <- reactive({
         
         req(input$elements_of_interest)
@@ -35,46 +39,71 @@ server <- function(input, output, session) {
         elements_of_interest <- input$elements_of_interest
         force_all_elements   <- input$force_all_elements
         age_limit            <- input$age_limit
+        max_age_type         <- input$max_age_type
         elements_by_redox    <- input$elements_by_redox
-         
+
+
+        
+
+        if (length(elements_of_interest) == length(all_elements)) 
+        {
+            createAlert(session, "alert", "all_elements_warning", title = "Warning", 
+                        content = '<p style="color:black;">Networks with all elements, especially at more recent time frames, may be very slow - please be patient.</p>')
+        }
+        
+        
         
         elements_only <- initialize_data(elements_of_interest, force_all_elements)
-        shiny::validate(
-            shiny::need(nrow(elements_only) > 0, 
-            "ERROR: There is no network for selected element(s) as specified. Please specify new element(s).")
-        )        
+        if (nrow(elements_only) <= 0)
+        {
+            createAlert(session, "alert", "bad_elements", title = '<h4 style="color:black;">Error</h4>', style = "warning",
+                        content = '<p style="color:black;">There is no network for selected element(s) as specified. Please specify new element(s).</p>')
+            shiny::validate( shiny::need(nrow(elements_only) > 0, ""))
+        }
+            
         
-        elements_only_age <- initialize_data_age(elements_only, age_limit)
-        shiny::validate(
-            shiny::need(nrow(elements_only_age) > 0, 
-            "ERROR: No network for selected element(s) at the age specified. Please specify a different age.")
-        )
+        initialized <- initialize_data_age(elements_only, age_limit, max_age_type)
+        elements_only_age <- initialized$elements_only_age
+        locality_info     <- initialized$locality_info
 
+
+
+
+
+        if (nrow(elements_only_age) <= 0)
+        {
+            createAlert(session, "alert", "bad_age", title = '<h4 style="color:black;">Error</h4>', style = "warning",
+                        content = '<p style="color:black;">There is no network for selected element(s) at the age specified. Please specify new input(s).</p>')
+            shiny::validate( shiny::need(nrow(elements_only_age) > 0, ""))
+        }
+        
+        
         network_information <- obtain_network_information(elements_only_age, elements_by_redox)
-        shiny::validate(
-            shiny::need(nrow(network_information) > 0, 
-            "ERROR: Network could not be constructed. Please adjust input settings.")
-        )
+        if (nrow(network_information) <= 0)
+        {
+            createAlert(session, "alert", "bad_network", title = '<h4 style="color:black;">Error</h4>', style = "warning", 
+                        content = '<p style="color:black;">Network could not be constructed. Please adjust input settings.</p>')
+            shiny::validate( shiny::need(nrow(network_information) > 0, ""))
+        }
         
         network <- construct_network(network_information, elements_by_redox)
 
         nodes <- network$nodes
         edges <- network$edges
         graph <- network$graph
-        #membership <- network$membership
-        
-        
+
         return (list("nodes" = nodes, 
                      "edges" = edges, 
                      "graph" = graph, 
-                     #"membership" = membership,   
-                     "elements_of_interest" = input$elements_of_interest,
+                     "elements_of_interest" = elements_of_interest,
                      "age_lb" = age_limit[1],
-                     "age_ub" = age_limit[2]))
+                     "age_ub" = age_limit[2],
+                     "locality_info" = locality_info))
 
     })
-    
-    
+
+
+
     network_cluster <- reactive({
     
         clustered_net <- community_detect_network(chemistry_network()$graph, input$cluster_algorithm)
@@ -88,12 +117,9 @@ server <- function(input, output, session) {
             pull(colour) -> cluster_colors
         return( list("clustering" = clustered_net, "tib" = cluster_tibble, "cluster_colors" = cluster_colors) )
     })
-                                
-                        
-    
-
-
-
+                     
+                     
+                  
     output$choose_custom_elements_color <- renderUI({
         chemistry_network()$nodes %>%
             filter(group == "element") %>%
@@ -106,18 +132,8 @@ server <- function(input, output, session) {
     })
 
 
-    output$choose_community_include_lm <- renderUI({
-        network_cluster()$tib %>%
-            dplyr::select(cluster_ID) %>%
-            distinct() %>% 
-            pull(cluster_ID) -> cluster_choices
-        
-        pickerInput("community_include_lm", tags$b("Select which community clusters (at least two) to include in the linear model:"), 
-                    choices = sort(cluster_choices), options = list(`actions-box` = TRUE, size = length(cluster_choices)), multiple = TRUE,
-                    selected = cluster_choices
-                )
-    })
-        
+
+      
 
     ############################## NETWORK ITSELF AND NETWORK-LEVEL METRICS #############################
     observeEvent(input$go,{
@@ -127,6 +143,16 @@ server <- function(input, output, session) {
             membership <- network_cluster()$clustering
             paste0("Network modularity: ", round( membership$modularity[[1]], 4))    
         })    
+
+        output$connectivity <- renderText({
+            conn <- vertex_connectivity(chemistry_network()$graph)
+            if (conn == 0){
+                paste0("Warning: This network is disconnected. Interpret network metrics with caution.")
+            }
+            else {
+                paste0("")
+            }
+        })  
 
         output$n_element_nodes <- renderText({
             chemistry_network()$nodes %>% 
@@ -169,12 +195,6 @@ server <- function(input, output, session) {
     
     
     
-    
-
-
-
-                        
-    
         output$networkplot <- renderVisNetwork({
 
 
@@ -182,26 +202,19 @@ server <- function(input, output, session) {
             edges <- chemistry_network()$edges
             network_layout <- input$network_layout
             network_layout_seed <- input$network_layout_seed
-
-            #restore_positions <- input$cache_positions
-            #if (restore_positions){
-            #    print(input$networkplot_positions)
-            #}
-
-                    
+                           
             isolate({
                 starting_nodes <- node_styler()$styled_nodes
                 starting_edges <- edge_styler()$styled_edges
-
-                    visNetwork(starting_nodes, starting_edges) %>%
-                    visIgraphLayout(layout = network_layout, type = "full", randomSeed = network_layout_seed) %>% ## stabilizes
-                    visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
-                               nodesIdSelection = list(enabled = TRUE, 
-                                                       #selected = selected_element,
-                                                       values = c( sort(nodes$id[nodes$group == "element"]), sort(nodes$id[nodes$group == "mineral"]) ),
-                                                       main    = "Select node",
-                                                       style   = "float:right; width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: -1.4em 0.5em 0em 0em;")  ##t r b l 
-                           ) %>%
+                    visNetwork(starting_nodes, starting_edges)  %>%
+                     visIgraphLayout(layout = network_layout, type = "full", randomSeed = network_layout_seed) %>% ## stabilizes
+                     visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
+                                nodesIdSelection = list(enabled = TRUE, 
+                                                        #selected = selected_element,
+                                                        values = c( sort(nodes$id[nodes$group == "element"]), sort(nodes$id[nodes$group == "mineral"]) ),
+                                                        main    = "Select node",
+                                                        style   = "float:right; width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: -1.4em 0.5em 0em 0em;")  ##t r b l 
+                            ) %>%
                     visInteraction(dragView          = TRUE, 
                                    dragNodes         = TRUE, 
                                    zoomView          = TRUE, 
@@ -262,7 +275,7 @@ server <- function(input, output, session) {
                     finallegend <- plot_grid(n$element_legend, n$mineral_legend, nrow=1)
                 } else {
                     ### mineral, element, edge
-                    finallegend <- plot_grid(n$element_legend, n$mineral_legend, e$edge_legend, nrow=1)
+                    finallegend <- plot_grid(n$element_legend, n$mineral_legend, e$edge_legend, nrow=1, scale=0.75)
                 }
             } else
             {
@@ -319,21 +332,20 @@ server <- function(input, output, session) {
 
 
 
-    ################################### NODE TABLES ##############################################
-    output$networkTable <- renderDT(rownames= FALSE,  server = FALSE,
-       
+    ################################### NODE TABLES ##############################################    
+    output$networkTable <- renderDT(rownames= FALSE,  server = FALSE,   
         chemistry_network()$nodes %>% 
             left_join(network_cluster()$tib) %>%
-            dplyr::select(-label, -title, -font.face) %>%
-            #dplyr::select(id, group, cluster_ID, network_degree, network_degree_norm, closeness, mean_pauling, sd_pauling, pauling, max_age) %>%
-            mutate(mean_pauling        = round(mean_pauling, 5),
-                   sd_pauling          = round(sd_pauling, 5),
-                   cov_pauling         = round(cov_pauling, 5), 
-                   closeness           = round(closeness, 5),
-                   network_degree_norm = round(network_degree_norm, 5), 
-                   redox               = round(redox, 5)) %>%
-            dplyr::select(id, group, max_age, num_localities, cluster_ID, network_degree, network_degree_norm, closeness, redox, pauling, mean_pauling, sd_pauling, cov_pauling) %>%
+           # left_join(chemistry_network()$locality_info) %>%
+            #mutate(mean_pauling        = round(mean_pauling, input$table_digits),
+            #       #sd_pauling          = round(sd_pauling, 5),
+            #       cov_pauling         = round(cov_pauling, input$table_digits), 
+            #       closeness           = round(closeness, input$table_digits),
+            #       network_degree_norm = round(network_degree_norm, input$table_digits), 
+            #       element_redox_network = round(element_redox_network, input$table_digits)) %>%
+            dplyr::select(id, group, max_age, num_localities, cluster_ID, network_degree, network_degree_norm, closeness, element_redox_network, pauling, mean_pauling, cov_pauling) %>% #sd_pauling
             arrange(group, id) %>%
+            mutate(group = str_to_title(group)) %>%
             rename(!! variable_to_title[["id"]] := id,
                    !! variable_to_title[["group"]] := group,
                    !! variable_to_title[["cluster_ID"]] := cluster_ID,
@@ -341,94 +353,181 @@ server <- function(input, output, session) {
                    !! variable_to_title[["network_degree_norm"]] := network_degree_norm,
                    !! variable_to_title[["closeness"]] := closeness, 
                    !! variable_to_title[["max_age"]] := max_age, 
-                   !! variable_to_title[["redox"]] := redox,
+                   !! variable_to_title[["element_redox_network"]] := element_redox_network,
                    !! variable_to_title[["num_localities"]] := num_localities,
                    !! variable_to_title[["pauling"]] := pauling,
                    !! variable_to_title[["mean_pauling"]] := mean_pauling,
-                   !! variable_to_title[["sd_pauling"]] := sd_pauling,
-                   !! variable_to_title[["cov_pauling"]] := cov_pauling),
+                  #!! variable_to_title[["sd_pauling"]] := sd_pauling,
+                   !! variable_to_title[["cov_pauling"]] := cov_pauling) %>%
+            distinct() %>%
+            datatable() %>%
+            DT::formatRound(columns = c(variable_to_title[["network_degree"]], 
+                                          variable_to_title[["network_degree_norm"]], 
+                                          variable_to_title[["closeness"]], 
+                                          variable_to_title[["max_age"]],
+                                          variable_to_title[["element_redox_network"]],
+                                          variable_to_title[["pauling"]],
+                                          variable_to_title[["mean_pauling"]], 
+                                          variable_to_title[["cov_pauling"]]), digits=input$table_digits),
          extensions = c('Buttons', 'ColReorder', 'Responsive'),
                         options = list(
                         dom = 'Bfrtip',
                         colReorder = TRUE, 
-                        buttons = c('copy', 'csv', 'excel')
-        )
-    )
-    observeEvent(input$networkplot_selected, {
-
+                        buttons = c('copy', 'csv', 'excel')))  
+                       
+    
+    selected_node_table_columns <- reactive({
+        list(input$networkplot_selected, input$columns_selectednode_1, input$columns_selectednode_2, input$columns_selectednode_3, input$columns_selectednode_4)
+    })
+    observeEvent(selected_node_table_columns(), {
+        
         sel <- input$networkplot_selected
         e <- chemistry_network()$edges
-
-        ################ Selected node table ##################
-        if (sel %in% e$mineral_name){
+        n <- chemistry_network()$nodes
         
+        if (sel %in% e$mineral_name) 
+        {
+            sel_type      <- "mineral"
+            selected_name <- "Selected Node (Mineral)"
+        } else {
+            sel_type <- "element"
+            selected_name <- "Selected Node (Element)"
+        }  
+                    
+        selected_nodes <- c(input$columns_selectednode_1, input$columns_selectednode_2, input$columns_selectednode_3, input$columns_selectednode_4)
+        
+        if (is.null(sel))
+        {
+            node_table <- NULL
+        } else {
+            
+ #            updateCheckboxGroupInput
+#             
+#             
+#             
+#             x <- input$inCheckboxGroup
+#      
+#          # Can use character(0) to remove all choices
+#          if (is.null(x))
+#            x <- character(0)
+#      
+#          # Can also set the label and select items
+#          updateCheckboxGroupInput(session, "inCheckboxGroup2",
+#            label = paste("Checkboxgroup label", length(x)),
+#            choices = x,
+#            selected = x
+#          )
 
-            e %>% 
-                 filter(mineral_name == sel) %>%
-                 dplyr::select(mineral_name, mean_pauling, sd_pauling, cov_pauling) %>% 
-                 left_join(rruff) %>% 
-                 filter(max_age >= chemistry_network()$age_lb, max_age <= chemistry_network()$age_ub) %>%
-                 dplyr::select(mineral_name, mineral_id, mindat_id, at_locality, is_remote, rruff_chemistry, max_age, mean_pauling, sd_pauling, cov_pauling) %>%
-                 unique() %>% 
-                 mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
-                        is_remote   = ifelse(is_remote == 0, "No", "Yes"),
-                        mean_pauling = round(mean_pauling, 5),
-                        sd_pauling = round(sd_pauling, 5),
-                        cov_pauling = round(cov_pauling, 5)) %>%
-                rename(!! variable_to_title[["mineral_name"]] := mineral_name,
+            
+            
+#                                             prettyCheckboxGroup(
+#                                        inputId = "columns_selectednode_1",
+#                                        label = tags$span(style="font-weight:700", "Mineral variables:"), 
+#                                        choices = selected_node_table_column_choices_mineral,
+#                                        status = "danger",
+#                                        animation="smooth",
+#                                        icon = icon("check")
+#                                 )),
+#                             div(style="display:inline-block;vertical-align:top;",
+#                                 prettyCheckboxGroup(
+#                                        inputId = "columns_selectednode_2",
+#                                        label = tags$span(style="font-weight:700", "Element variables:"), 
+#                                        choices = selected_node_table_column_choices_element,
+#                                        status = "danger",
+#                                        animation="smooth",
+#                                        icon = icon("check")
+#                                 )),
+#             
+            
+            if (is.null(selected_nodes)) 
+            {
+                selected_nodes <- selected_name
+            }   
+            e %>%
+                filter(
+                    if (sel_type == "mineral") { mineral_name == sel } 
+                    else {  element == sel }
+                ) %>%
+                left_join(chemistry_network()$locality_info) %>%
+                #filter(max_age >= chemistry_network()$age_lb, max_age <= chemistry_network()$age_ub)  %>%
+                dplyr::select(-from, -to) -> node_table
+            #print(names(node_table))
+            #stop()
+            n %>% 
+                filter(id == sel) %>% 
+                select(id, closeness, network_degree_norm) -> node_net_info
+            network_cluster()$tib %>% filter(id == sel) -> cluster_tib
+            if (sel %in% e$mineral_name) { 
+                node_net_info %<>% rename(mineral_name = id)
+                cluster_tib %<>% rename(mineral_name = id)
+            }
+            else { 
+                node_net_info %<>% rename(element = id)
+                cluster_tib %<>% rename(element = id)
+            }
+                        
+            node_table %<>% 
+                left_join(node_net_info) %>%
+                left_join(cluster_tib) %>%
+                mutate(network_degree_norm  = round(network_degree_norm, 5),
+                       closeness  = round(closeness, 5),
+                       mean_pauling  = round(mean_pauling, 5),
+                       cov_pauling   = round(cov_pauling, 5),
+                       element_redox_mineral  = round(element_redox_mineral, 5)) %>%
+                rename(!! variable_to_title[["element_redox_mineral"]] := element_redox_mineral,
+                       !! variable_to_title[["element_redox_network"]] := element_redox_network,            
                        !! variable_to_title[["mineral_id"]] := mineral_id,
+                       !! variable_to_title[["mineral_name"]] := mineral_name,
+                       !! variable_to_title[["element"]] := element,
+                       !! variable_to_title[["element_hsab"]] := element_hsab,
                        !! variable_to_title[["mindat_id"]] := mindat_id,
-                       !! variable_to_title[["at_locality"]] := at_locality,
-                       !! variable_to_title[["is_remote"]] := is_remote,
+                       !! variable_to_title[["locality_longname"]] := locality_longname,
+                       !! variable_to_title[["max_age"]] := max_age,
+                       !! variable_to_title[["age_type"]] := age_type,
+                       !! variable_to_title[["max_age_locality"]] := max_age_locality,
+                       !! variable_to_title[["num_localities_mineral"]] := num_localities_mineral,  
+                       !! variable_to_title[["num_localities_element"]] := num_localities_element,  
+                       !! variable_to_title[["network_degree_norm"]] := network_degree_norm,  
+                       !! variable_to_title[["closeness"]] := closeness,  
+                       !! variable_to_title[["cluster_ID"]] := cluster_ID,  
                        !! variable_to_title[["rruff_chemistry"]] := rruff_chemistry,
-                       !! variable_to_title[["max_age"]] := max_age,
+                       !! variable_to_title[["pauling"]] := pauling,
                        !! variable_to_title[["mean_pauling"]] := mean_pauling,
-                       !! variable_to_title[["sd_pauling"]] := sd_pauling, 
-                       !! variable_to_title[["cov_pauling"]] := cov_pauling) -> node_table 
-            
-            
-        } else{
-            e %>% 
-                filter(element == sel) %>% 
-                 left_join(rruff) %>% 
-                 filter(max_age >= chemistry_network()$age_lb, max_age <= chemistry_network()$age_ub) %>%
-                 select(element, mineral_name, max_age, num_localities, redox, rruff_chemistry, pauling) %>%
-                 unique() %>%
-                 rename(!! variable_to_title[["element"]] := element,
-                        !! variable_to_title[["mineral_name"]] := mineral_name, 
-                        !! variable_to_title[["max_age"]] := max_age, 
-                        !! variable_to_title[["num_localities"]] := num_localities, 
-                        !! variable_to_title[["redox"]] := redox,
-                        !! variable_to_title[["rruff_chemistry"]] := rruff_chemistry,
-                        !! variable_to_title[["pauling"]]     := pauling) -> node_table 
-           
-            e %>% 
-                filter(element == sel) %>% 
-                dplyr::select(mineral_name, mean_pauling, sd_pauling, cov_pauling) %>%
-                left_join(rruff) %>% 
-                filter(max_age >= chemistry_network()$age_lb, max_age <= chemistry_network()$age_ub) %>%
-                select(-chemistry_elements) %>%
-                unique() %>%
-                mutate(at_locality = ifelse(at_locality == 0, "No", "Yes"),
-                       is_remote   = ifelse(is_remote == 0, "No", "Yes"),
-                       mean_pauling = round(mean_pauling, 5),
-                       sd_pauling = round(sd_pauling, 5),
-                       cov_pauling = round(cov_pauling, 5))  %>%
-                rename(!! variable_to_title[["mineral_name"]] := mineral_name,
-                       !! variable_to_title[["mineral_id"]] := mineral_id,
-                       !! variable_to_title[["mindat_id"]] := mindat_id,
-                       !! variable_to_title[["at_locality"]] := at_locality,
-                       !! variable_to_title[["max_age"]] := max_age,
-                       !! variable_to_title[["is_remote"]] := is_remote,
-                       !! variable_to_title[["rruff_chemistry"]] := rruff_chemistry, 
-                       !! variable_to_title[["mean_pauling"]] := mean_pauling,
-                       !! variable_to_title[["sd_pauling"]] := sd_pauling,
-                       !! variable_to_title[["cov_pauling"]] := cov_pauling) -> locality_table
-        }
-            
-            
-        
-        output$nodeTable <- renderDT( rownames= FALSE, server=FALSE, 
+                       !! variable_to_title[["cov_pauling"]] := cov_pauling,
+                       !! variable_to_title[["ima_chemistry"]] := ima_chemistry,
+                       !! variable_to_title[["element_name"]] := element_name,
+                       !! variable_to_title[["TableGroup"]] := TableGroup,
+                       !! variable_to_title[["TablePeriod"]] := TablePeriod,
+                       !! variable_to_title[["MetalType"]] := MetalType) #,
+                     # !! variable_to_title[["Density"]] := Density,
+                     # !! variable_to_title[["SpecificHeat"]] := SpecificHeat)
+                      # !! variable_to_title[["NumberofProtons"]] := NumberofProtons,
+                      # !! variable_to_title[["AtomicMass"]] := AtomicMass,
+                      
+
+                      
+                if (sel_type == "element") 
+                {
+                   # print(selected_nodes)
+                   # if (variable_to_title[["mineral_name"]] %in% selected_nodes)  selected_nodes <- c(selected_nodes, !!variable_to_title[["mineral_name"]])
+                   # print(selected_nodes)
+                    selected_nodes <- selected_nodes[ selected_nodes != variable_to_title[["element"]] ]
+                    node_table %<>% rename( !!selected_name := !!variable_to_title[["element"]])
+                }
+                else if (sel_type == "mineral") 
+                {
+                   # if (variable_to_title[["element"]] %in% selected_nodes)  selected_nodes <- c(selected_nodes, !!variable_to_title[["element"]])
+                    selected_nodes <- selected_nodes[ selected_nodes != variable_to_title[["mineral_name"]] ]
+                    node_table %<>% rename( !!selected_name := !! variable_to_title[["mineral_name"]])
+                }
+
+                
+                node_table %<>% 
+                    dplyr::select(!!selected_name, selected_nodes) %>%
+                    distinct() %>%
+                    dplyr::select(!!selected_name, everything())   
+            }
+        output$nodeTable <- renderDT( rownames= FALSE, server=FALSE, escape = FALSE, 
                                 node_table, 
                                 extensions = c('Buttons', 'ColReorder', 'Responsive'),
                                 options = list(
@@ -439,73 +538,129 @@ server <- function(input, output, session) {
 
     })
     #################################################################################################################
+    #################################################################################################################
 
 
 
-    ######################################## DATA EXPLORATION TAB ###################################################
-    
-  
-    
+
     
     
     ################################################ LINEAR MODEL TAB ###############################################
-    
-    observeEvent(input$gomodel, {
-       
-       
-        output$model_sanity <- renderText({
-            if (input$predictor == input$response)
-            {
-                "WARNING: You have selected the same predictor and response variable. Please select new variable(s).\n\n"
-            }      
-        })
-
-        chemistry_network()$nodes %>%
+    #################################################################################################################
+    mineral_nodes <- reactive({
+       # print(names( chemistry_network()$nodes))
+       chemistry_network()$nodes %>%
             left_join(network_cluster()$tib) %>%
             filter(group == "mineral") %>%
-            dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, sd_pauling, cov_pauling) %>%
+            dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% #sd_pauling
+            mutate(cluster_ID = factor(cluster_ID)) %>%
             rename(!! variable_to_title[["cluster_ID"]] := cluster_ID,   ###`Community Cluster`
                    !! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
                    !! variable_to_title[["closeness"]] := closeness,
                    !! variable_to_title[["mean_pauling"]] := mean_pauling,
-                   !! variable_to_title[["sd_pauling"]] := sd_pauling, 
+                  # !! variable_to_title[["sd_pauling"]] := sd_pauling, 
                    !! variable_to_title[["cov_pauling"]] := cov_pauling,
                    !! variable_to_title[["num_localities"]] := num_localities,
-                   !! variable_to_title[["max_age"]] := max_age)  -> mineral_nodes  
-        print(mineral_nodes)
-        mineral_nodes$`Community Cluster` <- as.factor(mineral_nodes$`Community Cluster`)
-        
+                   !! variable_to_title[["max_age"]] := max_age)    
+    })           
+
+#     output$choose_community_include_lm <- renderUI({
+#         network_cluster()$tib %>%
+#             dplyr::select(cluster_ID) %>%
+#             distinct() %>% 
+#             pull(cluster_ID) -> cluster_choices
+#         
+#         pickerInput("community_include_lm", tags$b("Select clusters to include:"), 
+#                     choices = sort(cluster_choices), options = list(`actions-box` = TRUE, size = length(cluster_choices)), multiple = TRUE,
+#                     selected = cluster_choices
+#                 )
+#     })    
+# 
+#     output$choose_community_include_lm_go<- renderUI({
+#         actionBttn("community_include_lm_go", "Update", size="xs", style = "fill", color = "danger")
+#     })    
+    
+    build_that_model <- reactive({
+        c(input$go, input$response, input$predictor, input$logx, input$logy, input$bestfit, input$point_color, input$bestfit_color)#input$community_include_lm_go,
+    })
+    
+
+
+#                                        prettyCheckbox("logx", "Use log scale on X-axis", status="danger", animation="smooth", icon = icon("check")),
+#                                        prettyCheckbox("logy", "Use log scale on Y-axis", status="danger", animation="smooth", icon = icon("check")),
+#                                         prettyCheckbox("bestfit", "Show regression line (with 95% confidence interval).", status="danger", animation="smooth", icon = icon("check")),
+#                                         fluidRow(
+#                                             column(6, colourpicker::colourInput("point_color", "Color for points", value = "black")),
+#                                             column(6, colourpicker::colourInput("bestfit_color", "Color for regression line", value = "blue"))
+#                                         )
+
+
+
+
+
+
+
+
+
+   
+    observeEvent(build_that_model(), {
+
+#         output$fitted_model_plot_preferences <- renderUI({
+#             list(
+#                 prettyCheckbox("logx", "Use log scale on X-axis", value = FALSE, status="danger", animation="smooth", icon = icon("check")),
+#                 prettyCheckbox("logy", "Use log scale on Y-axis", value = FALSE, status="danger", animation="smooth", icon = icon("check")),
+#                 prettyCheckbox("bestfit", "Show regression line (with 95% confidence interval).", value = FALSE, status="danger", animation="smooth", icon = icon("check")),
+#                 fluidRow(
+#                     column(6, colourpicker::colourInput("point_color", "Color for points", value = "black")),
+#                     column(6, colourpicker::colourInput("bestfit_color", "Color for regression line", value = "blue"))
+#                 )
+#              )
+#         }) 
+
+
+        if (input$predictor == input$response)
+        {
+            createAlert(session, "lm_alert", "same_pred_resp", title = '<h4 style="color:black;">Error</h4>', style = "warning",
+                        content = '<p style="color:black;">You have selected the same predictor and response variable. Please select new variable(s).</p>')
+            shiny::validate( shiny::need(input$predictor != input$response, ""))
+        }
+
+            
+        use_mineral_nodes <- mineral_nodes() ## since we mutate it sometimes
         bad <- FALSE
-        if (nrow(mineral_nodes) < 3) {
+        if (nrow(use_mineral_nodes) < 3) {
             bad <- TRUE
+        }      
+        
+        output$cluster_fyi <- renderText({})
+        if (input$predictor == cluster_ID_str)
+        {
+            use_mineral_nodes %<>%
+                group_by(!!sym(cluster_ID_str)) %>%
+                mutate(n = n()) %>% 
+                filter(n >= 3)
+            
+            use_mineral_nodes %>% 
+                select(!!cluster_ID_str) %>%
+                distinct() %>%
+                nrow() -> n_clusters
+           
+            if (  nrow(use_mineral_nodes) == 0  | n_clusters < 2  )
+            {                       
+                createAlert(session, "lm_alert", "not_enough_clusters", title = '<h4 style="color:black;">Error</h4>', style = "warning",
+                        content = '<p style="color:black;">There is insufficient data to analyze community clusters. Please select a different predictor variable.</p>')
+                shiny::validate( shiny::need(nrow(use_mineral_nodes) > 0  & n_clusters >= 2, ""))
+       
+            } else {            
+
+                output$cluster_fyi <- renderText({
+                    "Note: Only those community clusters with at least three minerals are considered for this analysis.\n\n"
+                })
+            }
+        
         }
         
-        if (input$predictor == "Community Cluster")
-        {
-            if (!(is.null(input$community_include_lm))) {
-                mineral_nodes %<>% filter(`Community Cluster` %in% input$community_include_lm)
-            }
-            
-            ## There must be at least two minerals per cluster.
-            mineral_nodes %>% 
-                group_by(`Community Cluster`) %>%
-                tally() %>% 
-                filter(n >= 2) -> n_communities_ok_raw
-            n_communities_ok <- nrow(n_communities_ok_raw)
-            num_communities <- length(unique(mineral_nodes$`Community Cluster`))
-            if (n_communities_ok != num_communities) {
-                bad <- TRUE
-            }
-        }
-            
-        
-        output$model_sanity_n <- renderText({
-            if (bad) "ERROR: There is insufficient data to perform this analysis. Please specify a different network."
-        })   
-        
-        
-        if (bad)
-        {
+        if (bad) {
             output$fitted_model <- renderDT({})
             output$fitted_model_plot <- renderPlot({})
         } else {
@@ -513,31 +668,27 @@ server <- function(input, output, session) {
             response_string <- paste0("`", input$response, "`")
             predictor_string <- paste0("`", input$predictor, "`")
             fit_string <- paste(response_string, "~", predictor_string)
-        
-            fit <- lm(as.formula(fit_string), data = mineral_nodes, na.action = na.omit )
-            
-            
-            top_plot <- ggplot(mineral_nodes, aes_string(x = predictor_string, y = response_string)) +
-                                xlab(input$predictor) + 
-                                ylab(input$response)
 
-            output$caution_variance <- renderText({})
-            if (input$predictor == "Community Cluster")
+            fit <- lm(as.formula(fit_string), data = use_mineral_nodes, na.action = na.omit )
+            
+
+            if (input$predictor == cluster_ID_str)
             {
                 ## This part is *extra* dumb. TukeyHSD is not into spaces so we have to muck with name
                 ## Only applies when Cluster is the predictor variable. It is NOT ALLOWED as a response because this is a linear model and we need quant response, sheesh.          
-                mineral_nodes %>% rename(community_cluster = `Community Cluster`) -> mineral_nodes2
+                use_mineral_nodes %>% rename(community_cluster = !!cluster_ID_str) -> mineral_nodes2
                 aov_fit_string <- paste(response_string, "~community_cluster")
 
                 test_variance_pvalue <- bartlett.test(as.formula(aov_fit_string), data = mineral_nodes2, na.action = na.omit)$p.value
-                if (test_variance_pvalue <= 0.01) output$caution_variance <- renderText("Caution: Clusters have unequal variances and modeling results may not be precise.")   
-
+                if (test_variance_pvalue <= 0.01) 
+                {
+                    createAlert(session, "lm_alert", "bad_clusters", title = '<h4 style="color:black;">Error</h4>', style = "warning",
+                        content = '<p style="color:black;">Caution: Clusters have unequal variances and modeling results may not be precise.</p>')
+                }
             
                 aov_fit <- aov(as.formula(aov_fit_string), data = mineral_nodes2, na.action = na.omit )
 
                 output$fitted_tukey <- renderDT( rownames= FALSE, server=FALSE, options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
-                                    
-                                 
                                             TukeyHSD(aov_fit) %>% 
                                                 tidy() %>%
                                                 dplyr::select(-term) %>%
@@ -554,26 +705,34 @@ server <- function(input, output, session) {
                                          })
                                          
 
-                if (!(is.null(input$community_include_lm))) {
-                    mineral_nodes %<>% filter(`Community Cluster` %in% input$community_include_lm)
-                    use_cluster_colors <- network_cluster()$cluster_colors[ as.numeric(input$community_include_lm) ]
-                } else
-                {
-                    use_cluster_colors <- network_cluster()$cluster_colors
-                }                                         
-                fitted_model_plot <- top_plot + 
-                                        geom_jitter(aes_string(color = predictor_string), width=0.2, size=1.5) + 
+                #if (!(is.null(input$community_include_lm))) {
+                    use_cluster_colors <- network_cluster()$cluster_colors[ unique(mineral_nodes2$community_cluster) ]
+                #} else
+                #{
+                #    use_cluster_colors <- network_cluster()$cluster_colors
+                #}                           
+                
+
+                fitted_model_plot <- ggplot(mineral_nodes2, aes(x = community_cluster, y = !!sym(input$response))) + 
+                                        xlab(input$predictor) + 
+                                        ylab(input$response) +
+                                        geom_point(aes(color = community_cluster), size=2) + 
                                         scale_color_manual(values = use_cluster_colors, name = input$predictor) +
                                         stat_summary(geom="errorbar", width=0, color = "grey30", size=1)+
                                         stat_summary(geom="point", color = "grey30", size=2.5) + 
                                         theme(legend.text=element_text(size=12), legend.title=element_text(size=13))
             
             } else {
-            
-                fitted_model_plot <- top_plot + geom_point()
+               # req(input$logx)
+               # req(input$logy)
+               # req(input$bestfit)
+                fitted_model_plot <- ggplot(use_mineral_nodes, aes_string(x = predictor_string, y = response_string)) +
+                                        xlab(input$predictor) + 
+                                        ylab(input$response) + 
+                                        geom_point(size=2, color = input$point_color)
                 if (input$logx) fitted_model_plot <- fitted_model_plot + scale_x_log10()
                 if (input$logy) fitted_model_plot <- fitted_model_plot + scale_y_log10()
-                if (input$bestfit) fitted_model_plot <- fitted_model_plot + geom_smooth(method = "lm")
+                if (input$bestfit) fitted_model_plot <- fitted_model_plot + geom_smooth(method = "lm", color = input$bestfit_color)
             }
 
         
@@ -610,8 +769,15 @@ server <- function(input, output, session) {
         
 
     })
-    #################################### NODE AND EDGE STYLING #############################################
-    ######################### Node colors, shape, size, labels #############################################
+    #################################################################################################################
+    #################################################################################################################
+    
+    
+    
+    ######################################### NODE AND EDGE STYLING ##################################################
+    ##################################################################################################################
+    
+    ################################## Node colors, shape, size, labels ##############################################
     node_styler <- reactive({
                         
         full_nodes <- left_join(chemistry_network()$nodes, network_cluster()$tib)
@@ -623,7 +789,7 @@ server <- function(input, output, session) {
         ################ Colors ####################
         if (input$color_by_cluster) 
         {        
-            out <- obtain_colors_legend(full_nodes, "cluster_ID", "d", "NA", "Network cluster identity", network_cluster()$cluster_colors)
+            out <- obtain_colors_legend(session, full_nodes, "cluster_ID", "d", "NA", variable_to_title[["cluster_ID"]], discrete_colors = network_cluster()$cluster_colors)
             node_attr[["both_legend"]] <- out$leg
             node_attr[["colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
         } else 
@@ -639,7 +805,7 @@ server <- function(input, output, session) {
                 
             } else
             {  
-                out <- obtain_colors_legend(full_nodes %>% filter(group == "mineral"), input$color_mineral_by, "c", input$mineralpalette, variable_to_title[[input$color_mineral_by]])
+                out <- obtain_colors_legend(session, full_nodes %>% filter(group == "mineral"), input$color_mineral_by, "c", input$mineralpalette, variable_to_title[[input$color_mineral_by]])
                 node_attr[["mineral_legend"]] <- out$leg
                 node_attr[["mineral_colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
             } 
@@ -657,22 +823,9 @@ server <- function(input, output, session) {
                                                 filter(group == "element") %>% 
                                                 select(label, id) %>%
                                                 mutate(color.background = input$element_color)
-            } 
-
-            if ((input$color_element_by == "redox" & input$elements_by_redox == FALSE) | input$color_element_by %in% c("pauling","network_degree_norm","closeness"))
-                
+            } else if (input$color_element_by == "element_redox_network" & input$elements_by_redox == TRUE)
             {  
-            
-                full_nodes %>% filter(group == "element") -> legend_data
-                out <- obtain_colors_legend(legend_data, input$color_element_by, "c", input$elementpalette, variable_to_title[[input$color_element_by]])
-                node_attr[["element_legend"]] <- out$leg
-                node_attr[["element_colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
-            } 
-
-
-            if (input$color_element_by == "redox" & input$elements_by_redox == TRUE)
-            {  
-                out <- obtain_colors_legend(chemistry_network()$edges %>% select(element, redox), input$color_element_by, "c", input$elementpalette, "Element redox state")
+                out <- obtain_colors_legend(session, chemistry_network()$edges %>% select(element, element_redox_network), input$color_element_by, "c", input$elementpalette, variable_to_title[[input$color_element_by]])
                 node_attr[["element_legend"]] <- out$leg
                 node_attr[["element_colors"]] <- out$cols %>% 
                                                     select(element, color) %>% 
@@ -681,7 +834,18 @@ server <- function(input, output, session) {
                                                     filter(group == "element") %>%
                                                     select(label, id, color.background) %>%
                                                     unique()
-            }    
+            }  else
+            {
+                full_nodes %>% filter(group == "element") -> legend_data
+                if (input$color_element_by %in% discrete_color_variables)
+                {  
+                    out <- obtain_colors_legend(session, legend_data, input$color_element_by, "d", "NA", variable_to_title[[input$color_element_by]])
+                } else {
+                    out <- obtain_colors_legend(session, legend_data, input$color_element_by, "c", input$elementpalette, variable_to_title[[input$color_element_by]])
+                }
+                node_attr[["element_legend"]] <- out$leg
+                node_attr[["element_colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
+            }   
             node_attr[["colors"]] <- bind_rows(node_attr[["element_colors"]], node_attr[["mineral_colors"]]) 
         }   
         
@@ -771,7 +935,7 @@ server <- function(input, output, session) {
             colorlegend_edge <- NA
         } else 
         {
-             out <- obtain_colors_legend(chemistry_network()$edges, input$color_edge_by, "c", input$edgepalette, "Mean redox state")
+             out <- obtain_colors_legend(session, chemistry_network()$edges, input$color_edge_by, "c", input$edgepalette, variable_to_title[[input$color_edge_by]])
 
              edge_colors <-  left_join(chemistry_network()$edges, out$cols)
              colorlegend_edge <- out$leg
@@ -780,7 +944,8 @@ server <- function(input, output, session) {
         edge_colors %<>% mutate(width = input$edge_weight)
         return (list("edge_legend" = colorlegend_edge, "styled_edges" = edge_colors) )
     })
-    
+    #################################################################################################################
+    #################################################################################################################
     
     
 }
