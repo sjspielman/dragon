@@ -1,7 +1,7 @@
 form_file_path <- function(filename)
 {
-    #return(paste0("~/Projects/dragon/inst/extdata/", filename))
-    return( system.file("extdata", filename, package = "dragon") ) 
+    return(paste0("~/Projects/dragon/inst/extdata/", filename))
+    #return( system.file("extdata", filename, package = "dragon") ) 
 }
 
 rruff                <- read_csv(form_file_path("rruff_minerals.csv.zip")) %>% mutate(max_age = max_age/1000, min_age = min_age/1000) 
@@ -10,6 +10,9 @@ rruff_separated      <- read_csv(form_file_path("rruff_separated_elements.csv.zi
 #rruff_sub            <- rruff %>% select(-mineral_id, -rruff_chemistry)
 rruff_chemistry      <- rruff_separated %>% select(-chemistry_elements) %>% unique()
 element_info         <- read_csv(form_file_path("element_information.csv")) 
+geo_timeline         <- read_csv(form_file_path("geo_timeline.csv"))
+bio_events           <- read_csv(form_file_path("bio_events.csv"))
+
 
 total_max_age <- round( max(rruff$max_age) + 0.1, 1)
 hsab_levels <- c("Hard acid", "Int. acid", "Soft acid", "Soft base", "Int. base", "Hard base")

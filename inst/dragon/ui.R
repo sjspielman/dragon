@@ -11,8 +11,9 @@ library(visNetwork)
 library(magrittr)
 library(cowplot)
 library(igraph)
-source("defs.R")
+library(plotly)
 source("build_network.R")
+source("defs.R")
 
 dashboardPage(skin = "red",
     dashboardHeader(title = "dragon: Deep-time Redox Analysis of the Geobiology Ontology Network", titleWidth = "770px",
@@ -258,11 +259,11 @@ dashboardPage(skin = "red",
             tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
         ),
           fluidRow(
+                sbsAlert("alert"),          
                 div(style = "margin-right:1%; margin-left:1%;",
                                     
                     tabBox(width=12, 
                         tabPanel("Visualize Network",      
-                            bsAlert("alert"),                
                             div(style = "height:650px; overflow: hidden;", 
                                 div(style = "float:left;font-weight:bold;", 
 
@@ -354,7 +355,17 @@ dashboardPage(skin = "red",
                                     )                                
                                 )
                             )
-                        ) ## tabPanel                 
+                        ), ## tabPanel    
+                        tabPanel("Timeline View",
+                            div(style = "height:700px;", 
+                                
+                                div(style = "float:right; height:15%;",
+                                    sliderInput("mineral_names_timeline","Mineral label font size (set to 0 to hide labels):",value=0,min=0,max=5,step = 0.1)
+                                ),
+                                plotOutput("timeline", width = "100%", height = "85%")   #plotOutput
+                            )
+                        )  ## tabPanel    
+                          
                     ), # tabBox
                     
                     br(),br(),br(),

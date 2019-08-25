@@ -105,6 +105,29 @@ model_response_choices <- c(max_age_str,
 
 model_predictor_choices <- c(model_response_choices, cluster_ID_str)
 
+########################################################################
+geo_timeline %>% 
+    dplyr::select(level, interval_name, late_age, early_age) %>%
+    filter(level <= 2) %>%
+    rename(ymin = level) %>%
+    mutate(ymin = ymin + 2,
+    ymax = ymin + 1,
+    label_x = (late_age+early_age)/2, 
+    label_y = (ymin+ymax)/2)  -> geo_data
+
+
+geo_data %>% 
+    group_by(ymin) %>% 
+    tally() %>% 
+    pull(n) -> level_ncat
+
+geo_data %>% arrange(ymin, early_age) %>% pull(interval_name) -> interval_name_levels
+geo_data$interval_name <- factor(geo_data$interval_name, interval_name_levels)
+all_geo_colors <- c( colorRampPalette(brewer.pal(9,"BuPu"))(level_ncat[1]),
+                 colorRampPalette(brewer.pal(9,"BuPu"))(level_ncat[2])) #,
+                # colorRampPalette(brewer.pal(9,"Greens"))(level_ncat[3]))
+
+
 
 
 #################################################################################################

@@ -194,6 +194,86 @@ server <- function(input, output, session) {
         })  
     
     
+        output$timeline <- renderPlot({
+
+
+            ## goes from 5-10,so we have 5 units to get it done
+            ## if i have 5 over 5, 1each
+            ##           20 over 5, 5/20 each 
+
+            upper <- 12
+            space <- 6
+            chemistry_network()$nodes %>%
+                filter(group == "mineral") %>%
+                dplyr::select(id, ima_chemistry, max_age) %>%
+                arrange(desc(max_age)) %>%
+                rename(x = max_age) %>%
+                mutate(x = x * 1000,
+                       y = (upper-0.25) - (seq(0, 1, 1/(n()))[1:n()] * space)) -> timeline_minerals #, 
+                      # name = paste0(id, " (", ima_chemistry,")")) <- when claus is done with ggtext add this!!!!!!
+                            
+           # if (nrow(timeline_minerals) <= 20 ) id_size <- 5
+           # if (nrow(timeline_minerals) > 20 ) id_size <- 0.02
+            
+           # print(id_size)
+           # print( chemistry_network()$age_ub * 1000)
+           # print( chemistry_network()$age_lb * 1000)
+           # print.data.frame(geo_data)
+            geo_data %>%
+                ggplot() +
+                xlab("Millions of years ago") +
+                ylab("") + 
+                geom_rect(aes(fill = interval_name, 
+                              xmin = late_age, 
+                              xmax = early_age, 
+                              ymin = ymin, 
+                              ymax = ymax), 
+                          color = "black") +
+                scale_fill_manual(values = all_geo_colors) + 
+                geom_rect(fill = NA,
+                          color = "darkgoldenrod1", 
+                          xmax = chemistry_network()$age_lb * -1000, 
+                          xmin = chemistry_network()$age_ub * -1000,
+                          alpha = 0.01,
+                          ymin = 0.03, ymax = upper -0.03, size=1.5) +
+                #annotate("rect", xmin = chemistry_network()$age_ub * 1000, 
+                #                 xmax = chemistry_network()$age_lb * 1000,  
+                #                 ymin = 1, 
+                #                 ymax = 10, alpha = 0.4) +
+                geom_text(aes(x = label_x, y = label_y ,label = interval_name), 
+                          size=2.8, 
+                          fontface = "bold", 
+                          angle = c( 0, rep(90,3), rep(0, 10)),
+                          color = c( rep("black", 12),  "grey80", "grey80")) +
+                geom_point(data = bio_events, aes(x = x, y = y,color = event_type), size=2)+ 
+                geom_text(data = bio_events, aes(x = x-30, y = y, label = name, color = event_type), size = 3.5, hjust=0)+
+                geom_segment(data = bio_events, aes(x = x, xend = x, y = y, color =event_type), yend = 0, alpha = 0.7)+
+                scale_color_manual(values=c("firebrick4","darkgreen"))+
+                theme_classic() + 
+                theme(axis.line.y = element_blank(),
+                      axis.ticks.y = element_blank(),
+                      axis.text.y = element_blank(),
+                      axis.text.x = element_text(size = 13),
+                      axis.title.x = element_text(size=15),
+                      legend.position = "none") + 
+                scale_y_continuous(limits=c(0, upper), expand=c(0,0)) +
+                scale_x_reverse(breaks=c(seq(0, 4500,500)), limits=c(4600, -300), sec.axis = sec_axis(~., name = derive())) +
+                geom_point(data = timeline_minerals, aes(x = x, y = y), color ="chocolate4") +
+                geom_segment(data = timeline_minerals, aes(x = x, xend = x, y = y, yend = upper), alpha = 0.5, color = "chocolate4") -> timeline_plot
+            
+            if (input$mineral_names_timeline > 0)
+            {
+                timeline_plot <- timeline_plot +
+                                    geom_text(data = timeline_minerals, aes(x = x-30, y = y, label = id), hjust=0, size = input$mineral_names_timeline)
+            }
+            
+           # print(plotly_json(ggplotly(timeline_plot)))
+           # ggplotly(timeline_plot, #hoverinfo = "none")s
+            print(timeline_plot)
+           # ggsave("help.pdf", timeline_plot)
+
+        })
+   
     
         output$networkplot <- renderVisNetwork({
 
@@ -207,6 +287,8 @@ server <- function(input, output, session) {
                 starting_nodes <- node_styler()$styled_nodes
                 starting_edges <- edge_styler()$styled_edges
                     visNetwork(starting_nodes, starting_edges)  %>%
+                    visLayout(improvedLayout=TRUE) %>%
+                   # visLayout() %>%  ### TODO: Can introduce a physics option, with other option hierarchical T/F. Need random seed for F.
                      visIgraphLayout(layout = network_layout, type = "full", randomSeed = network_layout_seed) %>% ## stabilizes
                      visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
                                 nodesIdSelection = list(enabled = TRUE, 
