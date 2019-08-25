@@ -257,7 +257,7 @@ server <- function(input, output, session) {
                       axis.title.x = element_text(size=15),
                       legend.position = "none") + 
                 scale_y_continuous(limits=c(0, upper), expand=c(0,0)) +
-                scale_x_reverse(breaks=c(seq(0, 4500,500)), limits=c(4600, -300), sec.axis = sec_axis(~., name = derive())) +
+                scale_x_reverse(breaks=c(seq(0, 4500,500)), limits=c(4600, -300), sec.axis = dup_axis()) +
                 geom_point(data = timeline_minerals, aes(x = x, y = y), color ="chocolate4") +
                 geom_segment(data = timeline_minerals, aes(x = x, xend = x, y = y, yend = upper), alpha = 0.5, color = "chocolate4") -> timeline_plot
             

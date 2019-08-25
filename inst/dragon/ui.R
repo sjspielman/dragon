@@ -259,7 +259,7 @@ dashboardPage(skin = "red",
             tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
         ),
           fluidRow(
-                sbsAlert("alert"),          
+                bsAlert("alert"),          
                 div(style = "margin-right:1%; margin-left:1%;",
                                     
                     tabBox(width=12, 
