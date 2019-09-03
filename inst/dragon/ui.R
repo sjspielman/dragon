@@ -163,7 +163,7 @@ dashboardPage(skin = "red",
                                        "Number of protons" = "NumberofProtons",
                                        "Periodic Table Group"       = "TableGroup", 
                                        "Periodic Table Period"       = "TablePeriod", 
-                                       "Metal type"    = "MetalType", 
+                                    #   "Metal type"    = "MetalType", ### borks legend
                                        "Density"       = "Density",
                                        "Specific Heat"  = "SpecificHeat"), selected = "singlesize")
                     ),
@@ -359,10 +359,14 @@ dashboardPage(skin = "red",
                         tabPanel("Timeline View",
                             div(style = "height:700px;", 
                                 
-                                div(style = "float:right; height:15%;",
+                                div(style = "display:inline-block; float:left; height:15%;",
                                     sliderInput("mineral_names_timeline","Mineral label font size (set to 0 to hide labels):",value=0,min=0,max=5,step = 0.1)
                                 ),
+                                div(style="display:inline-block; float:right; height:15%;",
+                                    downloadBttn("download_timeline_plot", "Download Plot", size = "sm", style = "minimal", color = "danger")
+                                ),
                                 plotOutput("timeline", width = "100%", height = "85%")   #plotOutput
+                            
                             )
                         )  ## tabPanel    
                           

@@ -14,7 +14,7 @@ library(cowplot)
 library(igraph)
 library(broom)
 library(dragon) ## for the extdata
-
+library(ggfittext)
 options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Make NA in DT show as NA instead of blank cell
 
 
@@ -91,6 +91,14 @@ server <- function(input, output, session) {
         nodes <- network$nodes
         edges <- network$edges
         graph <- network$graph
+        
+        ## For the timeline, we need all the minerals
+        initialize_data_age(elements_only, c(0, total_max_age), "Maximum") -> bloop # YES BLOOP WE GOTTA HAVE FUN AROUND HERE
+        bloop$elements_only_age %>%
+            dplyr::select(mineral_name, max_age) %>%
+            rename(age = max_age, 
+                   id = mineral_name) -> all_minerals
+
 
         return (list("nodes" = nodes, 
                      "edges" = edges, 
@@ -98,7 +106,8 @@ server <- function(input, output, session) {
                      "elements_of_interest" = elements_of_interest,
                      "age_lb" = age_limit[1],
                      "age_ub" = age_limit[2],
-                     "locality_info" = locality_info))
+                     "locality_info" = locality_info, 
+                     "elements_only_minerals" = elements_only))
 
     })
 
@@ -193,86 +202,24 @@ server <- function(input, output, session) {
             paste0("Number of edges: ", n_edges)
         })  
     
+        
+    
+    
     
         output$timeline <- renderPlot({
 
-
-            ## goes from 5-10,so we have 5 units to get it done
-            ## if i have 5 over 5, 1each
-            ##           20 over 5, 5/20 each 
-
-            upper <- 12
-            space <- 6
-            chemistry_network()$nodes %>%
-                filter(group == "mineral") %>%
-                dplyr::select(id, ima_chemistry, max_age) %>%
-                arrange(desc(max_age)) %>%
-                rename(x = max_age) %>%
-                mutate(x = x * 1000,
-                       y = (upper-0.25) - (seq(0, 1, 1/(n()))[1:n()] * space)) -> timeline_minerals #, 
-                      # name = paste0(id, " (", ima_chemistry,")")) <- when claus is done with ggtext add this!!!!!!
-                            
-           # if (nrow(timeline_minerals) <= 20 ) id_size <- 5
-           # if (nrow(timeline_minerals) > 20 ) id_size <- 0.02
-            
-           # print(id_size)
-           # print( chemistry_network()$age_ub * 1000)
-           # print( chemistry_network()$age_lb * 1000)
-           # print.data.frame(geo_data)
-            geo_data %>%
-                ggplot() +
-                xlab("Millions of years ago") +
-                ylab("") + 
-                geom_rect(aes(fill = interval_name, 
-                              xmin = late_age, 
-                              xmax = early_age, 
-                              ymin = ymin, 
-                              ymax = ymax), 
-                          color = "black") +
-                scale_fill_manual(values = all_geo_colors) + 
-                geom_rect(fill = NA,
-                          color = "darkgoldenrod1", 
-                          xmax = chemistry_network()$age_lb * -1000, 
-                          xmin = chemistry_network()$age_ub * -1000,
-                          alpha = 0.01,
-                          ymin = 0.03, ymax = upper -0.03, size=1.5) +
-                #annotate("rect", xmin = chemistry_network()$age_ub * 1000, 
-                #                 xmax = chemistry_network()$age_lb * 1000,  
-                #                 ymin = 1, 
-                #                 ymax = 10, alpha = 0.4) +
-                geom_text(aes(x = label_x, y = label_y ,label = interval_name), 
-                          size=2.8, 
-                          fontface = "bold", 
-                          angle = c( 0, rep(90,3), rep(0, 10)),
-                          color = c( rep("black", 12),  "grey80", "grey80")) +
-                geom_point(data = bio_events, aes(x = x, y = y,color = event_type), size=2)+ 
-                geom_text(data = bio_events, aes(x = x-30, y = y, label = name, color = event_type), size = 3.5, hjust=0)+
-                geom_segment(data = bio_events, aes(x = x, xend = x, y = y, color =event_type), yend = 0, alpha = 0.7)+
-                scale_color_manual(values=c("firebrick4","darkgreen"))+
-                theme_classic() + 
-                theme(axis.line.y = element_blank(),
-                      axis.ticks.y = element_blank(),
-                      axis.text.y = element_blank(),
-                      axis.text.x = element_text(size = 13),
-                      axis.title.x = element_text(size=15),
-                      legend.position = "none") + 
-                scale_y_continuous(limits=c(0, upper), expand=c(0,0)) +
-                scale_x_reverse(breaks=c(seq(0, 4500,500)), limits=c(4600, -300), sec.axis = dup_axis()) +
-                geom_point(data = timeline_minerals, aes(x = x, y = y), color ="chocolate4") +
-                geom_segment(data = timeline_minerals, aes(x = x, xend = x, y = y, yend = upper), alpha = 0.5, color = "chocolate4") -> timeline_plot
-            
-            if (input$mineral_names_timeline > 0)
-            {
-                timeline_plot <- timeline_plot +
-                                    geom_text(data = timeline_minerals, aes(x = x-30, y = y, label = id), hjust=0, size = input$mineral_names_timeline)
-            }
-            
-           # print(plotly_json(ggplotly(timeline_plot)))
-           # ggplotly(timeline_plot, #hoverinfo = "none")s
-            print(timeline_plot)
-           # ggsave("help.pdf", timeline_plot)
+            print(  build_timeline_plot(chemistry_network()$nodes, chemistry_network()$elements_only_minerals, chemistry_network()$age_lb, chemistry_network()$age_ub, input$max_age_type, geo_data, input$mineral_names_timeline) )
 
         })
+        
+        output$download_timeline_plot <- downloadHandler(
+            filename = function() {
+              paste("dragon_timeline_plot-", Sys.Date(), ".pdf", sep="")
+            },
+            content = function(file) {
+              p <-  build_timeline_plot(chemistry_network()$nodes, chemistry_network()$elements_only_minerals, chemistry_network()$age_lb, chemistry_network()$age_ub,  input$max_age_type, geo_data, input$mineral_names_timeline)
+              ggsave(file, p, width=18, height=8)
+        }) 
    
     
         output$networkplot <- renderVisNetwork({
@@ -455,7 +402,10 @@ server <- function(input, output, session) {
                         options = list(
                         dom = 'Bfrtip',
                         colReorder = TRUE, 
-                        buttons = c('copy', 'csv', 'excel')))  
+                        buttons = c('copy', 'csv', 'excel'))
+        ) 
+        
+
                        
     
     selected_node_table_columns <- reactive({
@@ -481,46 +431,7 @@ server <- function(input, output, session) {
         if (is.null(sel))
         {
             node_table <- NULL
-        } else {
-            
- #            updateCheckboxGroupInput
-#             
-#             
-#             
-#             x <- input$inCheckboxGroup
-#      
-#          # Can use character(0) to remove all choices
-#          if (is.null(x))
-#            x <- character(0)
-#      
-#          # Can also set the label and select items
-#          updateCheckboxGroupInput(session, "inCheckboxGroup2",
-#            label = paste("Checkboxgroup label", length(x)),
-#            choices = x,
-#            selected = x
-#          )
-
-            
-            
-#                                             prettyCheckboxGroup(
-#                                        inputId = "columns_selectednode_1",
-#                                        label = tags$span(style="font-weight:700", "Mineral variables:"), 
-#                                        choices = selected_node_table_column_choices_mineral,
-#                                        status = "danger",
-#                                        animation="smooth",
-#                                        icon = icon("check")
-#                                 )),
-#                             div(style="display:inline-block;vertical-align:top;",
-#                                 prettyCheckboxGroup(
-#                                        inputId = "columns_selectednode_2",
-#                                        label = tags$span(style="font-weight:700", "Element variables:"), 
-#                                        choices = selected_node_table_column_choices_element,
-#                                        status = "danger",
-#                                        animation="smooth",
-#                                        icon = icon("check")
-#                                 )),
-#             
-            
+        } else {            
             if (is.null(selected_nodes)) 
             {
                 selected_nodes <- selected_name
@@ -531,10 +442,7 @@ server <- function(input, output, session) {
                     else {  element == sel }
                 ) %>%
                 left_join(chemistry_network()$locality_info) %>%
-                #filter(max_age >= chemistry_network()$age_lb, max_age <= chemistry_network()$age_ub)  %>%
                 dplyr::select(-from, -to) -> node_table
-            #print(names(node_table))
-            #stop()
             n %>% 
                 filter(id == sel) %>% 
                 select(id, closeness, network_degree_norm) -> node_net_info
@@ -567,6 +475,7 @@ server <- function(input, output, session) {
                        !! variable_to_title[["max_age"]] := max_age,
                        !! variable_to_title[["age_type"]] := age_type,
                        !! variable_to_title[["max_age_locality"]] := max_age_locality,
+                       !! variable_to_title[["min_age_locality"]] := min_age_locality,
                        !! variable_to_title[["num_localities_mineral"]] := num_localities_mineral,  
                        !! variable_to_title[["num_localities_element"]] := num_localities_element,  
                        !! variable_to_title[["network_degree_norm"]] := network_degree_norm,  
@@ -645,60 +554,13 @@ server <- function(input, output, session) {
                    !! variable_to_title[["num_localities"]] := num_localities,
                    !! variable_to_title[["max_age"]] := max_age)    
     })           
-
-#     output$choose_community_include_lm <- renderUI({
-#         network_cluster()$tib %>%
-#             dplyr::select(cluster_ID) %>%
-#             distinct() %>% 
-#             pull(cluster_ID) -> cluster_choices
-#         
-#         pickerInput("community_include_lm", tags$b("Select clusters to include:"), 
-#                     choices = sort(cluster_choices), options = list(`actions-box` = TRUE, size = length(cluster_choices)), multiple = TRUE,
-#                     selected = cluster_choices
-#                 )
-#     })    
-# 
-#     output$choose_community_include_lm_go<- renderUI({
-#         actionBttn("community_include_lm_go", "Update", size="xs", style = "fill", color = "danger")
-#     })    
     
     build_that_model <- reactive({
         c(input$go, input$response, input$predictor, input$logx, input$logy, input$bestfit, input$point_color, input$bestfit_color)#input$community_include_lm_go,
     })
-    
-
-
-#                                        prettyCheckbox("logx", "Use log scale on X-axis", status="danger", animation="smooth", icon = icon("check")),
-#                                        prettyCheckbox("logy", "Use log scale on Y-axis", status="danger", animation="smooth", icon = icon("check")),
-#                                         prettyCheckbox("bestfit", "Show regression line (with 95% confidence interval).", status="danger", animation="smooth", icon = icon("check")),
-#                                         fluidRow(
-#                                             column(6, colourpicker::colourInput("point_color", "Color for points", value = "black")),
-#                                             column(6, colourpicker::colourInput("bestfit_color", "Color for regression line", value = "blue"))
-#                                         )
-
-
-
-
-
-
-
-
-
+ 
    
     observeEvent(build_that_model(), {
-
-#         output$fitted_model_plot_preferences <- renderUI({
-#             list(
-#                 prettyCheckbox("logx", "Use log scale on X-axis", value = FALSE, status="danger", animation="smooth", icon = icon("check")),
-#                 prettyCheckbox("logy", "Use log scale on Y-axis", value = FALSE, status="danger", animation="smooth", icon = icon("check")),
-#                 prettyCheckbox("bestfit", "Show regression line (with 95% confidence interval).", value = FALSE, status="danger", animation="smooth", icon = icon("check")),
-#                 fluidRow(
-#                     column(6, colourpicker::colourInput("point_color", "Color for points", value = "black")),
-#                     column(6, colourpicker::colourInput("bestfit_color", "Color for regression line", value = "blue"))
-#                 )
-#              )
-#         }) 
-
 
         if (input$predictor == input$response)
         {
@@ -798,10 +660,10 @@ server <- function(input, output, session) {
                 fitted_model_plot <- ggplot(mineral_nodes2, aes(x = community_cluster, y = !!sym(input$response))) + 
                                         xlab(input$predictor) + 
                                         ylab(input$response) +
-                                        geom_point(aes(color = community_cluster), size=2) + 
+                                        geom_jitter(aes(color = community_cluster), size=3, width=0.1) + 
                                         scale_color_manual(values = use_cluster_colors, name = input$predictor) +
                                         stat_summary(geom="errorbar", width=0, color = "grey30", size=1)+
-                                        stat_summary(geom="point", color = "grey30", size=2.5) + 
+                                        stat_summary(geom="point", color = "grey30", size=3.5) + 
                                         theme(legend.text=element_text(size=12), legend.title=element_text(size=13))
             
             } else {

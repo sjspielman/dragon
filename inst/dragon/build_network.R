@@ -11,8 +11,7 @@ rruff_separated      <- read_csv(form_file_path("rruff_separated_elements.csv.zi
 rruff_chemistry      <- rruff_separated %>% select(-chemistry_elements) %>% unique()
 element_info         <- read_csv(form_file_path("element_information.csv")) 
 geo_timeline         <- read_csv(form_file_path("geo_timeline.csv"))
-bio_events           <- read_csv(form_file_path("bio_events.csv"))
-
+extinctions          <- read_csv(form_file_path("extinctions.csv"))
 
 total_max_age <- round( max(rruff$max_age) + 0.1, 1)
 hsab_levels <- c("Hard acid", "Int. acid", "Soft acid", "Soft base", "Int. base", "Hard base")
@@ -58,35 +57,33 @@ initialize_data_age <- function(elements_only, age_limit, max_age_type)
     
     if (max_age_type == "Minimum")
     {
-        elements_only %<>%
-            dplyr::select(-max_age) %>%
-            rename(max_age = min_age)
+        elements_only %<>% dplyr::mutate(age_check = min_age) 
     } else {
-        elements_only %<>% dplyr::select(-min_age)
+        elements_only %<>% dplyr::mutate(age_check = max_age) 
     }
     
     elements_only %<>% 
-        filter(max_age >= lb, max_age <= ub) %>% 
+        filter(age_check >= lb, age_check <= ub, at_locality == 1) %>% 
         group_by(mineral_name) %>%
-        mutate(num_localities_mineral = sum(at_locality)) 
+        mutate(num_localities_mineral = sum(at_locality)) %>%
+        ungroup() %>%
+        dplyr::select(-at_locality)
     elements_only %>% 
-        dplyr::select(mineral_name, mineral_id, max_age, mindat_id, locality_longname, age_type) %>%
+        dplyr::select(mineral_name, mineral_id, max_age, min_age, mindat_id, locality_longname, age_type) %>%
         rename(max_age_locality = max_age) %>%
+        rename(min_age_locality = min_age) %>%
         ungroup() -> locality_info
     elements_only %>%
-        mutate(overall_age = max(max_age)) %>%
-        filter(max_age == max(max_age)) %>% 
+        group_by(mineral_name) %>%
+        summarize(overall_max = max(max_age)) %>% 
+        rename(max_age = overall_max) %>%
+        left_join(elements_only %>% dplyr::select(-min_age, -max_age)) %>%
         dplyr::select(mineral_name, mineral_id, ima_chemistry, rruff_chemistry, chemistry_elements, num_localities_mineral, max_age) %>%
         ungroup() %>% 
-        distinct()-> elements_only_age
-    
+        distinct() -> elements_only_age
+
     list("elements_only_age" = elements_only_age, "locality_info" = locality_info)
-    
-#>  names(elements_only_age)
-# [1] "mineral_name"           "ima_chemistry"          "mindat_id"             
-# [4] "locality_longname"      "age_type"               "min_age"               
-# [7] "max_age"                "chemistry_elements"     "num_localities_mineral"
-#[10] "max_age_locality" 
+
 }
 
 obtain_network_information <- function(elements_only_age, elements_by_redox)
@@ -221,7 +218,7 @@ construct_network   <- function(network_information, elements_by_redox)
                        title = case_when(group == "mineral" ~ paste0("<p>", 
                                                                      id, "<br>", 
                                                                      ima_chemistry, "<br>", 
-                                                                     paste0("Maximum known age: ", max_age, " Ga"), "</p>"), 
+                                                                     paste0("Maximum known age: ", max_age, " Ga"), "</p>"), #!!!!!!!!! HELP
                                          group == "element" & elements_by_redox == TRUE ~ "",  
                                          group == "element" & elements_by_redox == FALSE ~ paste0("<p>", 
                                                                                                   element_name, "<br>", 

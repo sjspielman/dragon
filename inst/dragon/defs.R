@@ -6,7 +6,9 @@ options(scipen=10000)
 element_redox_mineral_str   <- "Element redox in mineral" 
 element_redox_network_str   <- "Mean element redox in network"
 max_age_str                 <- "Maximum known age (Ga) of mineral" 
+min_age_str                 <- "Minimum known age (Ga) of mineral" 
 max_age_locality_str        <- "Maximum age (Ga) of mineral at locality" 
+min_age_locality_str        <- "Minimum age (Ga) of mineral at locality" 
 num_localities_mineral_str  <- "Number of known mineral localities" 
 num_localities_element_str  <- "Number of known element localities" 
 num_localities_str          <- "Number of known localities" 
@@ -55,6 +57,7 @@ discrete_color_variables <- c("element_hsab", "MetalType", "TablePeriod", "Table
 variable_to_title <-  c("element_redox_mineral" = element_redox_mineral_str, 
                         "element_redox_network" = element_redox_network_str,
                         "max_age" = max_age_str, 
+                        "min_age" = min_age_str, 
                         "num_localities_mineral" = num_localities_mineral_str, 
                         "num_localities_element" = num_localities_element_str, 
                         "num_localities" = num_localities_str, # MODELING ONLY
@@ -85,13 +88,14 @@ variable_to_title <-  c("element_redox_mineral" = element_redox_mineral_str,
                         "MetalType" = element_metaltype_str,
                         "Density" = element_density_str,
                         "SpecificHeat" = element_specificheat_str, 
-                        "max_age_locality" = max_age_locality_str)
+                        "max_age_locality" = max_age_locality_str,
+                        "min_age_locality" = min_age_locality_str)
 
 
 selected_node_table_column_choices_mineral   <- c(mineral_name_str, mineral_id_str, rruff_chemistry_str, ima_chemistry_str, max_age_str, num_localities_mineral_str, element_redox_mineral_str, mean_pauling_str, cov_pauling_str) #sd_pauling_str
 selected_node_table_column_choices_element   <- c(element_str, element_name_str, element_redox_network_str, pauling_str, element_hsab_str, num_localities_element_str, element_group_str, element_period_str, element_metaltype_str)
 selected_node_table_column_choices_netinfo   <- c(cluster_ID_str, network_degree_norm_str, closeness_str)
-selected_node_table_column_choices_locality  <- c(mindat_id_str, locality_longname_str, max_age_locality_str)
+selected_node_table_column_choices_locality  <- c(mindat_id_str, locality_longname_str, max_age_locality_str, min_age_locality_str)
 
 
     
@@ -109,12 +113,12 @@ model_predictor_choices <- c(model_response_choices, cluster_ID_str)
 geo_timeline %>% 
     dplyr::select(level, interval_name, late_age, early_age) %>%
     filter(level <= 2) %>%
+    mutate(level = level + 0.5) %>%
     rename(ymin = level) %>%
-    mutate(ymin = ymin + 2,
+    mutate(ymin = ymin + 1,
     ymax = ymin + 1,
     label_x = (late_age+early_age)/2, 
     label_y = (ymin+ymax)/2)  -> geo_data
-
 
 geo_data %>% 
     group_by(ymin) %>% 
@@ -127,6 +131,134 @@ all_geo_colors <- c( colorRampPalette(brewer.pal(9,"BuPu"))(level_ncat[1]),
                  colorRampPalette(brewer.pal(9,"BuPu"))(level_ncat[2])) #,
                 # colorRampPalette(brewer.pal(9,"Greens"))(level_ncat[3]))
 
+
+
+build_timeline_plot <- function(nodes, elements_only_minerals, age_lb, age_ub, max_age_type, geo_data, mineral_name_size)
+{
+    upper <- 12
+    space <- 6
+    
+   if (max_age_type == "Minimum")
+    {
+        elements_only_minerals %<>% dplyr::mutate(age_check = min_age) 
+    } else {
+        elements_only_minerals %<>% dplyr::mutate(age_check = max_age) 
+    }
+    elements_only_minerals %>%
+        filter(at_locality == 1) %>%
+        mutate( selected_time_frame = ifelse(age_check >= age_lb & age_check <= age_ub, "Selected time range", "Other time range")) %>%
+        dplyr::select(mineral_name, age_check, selected_time_frame) %>%
+        ungroup() %>%
+        arrange(desc(age_check)) %>%
+        rename(x = age_check) %>%
+        mutate(x = x * 1000,
+               y = (upper-0.25) - (seq(0, 1, 1/(n()))[1:n()] * space)) -> timeline_minerals
+    timeline_minerals$selected_time_frame <- factor(timeline_minerals$selected_time_frame, levels = c("Selected time range", "Other time range"))
+    
+ #    elements_only %<>% 
+#         filter(age_check >= lb, age_check <= ub, at_locality == 1) %>% 
+#         group_by(mineral_name) %>%
+#         mutate(num_localities_mineral = sum(at_locality)) %>%
+#         ungroup() %>%
+#         dplyr::select(-at_locality)
+#         all_minerals
+#     
+#     all_minerals %>%
+#     
+#     nodes %>%
+#         filter(group == "mineral") %>%
+#         dplyr::select(id, ima_chemistry, !!age_var) %>%
+#         arrange(desc(!!(sym(age_var)))) %>%
+#         rename(x = !!(sym(age_var))) %>%
+#         mutate(x = x * 1000,
+#                y = (upper-0.25) - (seq(0, 1, 1/(n()))[1:n()] * space)) -> timeline_minerals 
+
+    geo_data %>%
+        ggplot() +
+        xlab("Millions of years ago") +
+        ylab("") + 
+        geom_rect(aes(fill = interval_name, 
+                      xmin = late_age, 
+                      xmax = early_age, 
+                      ymin = ymin, 
+                      ymax = ymax), 
+                  color = "black") +
+        scale_fill_manual(values = all_geo_colors) + 
+        #geom_rect(fill = NA,
+        #          color = "darkgoldenrod1", 
+        #          xmax = age_lb * -1000, 
+        #          xmin = age_ub * -1000,
+        #          ymin = 0.03, ymax = upper -0.03, size=1.5) +
+        geom_text(aes(x = label_x, y = label_y, label = interval_name), 
+                  #size=2.8, 
+                  #fontface = "bold", 
+                  angle = c( 0, 90, 60, 35, rep(0, 5), rep(30, 3), rep(0, 2)),
+                  color = c( rep("black", 12), "grey80", "grey80"), 
+                  size  = c( 5.5, #phanerozoic
+                             3, # cenozoic
+                             3.5,  #mesozoic
+                             4,  #paleozoic
+                             7,   #proterozoic
+                             3.5,  #Neoproterozoic
+                             4,  #Mesoproterozoic
+                             6,  # Paleoproterozoic
+                             7,  #Archean
+                             3, #Neoarchean
+                             3.5, #Mesoarchean
+                             3.5, #Paleoarchean
+                             4.5, # Eoarchean
+                             7)  ) + #hadean 
+        annotate("text", 
+                    label = str_wrap("Geochemical evidence of microbial metabolism", width=30),
+                    color = "dodgerblue4", 
+                    size = 5, 
+                    x = 3600, y = 1.5) +
+        geom_point(x = -3800, y = 2, size = 3, color = "dodgerblue4") + 
+        geom_point(x = -3400, y = 2, size = 3, color = "dodgerblue4") +                
+        geom_segment(color = "dodgerblue4", x = -3800, xend = -3400, y=2, yend=2, size=1.5) + 
+        annotate("text", 
+                    label = str_wrap("First Great Oxidation Event", width=20),
+                    color = "dodgerblue4", 
+                    size = 5, 
+                    x = 2350, y = 1.5) +
+        geom_point(x = -2400, y = 2, size = 3, color = "dodgerblue4") + 
+        geom_point(x = -2300, y = 2, size = 3, color = "dodgerblue4") +                
+        geom_segment(color = "dodgerblue4", x = -2400, xend = -2300, y=2, yend=2, size=1.5) + 
+        annotate("text", 
+                    label = str_wrap("Second Great Oxidation Event", width=20),
+                    color = "dodgerblue4", 
+                    size = 5, 
+                    x = 800, y = 1.5) +
+        geom_point(x = -630, y = 2, size = 3, color = "dodgerblue4") + 
+        geom_point(x = -540, y = 2, size = 3, color = "dodgerblue4") +                
+        geom_segment(color = "dodgerblue4", x = -630, xend = -540, y=2, yend=2, size=1.5) +         
+        geom_point(data = extinctions, aes(x = x, y = y), color = "firebrick", size=2)+ 
+        geom_text(data = extinctions, aes(x = x-30, y = y, label = name), color = "firebrick", size = 4, hjust=0)+
+        theme_classic() + 
+        theme(axis.line.y = element_blank(),
+              axis.ticks.y = element_blank(),
+              axis.text.y = element_blank(),
+              axis.text.x = element_text(size = 13),
+              axis.title.x = element_text(size=15),
+              legend.position = "top", 
+              legend.text = element_text(size =14)) +
+        guides(fill=FALSE, 
+               color = guide_legend(override.aes = list(size=4))) + 
+        scale_y_continuous(limits=c(0, upper), expand=c(0,0)) +
+        scale_x_reverse(breaks=c(seq(0, 4500,500)), limits=c(4750, -200), sec.axis = dup_axis()) +
+        geom_point(data = timeline_minerals, aes(x = x, y = y, color = selected_time_frame)) +
+        geom_segment(data = timeline_minerals, aes(x = x, xend = x, y = y, yend = upper, color = selected_time_frame), alpha = 0.8) +
+        scale_color_manual(values=c("peru", "chocolate4"), name = "") -> timeline_plot
+        
+
+
+    if (mineral_name_size > 0)
+    {
+        timeline_plot <- timeline_plot +
+                            geom_text(data = (timeline_minerals %>% filter(selected_time_frame == T)), aes(x = x-30, y = y, label = id), hjust=0, size = mineral_name_size)
+    }
+    timeline_plot
+}
 
 
 
