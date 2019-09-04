@@ -14,7 +14,6 @@ library(cowplot)
 library(igraph)
 library(broom)
 library(dragon) ## for the extdata
-library(ggfittext)
 options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Make NA in DT show as NA instead of blank cell
 
 

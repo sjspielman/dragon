@@ -11,7 +11,7 @@ library(visNetwork)
 library(magrittr)
 library(cowplot)
 library(igraph)
-library(plotly)
+
 source("build_network.R")
 source("defs.R")
 
@@ -29,6 +29,7 @@ dashboardPage(skin = "red",
   dashboardSidebar(width = 350,
     sidebarMenu(
         chooseSliderSkin(skin = "Flat"),
+            
             pickerInput("elements_of_interest", tags$span(style="font-weight:400", "Select focal element(s):"),
                                                     #choices = c("Ag" = "Ag", "Al" = "Al", "As" = "As", "Au" = "Au", "B" = "B", "Ba" = "Ba", "Be" = "Be", "Bi" = "Bi", "Br" = "Br", "C" = "C", "Ca" = "Ca", "Cd" = "Cd", "Ce" = "Ce", "Cl" = "Cl", "Co" = "Co", "Cr" = "Cr", "Cs" = "Cs", "Cu" = "Cu", "Dy" = "Dy", "Er" = "Er", "F" = "F", "Fe" = "Fe", "Ga" = "Ga", "Gd" = "Gd", "Ge" = "Ge", "H" = "H", "Hf" = "Hf", "Hg" = "Hg", "I" = "I", "In" = "In", "Ir" = "Ir", "K" = "K", "La" = "La", "Li" = "Li", "Mg" = "Mg", "Mn" = "Mn", "Mo" = "Mo", "N" = "N", "Na" = "Na", "Nb" = "Nb", "Nd" = "Nd", "Ni" = "Ni", "O" = "O", "Os" = "Os", "P" = "P", "Pb" = "Pb", "Pd" = "Pd", "Pt" = "Pt", "Rb" = "Rb", "Re" = "Re", "REE" = "REE", "Rh" = "Rh", "Ru" = "Ru", "S" = "S", "Sb" = "Sb", "Sc" = "Sc", "Se" = "Se", "Si" = "Si", "Sm" = "Sm", "Sn" = "Sn", "Sr" = "Sr", "Ta" = "Ta", "Te" = "Te", "Th" = "Th", "Ti" = "Ti", "Tl" = "Tl", "U" = "U", "V" = "V", "W" = "W", "Y" = "Y", "Yb" = "Yb", "Zn" = "Zn", "Zr" = "Zr"),
                                                     choices = all_elements,
@@ -38,28 +39,48 @@ dashboardPage(skin = "red",
                                                     ), 
                                                     multiple = TRUE
                         ),
-            prettyCheckbox("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
-            prettyCheckbox("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger", animation="smooth", icon = icon("check")),
-            sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = total_max_age, step = 0.1, value = c(0,total_max_age)), 
-            awesomeRadio("max_age_type", "Use maximum or minimum age of minerals", checkbox=TRUE, inline = TRUE, choices = c("Maximum", "Minimum"), selected="Maximum", status="danger"),
-
+            tipify(
+                prettyCheckbox("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger"),
+                title = "Separate element nodes into one per redox state, e.g. rather than one node for Iron (Fe) there may be several nodes such as Fe3+ and Fe2+, etc."
+            ), 
             
+            tipify(
+                prettyCheckbox("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
+                title = "When multiple elements are selected, this option ensures that only minerals containing all elements appear in the network."
+            ),
+            
+            tipify( 
+                sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = total_max_age, step = 0.1, value = c(0,total_max_age)), 
+                title = "Based on mineral discovery dates as recorded in MED"
+            ),
+            tipify(
+                awesomeRadio("max_age_type", "Use maximum or minimum age of minerals", checkbox=TRUE, inline = TRUE, choices = c("Maximum", "Minimum"), selected="Maximum", status="danger"),
+                title = "Determines which recorded date (maximum or minimum) is considered for including minerals in the network"
+            ),
+
+       
             fluidRow(
                 column(8,
-                    pickerInput("network_layout", tags$span(style="font-weight:400", "Network layout:"),
-                        choices = list(
-                           `Force-directed` = c("Fruchterman Reingold" = "layout_with_fr",
-                                              "GEM force-directed"      = "layout_with_gem"),
-                            Other = c("Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
-                                              #"Multidimensional scaling"    = "layout_with_mds",
-                                              "Layout in circle"             = "layout_in_circle",
-                                              "Layout in sphere"            = "layout_on_sphere")
-                        )
+                    tipify(
+                        pickerInput("network_layout", tags$span(style="font-weight:400", "Network layout:"),
+                            choices = list(
+                               `Force-directed` = c("Fruchterman Reingold" = "layout_with_fr",
+                                                  "GEM force-directed"      = "layout_with_gem"),
+                                Other = c("Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
+                                                  #"Multidimensional scaling"    = "layout_with_mds",
+                                                  "Layout in circle"             = "layout_in_circle",
+                                                  "Layout in sphere"            = "layout_on_sphere")
+                            )
+                        ),
+                    title = "Algorithm for rendering the initial state of the interactive network"
                     )
                 ),
                 column(4,
                     conditionalPanel('input.network_layout == "layout_with_fr" | input.network_layout == "layout_with_gem"',{
-                        numericInput("network_layout_seed", tags$span(style="font-weight:400", "Seed:"), min = 0, max = Inf, value = 1)
+                        tipify(
+                           numericInput("network_layout_seed", tags$span(style="font-weight:400", "Seed:"), min = 0, max = Inf, value = 1),
+                           title = "Set the random seed for stochastic network layouts here."
+                        )
                     })
                 
                 )
