@@ -6,11 +6,19 @@ library(shinyBS)
 library(colourpicker)
 library(DT)
 library(RColorBrewer)
-library(tidyverse)
-library(visNetwork)
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(ggplot2)
+library(stringr)
+library(readr)
+library(tibble)
 library(magrittr)
+library(broom)
 library(cowplot)
 library(igraph)
+library(visNetwork)
+
 
 source("build_network.R")
 source("defs.R")
@@ -379,14 +387,20 @@ dashboardPage(skin = "red",
                         tabPanel("Timeline View",
                             div(style = "height:700px;", 
                                 
-                                div(style = "display:inline-block; float:left; height:15%;",
-                                    sliderInput("mineral_names_timeline","Mineral label font size (set to 0 to hide labels):",value=0,min=0,max=5,step = 0.1)
-                                ),
-                                div(style="display:inline-block; float:right; height:15%;",
+                                div(style="display:inline-block; float:right; height:15%; margin-top:30px;",
                                     downloadBttn("download_timeline_plot", "Download Plot", size = "sm", style = "minimal", color = "danger")
+                                ), 
+                                div(style = "display:inline-block; float:right; height:15%; width:250px; margin:10px;",
+                                    sliderInput("mineral_names_timeline","Mineral label font size (size 0 hides labels):",value=0,min=0,max=5,step = 0.1)
                                 ),
-                                plotOutput("timeline", width = "100%", height = "85%")   #plotOutput
-                            
+                                div(style = "display:inline-block; float:right; height:15%; width:260px; margin:10px;",
+                                    colourpicker::colourInput("timeline_color_notselected", "Color of minerals outside selected age range", value = "chocolate4")
+                                ),
+                                div(style = "display:inline-block; float:right; height:15%; width:260px; margin:10px;",
+                                    colourpicker::colourInput("timeline_color_selected", "Color of minerals within selected age range", value = "peru")
+                                ),                                    
+                                plotOutput("timeline", width = "100%", height = "80%")
+                                                           
                             )
                         )  ## tabPanel    
                           
