@@ -3,7 +3,7 @@ sudo: false
 r: release
 cache:
   # Main R library
-  packages: true
+  packages: false
   directories:
     # Packrat packages
    # - packrat/lib
