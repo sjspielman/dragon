@@ -8,14 +8,15 @@ sudo: false
 r: release
 cache: 
   packages: true
-  directories:
-    - travis_phantomjs
+#  directories:
+#    - travis_phantomjs
 warnings_are_errors: FALSE
 
 r_packages:
  - testthat
  - shinytest
  - covr
+ - V8
 
 before_install:
   - "export PHANTOMJS_VERSION=2.1.1"

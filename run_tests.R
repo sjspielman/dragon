@@ -1,6 +1,6 @@
 library(testthat)
 library(shinytest)
-
+library(V8)
 
 test_that("dragon network visualization rendering", {
   # Don't run these tests on the CRAN build servers
