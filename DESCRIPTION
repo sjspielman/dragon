@@ -13,12 +13,11 @@ BugReports: https://github.com/spielmanlab/dragon/issues
 Repository: CRAN
 NeedsCompilation: no
 RoxygenNote: 6.1.1
-Imports: tidyverse, broom, cowplot, shiny, shinythemes, shinydashboard, shinyWidgets, colourpicker, colorspace, RColorBrewer, DT, visNetwork, igraph, magrittr, shinyBS, shinytest, testthat
+Imports: tidyverse, broom, cowplot, shiny, shinythemes, shinydashboard, shinyWidgets, colourpicker, colorspace, RColorBrewer, DT, visNetwork, igraph, magrittr, shinyBS
 Suggests: 
     knitr,
     testthat,
-    shinytest,
-    devtools
+    shinytest
 VignetteBuilder: knitr
 
 

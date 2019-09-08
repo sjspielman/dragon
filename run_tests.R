@@ -1,10 +1,10 @@
 library(testthat)
 library(shinytest)
-library(V8)
+
 
 test_that("dragon network visualization rendering", {
   # Don't run these tests on the CRAN build servers
-  #skip_on_cran()
+  skip_on_cran()
 
   # Use compareImages=FALSE because the expected image screenshots were created
   # on a Mac, and they will differ from screenshots taken on the CI platform,
