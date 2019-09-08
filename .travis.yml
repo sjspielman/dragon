@@ -2,12 +2,14 @@
 ## TODO: Eventually add PhantomJS when it becomes possible to use shinytest
 
 
-language: R
+dist: trusty  
+language: r
 sudo: false
+r: 3.4.1
 cache: 
   packages: true
   directories:
-    - "travis_phantomjs"
+    - travis_phantomjs
 warnings_are_errors: FALSE
 
 r_packages:
@@ -26,12 +28,12 @@ before_install:
   - "if [ $(phantomjs --version) != $PHANTOMJS_VERSION ]; then tar -xvf $PWD/travis_phantomjs/phantomjs-$PHANTOMJS_VERSION-linux-x86_64.tar.bz2 -C $PWD/travis_phantomjs; fi"
   - "if [ $(phantomjs --version) != $PHANTOMJS_VERSION ]; then hash -r; fi"
   - "phantomjs --version"
-
-env:
-  - NOT_CRAN=true
+  
+#env:
+#  - NOT_CRAN=true
   
 script:
-  - Rscript run_tests.R
+  - R -f run_tests.R
 
 after_success:
   - Rscript -e 'covr::codecov()'
