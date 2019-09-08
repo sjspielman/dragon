@@ -16,7 +16,8 @@ RoxygenNote: 6.1.1
 Imports: tidyverse, cowplot, broom, shiny, shinythemes, shinydashboard, shinyWidgets, colourpicker, colorspace, RColorBrewer, DT, visNetwork, igraph, magrittr, shinyBS
 Suggests: 
     knitr,
-    testthat (>= 2.1.0)
+    testthat (>= 2.1.0),
+    shinytest
 VignetteBuilder: knitr
 
 
