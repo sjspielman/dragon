@@ -109,7 +109,7 @@ dashboardPage(skin = "red",
                                    "Number of protons" = "NumberofProtons",
                                    "Periodic Table Group"       = "TableGroup", 
                                    "Periodic Table Period"       = "TablePeriod", 
-                                   "Metal type"    = "MetalType", 
+                                  # "Metal type"    = "MetalType", ## legend bad
                                    "Density"       = "Density",
                                    "Specific Heat"  = "SpecificHeat"))   
                                    
@@ -175,29 +175,25 @@ dashboardPage(skin = "red",
             )), 
         menuItem(text = "Node Sizes",
             fluidRow(
-                column(6, pickerInput("element_size_type", "Size element nodes by:", 
+                column(6, pickerInput("element_size_type", "Size element nodes based on:", 
                                      c("Single size" = "singlesize",
-                                       "HSAB theory" = "element_hsab",  
                                        "Degree centrality" = "network_degree_norm", 
                                        "Number of localities (based on mineral discovery)" = "num_localities",
                                        "Atomic mass" = "AtomicMass",
                                        "Number of protons" = "NumberofProtons",
-                                       "Periodic Table Group"       = "TableGroup", 
-                                       "Periodic Table Period"       = "TablePeriod", 
-                                    #   "Metal type"    = "MetalType", ### borks legend
                                        "Density"       = "Density",
                                        "Specific Heat"  = "SpecificHeat"), selected = "singlesize")
                     ),
                 column(6, conditionalPanel(condition = "input.element_size_type == 'singlesize'", 
-                            {sliderInput("element_label_size","Size",value=50,min=10,max=100, step=10)}) #### !!!!!!! label size!!!!!!!
+                            {sliderInput("element_label_size","Element size",value=50,min=10,max=100, step=10)}) #### !!!!!!! label size!!!!!!!
                     ),
                 column(6, conditionalPanel(condition = "input.element_size_type != 'singlesize'", 
-                            {sliderInput("size_scale","Scale size",value=20,min=10,max=100,step=10)}) 
+                            {sliderInput("element_size_scale","Scale element size",value=20,min=10,max=100,step=10)}) 
                 )
             ),                    
 
             fluidRow(
-                    column(6, pickerInput("mineral_size_type", "Size mineral nodes by:", 
+                    column(6, pickerInput("mineral_size_type", "Size mineral nodes based on:", 
                              c("Single size" = "singlesize",
                                "Maximum known age"           = "max_age",      
                                "Number of known localities"  = "num_localities"
@@ -205,8 +201,11 @@ dashboardPage(skin = "red",
                     ),
                     column(6,       
                         conditionalPanel(condition = "input.mineral_size_type == 'singlesize'", 
-                            {sliderInput("mineral_size","Size",value=10,min=0,max=50, step = 5)})
-                    )
+                            {sliderInput("mineral_size","Mineral size",value=10,min=0,max=50, step = 5)})
+                    ),
+                    column(6, conditionalPanel(condition = "input.mineral_size_type != 'singlesize'", 
+                            {sliderInput("mineral_size_scale","Scale mineral size",value=10,min=1,max=25,step=1)}) 
+                )
             )
         ),
         menuItem(text = "Node Labels and Font", 

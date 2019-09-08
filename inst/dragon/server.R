@@ -275,6 +275,7 @@ server <- function(input, output, session) {
             visNetworkProxy("networkplot") %>%
                 visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
                 visUpdateEdges(edges = edge_styler()$styled_edges) %>%
+                visEdges(width = input$edge_weight) %>%
                 visGetNodes(input = "nodes_coord") %>%  ### retains last position
                 visGetSelectedNodes() %>%
                 visGetPositions() %>%
@@ -796,7 +797,7 @@ server <- function(input, output, session) {
         if (input$element_size_type != "singlesize") 
         {
             node_attr[["sizes"]] <- obtain_node_sizes(full_nodes %>% filter(group == "element"), 
-                                                            input$element_size_type, 1, 4, size_scale = input$size_scale) %>%
+                                                            input$element_size_type, 1, 4, size_scale = input$element_size_scale) %>%
                                                         select(label, id, size) %>%
                                                         mutate(group = "element") 
 
@@ -811,7 +812,7 @@ server <- function(input, output, session) {
          
         if (input$mineral_size_type != "singlesize") {
              minsizes <- obtain_node_sizes(full_nodes %>% filter(group == "mineral"), 
-                                                            input$mineral_size_type, 5, 30) %>%
+                                                            input$mineral_size_type, 5, 30, size_scale = input$mineral_size_scale / 10) %>%
                                                             select(label, id, size) %>%
                                                             mutate(group = "mineral")
  
@@ -883,8 +884,7 @@ server <- function(input, output, session) {
              edge_colors <-  left_join(chemistry_network()$edges, out$cols)
              colorlegend_edge <- out$leg
          }
-         
-        edge_colors %<>% mutate(width = input$edge_weight)
+        #edge_colors %<>% mutate(width = input$edge_weight)
         return (list("edge_legend" = colorlegend_edge, "styled_edges" = edge_colors) )
     })
     #################################################################################################################
