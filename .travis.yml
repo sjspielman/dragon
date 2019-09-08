@@ -14,6 +14,7 @@ warnings_are_errors: FALSE
 r_packages:
  - covr
  - testthat
+ - shinytest
 
 # Install PhantomJS (if not cached)
 #before_install:
@@ -28,7 +29,8 @@ r_packages:
 #  - "if [ $(phantomjs --version) != $PHANTOMJS_VERSION ]; then hash -r; fi"
 #  - "phantomjs --version"
 
-
+script:
+  - R -f run_tests.R
 
 after_success:
     - Rscript -e 'covr::codecov()'
