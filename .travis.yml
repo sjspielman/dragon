@@ -12,7 +12,6 @@ cache:
 warnings_are_errors: FALSE
 
 r_packages:
- - covr
  - testthat
  - shinytest
 
@@ -29,8 +28,11 @@ r_packages:
 #  - "if [ $(phantomjs --version) != $PHANTOMJS_VERSION ]; then hash -r; fi"
 #  - "phantomjs --version"
 
+env:
+  - NOT_CRAN=true
+  
 script:
-  - R -f run_tests.R
+  - Rscript run_tests.R
 
 after_success:
     - Rscript -e 'covr::codecov()'
