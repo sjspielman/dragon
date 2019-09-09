@@ -65,6 +65,8 @@
     "sidebarCollapsed": false,
     "sidebarItemExpanded": null,
     "table_digits": 3,
+    "timeline_color_notselected": "#8B4513",
+    "timeline_color_selected": "#CD853F",
     "zoom_view": true
   },
   "output": {

@@ -206,7 +206,7 @@ geo_data %>%
 
 
 
-build_timeline_plot <- function(elements_only_minerals, age_lb, age_ub, max_age_type, mineral_name_size, selected_color, notselected_color)
+build_timeline_plot <- function(elements_only_minerals, age_lb, age_ub, max_age_type, selected_color, notselected_color)
 {
     
    if (max_age_type == "Minimum")
@@ -229,16 +229,9 @@ build_timeline_plot <- function(elements_only_minerals, age_lb, age_ub, max_age_
 
     timeline_plot <- timeline_plot_base +
                         geom_point(data = timeline_minerals, aes(x = x, y = y, color = selected_time_frame)) +
-                        geom_segment(data = timeline_minerals, aes(x = x, xend = x, y = y, yend = timeline_upper, color = selected_time_frame), alpha = 0.8) +
-                        scale_color_manual(values=c(selected_color, notselected_color), name = "") -> timeline_plot
+                        geom_segment(data = timeline_minerals, aes(x = x, xend = x, y = y, yend = timeline_upper, color = selected_time_frame)) +
+                        scale_color_manual(values=c(selected_color, notselected_color), name = "")
     
-
-    if (mineral_name_size > 0)
-    {
-        timeline_plot <- timeline_plot +
-                            geom_text(data = (timeline_minerals %>% filter(selected_time_frame == T)), 
-                                       aes(x = x-30, y = y, label = id), hjust=0, size = mineral_name_size)
-    }
     timeline_plot
 }
 

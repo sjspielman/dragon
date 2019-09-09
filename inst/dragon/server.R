@@ -8,6 +8,7 @@ library(colorspace)
 library(RColorBrewer)  ## colorspace conflict? something strange has been happening but not fully reprexable THIS IS A WORD.
 library(DT)
 library(tidyverse)
+library(broom)
 library(magrittr)
 library(cowplot)
 library(visNetwork)
@@ -206,7 +207,7 @@ server <- function(input, output, session) {
     
         output$timeline <- renderPlot({
 
-            print( build_timeline_plot(chemistry_network()$elements_only_minerals, chemistry_network()$age_lb, chemistry_network()$age_ub, input$max_age_type, input$mineral_names_timeline, input$timeline_color_selected, input$timeline_color_notselected) )
+            print( build_timeline_plot(chemistry_network()$elements_only_minerals, chemistry_network()$age_lb, chemistry_network()$age_ub, input$max_age_type, input$timeline_color_selected, input$timeline_color_notselected) )
 
         })
         
@@ -215,7 +216,7 @@ server <- function(input, output, session) {
               paste("dragon_timeline_plot-", Sys.Date(), ".pdf", sep="")
             },
             content = function(file) {
-              p <-  build_timeline_plot(chemistry_network()$elements_only_minerals, chemistry_network()$age_lb, chemistry_network()$age_ub, input$max_age_type, input$mineral_names_timeline, input$timeline_color_selected, input$timeline_color_notselected)
+              p <-  build_timeline_plot(chemistry_network()$elements_only_minerals, chemistry_network()$age_lb, chemistry_network()$age_ub, input$max_age_type, input$timeline_color_selected, input$timeline_color_notselected)
               
               ggsave(file, p, width=18, height=8)
         }) 
