@@ -1,2 +1,2 @@
-Release of Version 0.1.0
+Release of Version 0.2.0
 
