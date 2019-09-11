@@ -4,11 +4,14 @@ form_file_path <- function(filename)
     return( system.file("extdata", filename, package = "dragon") ) 
 }
 
-rruff                <- read_csv(form_file_path("rruff_minerals.csv.zip")) %>% mutate(max_age = max_age/1000, min_age = min_age/1000) 
-element_redox_states <- read_csv(form_file_path("rruff_redox_states.csv.zip"))
-rruff_separated      <- read_csv(form_file_path("rruff_separated_elements.csv.zip"))
-#rruff_sub            <- rruff %>% select(-mineral_id, -rruff_chemistry)
-rruff_chemistry      <- rruff_separated %>% select(-chemistry_elements) %>% unique()
+locality1            <- read_csv(form_file_path("rruff_locality1.csv.zip")) ## mineral_name,mindat_id,age_type,min_age,max_age
+locality2            <- read_csv(form_file_path("rruff_locality2.csv.zip")) ## mineral_name,mindat_id,age_type,min_age,max_age
+locality_long        <- read_csv(form_file_path("locality_longnames.csv.zip")) ## mindat_id, locality_longname
+rruff_raw            <- read_csv(form_file_path("rruff_chemistry.csv")) 
+rruff_separated      <- read_csv(form_file_path("rruff_separated_elements.csv"))
+
+             
+element_redox_states <- read_csv(form_file_path("rruff_redox_states.csv"))
 element_info         <- read_csv(form_file_path("element_information.csv")) 
 geo_timeline         <- read_csv(form_file_path("geo_timeline.csv"))
 extinctions          <- read_csv(form_file_path("extinctions.csv"))
@@ -16,6 +19,12 @@ extinctions          <- read_csv(form_file_path("extinctions.csv"))
 total_max_age <- round( max(rruff$max_age) + 0.1, 1)
 hsab_levels <- c("Hard acid", "Int. acid", "Soft acid", "Soft base", "Int. base", "Hard base")
 
+locality <- bind_rows(locality1, locality2) %>% distinct()
+rruff    <- left_join(rruff_raw, locality) %>%
+             left_join(locality_long) %>%
+             left_join(rruff_separated) %>%
+             mutate(max_age = max_age/1000, min_age = min_age/1000) 
+remove(locality1, locality2, rruff_raw)
                             
 community_detect_network <- function(network, cluster_algorithm)
 {
@@ -43,8 +52,9 @@ initialize_data <- function(elements_of_interest, force_all_elements)
             group_by(mineral_name) %>%
             mutate(has_element = if_else( chemistry_elements %in% elements_of_interest, TRUE, FALSE)) %>% 
             filter(has_element == TRUE) %>%
-            select(mineral_name) %>%
-            inner_join(rruff) -> elements_only
+            dplyr::select(mineral_name) %>%
+            inner_join(rruff) %>%
+            dplyr::select(-chemistry_elements) -> elements_only
  
     }  
     elements_only
@@ -63,11 +73,10 @@ initialize_data_age <- function(elements_only, age_limit, max_age_type)
     }
     
     elements_only %<>% 
-        filter(age_check >= lb, age_check <= ub, at_locality == 1) %>% 
+        filter(age_check >= lb, age_check <= ub) %>% 
         group_by(mineral_name) %>%
-        mutate(num_localities_mineral = sum(at_locality)) %>%
-        ungroup() %>%
-        dplyr::select(-at_locality)
+        mutate(num_localities_mineral = n()) %>%
+        ungroup() 
     elements_only %>% 
         dplyr::select(mineral_name, mineral_id, max_age, min_age, mindat_id, locality_longname, age_type) %>%
         rename(max_age_locality = max_age) %>%
@@ -78,9 +87,14 @@ initialize_data_age <- function(elements_only, age_limit, max_age_type)
         summarize(overall_max = max(max_age)) %>% 
         rename(max_age = overall_max) %>%
         left_join(elements_only %>% dplyr::select(-min_age, -max_age)) %>%
+        left_join(rruff_separated) %>%
         dplyr::select(mineral_name, mineral_id, ima_chemistry, rruff_chemistry, chemistry_elements, num_localities_mineral, max_age) %>%
         ungroup() %>% 
         distinct() -> elements_only_age
+#     > names(elements_only_age)
+#     [1] "mineral_name"           "mineral_id"             "ima_chemistry"         
+#     [4] "rruff_chemistry"        "chemistry_elements"     "num_localities_mineral"
+#     [7] "max_age"  
 
     list("elements_only_age" = elements_only_age, "locality_info" = locality_info)
 
@@ -89,8 +103,8 @@ initialize_data_age <- function(elements_only, age_limit, max_age_type)
 obtain_network_information <- function(elements_only_age, elements_by_redox)
 {      
 
-    ima <- rruff %>% 
-            dplyr::select(mineral_name, ima_chemistry) %>%
+    chem <- rruff %>% 
+            dplyr::select(mineral_name, ima_chemistry, rruff_chemistry) %>%
             distinct()
     network_information <- elements_only_age %>%    
                             dplyr::select(mineral_name, mineral_id, num_localities_mineral, max_age, chemistry_elements) %>%
@@ -99,7 +113,7 @@ obtain_network_information <- function(elements_only_age, elements_by_redox)
                             rename(element = chemistry_elements) %>%
                             left_join(element_info, by = "element") %>%
                             left_join(element_redox_states, by = c("element", "mineral_name")) %>%
-                            left_join(ima, by = "mineral_name") %>%
+                            left_join(chem, by = "mineral_name") %>%
                             group_by(mineral_name) %>%
                             mutate(mean_pauling = mean(pauling),
                                    #sd_pauling   = sd(pauling),
@@ -138,6 +152,15 @@ obtain_network_information <- function(elements_only_age, elements_by_redox)
                element_redox_network = ifelse(is.nan(element_redox_network), NA, element_redox_network)) %>%
         ungroup() %>%
         distinct()
+#     > names(network_information)
+#      [1] "mineral_name"           "mineral_id"             "num_localities_mineral"
+#      [4] "max_age"                "element"                "element_hsab"          
+#      [7] "AtomicMass"             "NumberofProtons"        "TablePeriod"           
+#     [10] "TableGroup"             "AtomicRadius"           "pauling"               
+#     [13] "MetalType"              "Density"                "SpecificHeat"          
+#     [16] "element_name"           "element_redox_mineral"  "ima_chemistry"         
+#     [19] "mean_pauling"           "cov_pauling"            "element_redox_network" 
+#     [22] "num_localities_element"
 
     network_information    
 }

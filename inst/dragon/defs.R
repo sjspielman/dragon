@@ -216,7 +216,6 @@ build_timeline_plot <- function(elements_only_minerals, age_lb, age_ub, max_age_
         elements_only_minerals %<>% dplyr::mutate(age_check = max_age) 
     }
     elements_only_minerals %>%
-        filter(at_locality == 1) %>%
         mutate( selected_time_frame = ifelse(age_check >= age_lb & age_check <= age_ub, "Selected time range", "Other time range")) %>%
         dplyr::select(mineral_name, age_check, selected_time_frame) %>%
         ungroup() %>%

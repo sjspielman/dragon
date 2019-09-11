@@ -1,5 +1,4 @@
-### This script produces files used in dragon from original MED database information
-### IT WILL WRITE .CSV, NOT .ZIP!!! YOU HAVE BEEN WARNED.
+### This script produces files used in dragon from original MED database information ###
 
 library(tidyverse)
 
@@ -19,7 +18,9 @@ left_join(m1, m2) %>%
           min_age,
           max_age, 
           chemistry_elements) %>% 
-   na.omit()  -> rruff
+   na.omit() %>%
+   filter(at_locality == 1) %>%
+   dplyr::select(-at_locality) -> rruff
 
 rruff %>% 
     dplyr::select(mineral_name, ima_chemistry) %>%
@@ -29,16 +30,52 @@ rruff %>%
     ungroup() %>%
     left_join(rruff %>% dplyr::select(-ima_chemistry)) -> rruff 
 
-write_csv(rruff, "rruff_minerals.csv")
+rruff %>%
+    dplyr::select(mineral_name, mineral_id, ima_chemistry, rruff_chemistry) %>%
+    distinct() -> rruff_chemistry
+write_csv(rruff_chemistry, "rruff_chemistry.csv")
+
 
 rruff %>%
-    select(mineral_name, rruff_chemistry, ima_chemistry, chemistry_elements) %>%
+    dplyr::select(mineral_name, mindat_id, age_type, min_age, max_age) %>%
+    distinct() -> rruff_locality
+
+total <- nrow(rruff_locality)
+if ((total %% 2) == 1) total <- total + 1
+
+rruff_locality %>%
+    head(total/2) %>%
+    write_csv("rruff_locality1.csv")
+
+rruff_locality %>%
+    tail(total/2) %>%
+    write_csv("rruff_locality2.csv")
+
+
+system("zip rruff_locality1.csv.zip rruff_locality1.csv")
+system("rm rruff_locality1.csv")
+
+system("zip rruff_locality2.csv.zip rruff_locality2.csv")
+system("rm rruff_locality2.csv")
+
+
+rruff %>%
+    dplyr::select(mindat_id, locality_longname) %>%
+    distinct() %>%
+    write_csv("locality_longnames.csv")
+
+system("zip locality_longnames.csv.zip locality_longnames.csv")
+system("rm locality_longnames.csv")
+
+rruff %>%
+#    select(mineral_name, rruff_chemistry, ima_chemistry, chemistry_elements) %>%
+    select(mineral_name, chemistry_elements) %>%
     distinct() %>%
     separate_rows(chemistry_elements, sep = " ") -> rruff_elements 
 write_csv(rruff_elements, "rruff_separated_elements.csv")
 
 
-rruff_elements %>% 
+rruff %>% 
     select(mineral_name, rruff_chemistry) %>% 
     distinct() -> mineral_chem
     
@@ -86,7 +123,7 @@ rruff_elements %>%
            element_redox_mineral = if_else(element %in% group2_elements, 2, element_redox_mineral),
            element_redox_mineral = if_else(element  == "Si", 4, element_redox_mineral),
            element_redox_mineral = if_else(element == "Cl", -1, element_redox_mineral),   
-           element_redox_mineral = if_else(element == "F", -1, element_redox_mineral)) -> rruff_redox ## Preserve NA's since many are truly unknown
+           element_redox_mineral = if_else(element == "F", -1, element_redox_mineral)) -> rruff_redox
 write_csv(rruff_redox, "rruff_redox_states.csv")
 
 
