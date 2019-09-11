@@ -13,7 +13,7 @@ cache:
 warnings_are_errors: FALSE
 
 
-Install PhantomJS (if not cached)
+#Install PhantomJS (if not cached)
 before_install:
  - "export PHANTOMJS_VERSION=2.1.1"
  - "phantomjs --version"
@@ -31,7 +31,7 @@ env:
  - NOT_CRAN=true
 
 script:
- - R -f run_tests.R
+ - Rscript run_tests.R
 
 after_success:
  - Rscript -e 'covr::codecov()'
