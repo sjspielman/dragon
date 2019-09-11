@@ -29,7 +29,7 @@ dashboardPage(skin = "red",
             notificationItem("IMA Database of Mineral Properties", icon = icon("globe"), href =  "http://rruff.info/ima/")
         )),
   dashboardSidebar(width = 350,
-    sidebarMenu(
+    sidebarMenu(id = "thismusttakeanidapparently",
         chooseSliderSkin(skin = "Flat"),
             
             pickerInput("elements_of_interest", tags$span(style="font-weight:400", "Select focal element(s):"),

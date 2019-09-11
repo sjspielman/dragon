@@ -48,7 +48,6 @@
     "mineral_color": "#CD2626",
     "mineral_label_color": "#000000",
     "mineral_label_size": 0,
-    "mineral_names_timeline": 0,
     "mineral_shape": "dot",
     "mineral_size": 10,
     "mineral_size_scale": 10,
@@ -65,6 +64,7 @@
     "sidebarCollapsed": false,
     "sidebarItemExpanded": null,
     "table_digits": 3,
+    "thismusttakeanidapparently": null,
     "timeline_color_notselected": "#8B4513",
     "timeline_color_selected": "#CD853F",
     "zoom_view": true
@@ -76,7 +76,7 @@
     "n_element_nodes": "Number of elements: 19. Number of element nodes: 29",
     "n_mineral_nodes": "Number of mineral nodes: 26",
     "networklegend": {
-      "src": "[image data sha1: 798b3218212ef9cd7a7b5c9c532a1177a208f144]",
+      "src": "[image data sha1: bbbfb4b5327bfe9a92f0af403b8242b1b7856462]",
       "width": 579,
       "height": 64,
       "coordmap": {
