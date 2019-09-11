@@ -29,8 +29,7 @@ before_install:
 
 env:
  - NOT_CRAN=true
- 
-heeeelp 
+
 script:
  - R -f run_tests.R
 
