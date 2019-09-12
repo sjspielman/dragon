@@ -1,10 +1,12 @@
-language: r
+language: R
 sudo: false
-r: release
-cache:
+cache: 
   packages: true
-
 warnings_are_errors: FALSE
 
+r_packages:
+ - covr
+ - testthat
+
 after_success:
- - Rscript -e 'covr::codecov()'
+    - Rscript -e 'covr::codecov()'
