@@ -1,11 +1,11 @@
-## Version update
-This is version update of a package currently on CRAN.
+## Minor version update
+This submission is a minor version update (0.2.0) of the package `dragon`, currently on CRAN as version 0.1.0.
 
 
 ## Test environments
 * Local OS X install, R 3.6.1
 * Linux (x86_64-pc-linux-gnu on travis-ci), R version `release`
-* Windows versions `devel`, `release`, and `oldrelease` 
+* Windows versions `release` and `oldrelease` 
 
 ## R CMD check results 
 
@@ -32,11 +32,6 @@ No errors, notes, or warnings were produced. R CMD check completed with:
 
 `Status: OK`
 
-### Windows devel (3.6.2 alpha)
-
-No errors, notes, or warnings were produced. R CMD check completed with:
-
-`Status: OK`
 
 ### Windows old release (3.5.3)
 
