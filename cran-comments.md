@@ -1,42 +1,45 @@
-## Resubmission
-This is a resubmission. In this version I have 
+## Version update
+This is version update of a package currently on CRAN.
 
-* Updated the DESCRIPTION field to no longer capitalize "Earth"
-* Removed extraneous GPL-3 LICENSE file and reference to said file from DESCRIPTION
-* Updated DESCRIPTION field without reference to other R packages
 
 ## Test environments
-* Local OS X install, R 3.5.3
-* Linux (x86_64-pc-linux-gnu on travis-ci), R versions `oldrel`, `release`, and `devel`
-* Windows versions `devel` and `release` 
+* Local OS X install, R 3.6.1
+* Linux (x86_64-pc-linux-gnu on travis-ci), R version `release`
+* Windows versions `devel`, `release`, and `oldrelease` 
 
 ## R CMD check results 
 
 ### OS X
 
-`0 errors ✔ | 0 warnings ✔ | 0 notes ✔`
+No errors, notes, or warnings were produced. R CMD check completed with:
 
+```
+── R CMD check results ─────────────────────────────────────── dragon 0.2.0 ────
+Duration: 11.1s
+
+0 errors ✔ | 0 warnings ✔ | 0 notes ✔
+```
 
 ### Linux 
 
-Status: OK
+No errors, notes, or warnings were produced. R CMD check completed with:
 
 `Done. Your build exited with 0.`
 
-### windows devel (3.6.0 alpha)
+### Windows release (3.6.1)
 
-Status: 1 NOTE
+No errors, notes, or warnings were produced. R CMD check completed with:
 
+`Status: OK`
 
-`* checking CRAN incoming feasibility ... NOTE`
-`Maintainer: 'Stephanie J. Spielman <spielman@rowan.edu>'`
+### Windows devel (3.6.2 alpha)
 
-### windows release (3.5.3)
+No errors, notes, or warnings were produced. R CMD check completed with:
 
-Status: 1 NOTE
+`Status: OK`
 
+### Windows old release (3.5.3)
 
-`* checking CRAN incoming feasibility ... NOTE`
-`Maintainer: 'Stephanie J. Spielman <spielman@rowan.edu>'`
+No errors, notes, or warnings were produced. R CMD check completed with:
 
-
+`Status: OK`
