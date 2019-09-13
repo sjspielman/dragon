@@ -627,7 +627,7 @@ server <- function(input, output, session) {
                 test_variance_pvalue <- bartlett.test(as.formula(aov_fit_string), data = mineral_nodes2, na.action = na.omit)$p.value
                 if (test_variance_pvalue <= 0.01) 
                 {
-                    createAlert(session, "lm_alert", "bad_clusters", title = '<h4 style="color:black;">Error</h4>', style = "warning",
+                    createAlert(session, "lm_alert", "bad_clusters", title = '<h4 style="color:black;">Warning</h4>', style = "warning",
                         content = '<p style="color:black;">Caution: Clusters have unequal variances and modeling results may not be precise.</p>')
                 }
             
@@ -689,9 +689,9 @@ server <- function(input, output, session) {
                                                            statistic = round(statistic, 6),
                                                            p.value   = round(p.value, 6)) %>%
                                                     rename("Term" = term, 
-                                                            "Estimated effect size (Slope)" = estimate,
-                                                            "Standard error of effect size" = std.error,
-                                                            "t-value statistic" = statistic,
+                                                            "Effect size (slope)" = estimate,
+                                                            "Standard error" = std.error,
+                                                            "t-statistic" = statistic,
                                                             "P-value" = p.value) 
                                                 })
        

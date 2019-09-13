@@ -16,7 +16,6 @@ element_info         <- read_csv(form_file_path("element_information.csv"))
 geo_timeline         <- read_csv(form_file_path("geo_timeline.csv"))
 extinctions          <- read_csv(form_file_path("extinctions.csv"))
 
-total_max_age <- round( max(rruff$max_age) + 0.1, 1)
 hsab_levels <- c("Hard acid", "Int. acid", "Soft acid", "Soft base", "Int. base", "Hard base")
 
 locality <- bind_rows(locality1, locality2) %>% distinct()
@@ -24,6 +23,8 @@ rruff    <- left_join(rruff_raw, locality) %>%
              left_join(locality_long) %>%
              left_join(rruff_separated) %>%
              mutate(max_age = max_age/1000, min_age = min_age/1000) 
+total_max_age <- round( max(rruff$max_age) + 0.1, 1)
+
 remove(locality1, locality2, rruff_raw)
                             
 community_detect_network <- function(network, cluster_algorithm)
