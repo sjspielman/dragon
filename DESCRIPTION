@@ -14,6 +14,7 @@ Repository: CRAN
 NeedsCompilation: no
 RoxygenNote: 6.1.1
 Imports: tidyverse, broom, cowplot, magrittr, shiny, shinythemes, shinydashboard, shinyWidgets, shinyBS, colourpicker, colorspace, RColorBrewer, DT, visNetwork, igraph
+Depends: tidyverse, broom, cowplot, magrittr, shiny, shinythemes, shinydashboard, shinyWidgets, shinyBS, colourpicker, colorspace, RColorBrewer, DT, visNetwork, igraph
 Suggests: 
     knitr,
     testthat,
