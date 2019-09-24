@@ -1,5 +1,5 @@
 ## Minor version update
-This submission is a minor version update (0.2.0) of the package `dragon`, currently on CRAN as version 0.1.0.
+This submission is a patch update (0.2.1) of the package `dragon`, currently on CRAN as version 0.2.0.
 
 
 ## Test environments
