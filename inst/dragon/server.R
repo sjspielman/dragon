@@ -294,66 +294,76 @@ server <- function(input, output, session) {
     
 
         ########################################## legend ######################################
-        finallegend <- reactive({
-            e <- edge_styler()
-            n <- node_styler()
-            finallegend <- NULL
-            if (is.na(n$both_legend)) 
-            {   ## Mineral, element
-                if (is.na(e$edge_legend)) 
-                { 
-                    finallegend <- plot_grid(n$element_legend, n$mineral_legend, nrow=1)
-                } else {
-                    ### mineral, element, edge
-                    finallegend <- plot_grid(n$element_legend, n$mineral_legend, e$edge_legend, nrow=1, scale=0.75)
-                }
-            } else
-            {
-                ### both
-                if (is.na(e$edge_legend)) 
-                { 
-                    finallegend <- n$both_legend
-                } else {
-                    ### both, edge
-                    finallegend <- plot_grid(n$both_legend, e$edge_legend, nrow=1, scale=0.75)
-                }
-            }   
-            return(finallegend)
-        })
-
         output$networklegend <- renderPlot({
             ggdraw(finallegend())
         })          
         #####################################################################################
 
     })
-  
+
+    finallegend <- reactive({
+        e <- edge_styler()
+        n <- node_styler()
+        finallegend <- NULL
+        if (is.na(n$both_legend)) 
+        {   ## Mineral, element
+            if (is.na(e$edge_legend)) 
+            { 
+                finallegend <- plot_grid(n$element_legend, n$mineral_legend, nrow=1)
+            } else {
+                ### mineral, element, edge
+                finallegend <- plot_grid(n$element_legend, n$mineral_legend, e$edge_legend, nrow=1, scale=0.75)
+            }
+        } else
+        {
+            ### both
+            if (is.na(e$edge_legend)) 
+            { 
+                finallegend <- n$both_legend
+            } else {
+                ### both, edge
+                finallegend <- plot_grid(n$both_legend, e$edge_legend, nrow=1, scale=0.75)
+            }
+        }   
+        return(finallegend)
+    })  
     
     ##################################### DOWNLOAD LINKS #######################################################
     output$downloadNetwork_html <- downloadHandler(
         #req(input$go > 0)
-        filename <- function() { paste0('dragon-', Sys.Date(), '.html') },
-        content <- function(con) 
+        filename <- function() { paste0('dragon_network-', Sys.Date(), '.html') },
+        content <- function(file) 
         {
             visNetwork(nodes = node_styler()$styled_nodes, edges = edge_styler()$styled_edges, height = "800px") %>%
-                visIgraphLayout(layout = network_layout, type = "full", randomSeed = network_layout_seed) %>% ## stabilizes
+                visIgraphLayout(layout = input$network_layout, type = "full", randomSeed = input$network_layout_seed) %>% ## stabilizes
                 visExport(type = "png") %>% ## somehow pdf is worse resolution than png.......??
-                visSave(con)
+                visSave(file)
         })
         
         
     output$exportNodes <- downloadHandler(
         filename <- function() { paste0('dragon_node_data_', Sys.Date(), '.csv') },
-        content <- function(con) 
+        content <- function(file) 
         {
-            write_csv(node_styler()$styled_nodes, con)
+            write_csv(node_styler()$styled_nodes, file)
         })
+        
+        
     output$exportEdges <- downloadHandler(
         filename <- function() { paste0('dragon_edge_data_', Sys.Date(), '.csv') },
-        content <- function(con) 
+        content <- function(file) 
         {
-            write_csv(edge_styler()$styled_edges, con)
+            write_csv(edge_styler()$styled_edges, file)
         })
+
+    output$download_legend <- downloadHandler(
+        filename <- function() { paste0('dragon_legend_', Sys.Date(), '.png') },
+        content <- function(file) 
+        {
+            save_plot(file,  ggdraw( finallegend() ) , base_width = 8 )
+        })
+        
+
     ###############################################################################################################
 
 

@@ -461,7 +461,7 @@ dashboardPage(skin = "red",
                                 downloadBttn("downloadNetwork_html", "Export HTML network", size = "sm", style = "minimal", color = "danger")
                             ),
                             column(3,
-                                downloadBttn("download_legend", "Download Legend as PDF", size = "sm", style = "minimal", color = "danger")                              
+                                downloadBttn("download_legend", "Download Legend as PNG", size = "sm", style = "minimal", color = "danger")                              
                             )
                         )
                     )
