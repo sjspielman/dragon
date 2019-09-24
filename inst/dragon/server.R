@@ -367,55 +367,48 @@ server <- function(input, output, session) {
     ###############################################################################################################
 
 
+    network_table <- reactive({
+        chemistry_network()$nodes %>% 
+                left_join(network_cluster()$tib) %>%
+               # left_join(chemistry_network()$locality_info) %>%
+                #mutate(mean_pauling        = round(mean_pauling, input$table_digits),
+                #       #sd_pauling          = round(sd_pauling, 5),
+                #       cov_pauling         = round(cov_pauling, input$table_digits), 
+                #       closeness           = round(closeness, input$table_digits),
+                #       network_degree_norm = round(network_degree_norm, input$table_digits), 
+                #       element_redox_network = round(element_redox_network, input$table_digits)) %>%
+                dplyr::select(id, group, max_age, num_localities, cluster_ID, network_degree, network_degree_norm, closeness, element_redox_network, pauling, mean_pauling, cov_pauling) %>% #sd_pauling
+                arrange(group, id) %>%
+                mutate(group = str_to_title(group)) %>%
+                rename(!! variable_to_title[["id"]] := id,
+                       !! variable_to_title[["group"]] := group,
+                       !! variable_to_title[["cluster_ID"]] := cluster_ID,
+                       !! variable_to_title[["network_degree"]] := network_degree,
+                       !! variable_to_title[["network_degree_norm"]] := network_degree_norm,
+                       !! variable_to_title[["closeness"]] := closeness, 
+                       !! variable_to_title[["max_age"]] := max_age, 
+                       !! variable_to_title[["element_redox_network"]] := element_redox_network,
+                       !! variable_to_title[["num_localities"]] := num_localities,
+                       !! variable_to_title[["pauling"]] := pauling,
+                       !! variable_to_title[["mean_pauling"]] := mean_pauling,
+                      #!! variable_to_title[["sd_pauling"]] := sd_pauling,
+                       !! variable_to_title[["cov_pauling"]] := cov_pauling) %>%
+                distinct() 
+    })
 
 
 
 
 
     ################################### NODE TABLES ##############################################    
-    output$networkTable <- renderDT(rownames= FALSE,  server = FALSE,   
-        chemistry_network()$nodes %>% 
-            left_join(network_cluster()$tib) %>%
-           # left_join(chemistry_network()$locality_info) %>%
-            #mutate(mean_pauling        = round(mean_pauling, input$table_digits),
-            #       #sd_pauling          = round(sd_pauling, 5),
-            #       cov_pauling         = round(cov_pauling, input$table_digits), 
-            #       closeness           = round(closeness, input$table_digits),
-            #       network_degree_norm = round(network_degree_norm, input$table_digits), 
-            #       element_redox_network = round(element_redox_network, input$table_digits)) %>%
-            dplyr::select(id, group, max_age, num_localities, cluster_ID, network_degree, network_degree_norm, closeness, element_redox_network, pauling, mean_pauling, cov_pauling) %>% #sd_pauling
-            arrange(group, id) %>%
-            mutate(group = str_to_title(group)) %>%
-            rename(!! variable_to_title[["id"]] := id,
-                   !! variable_to_title[["group"]] := group,
-                   !! variable_to_title[["cluster_ID"]] := cluster_ID,
-                   !! variable_to_title[["network_degree"]] := network_degree,
-                   !! variable_to_title[["network_degree_norm"]] := network_degree_norm,
-                   !! variable_to_title[["closeness"]] := closeness, 
-                   !! variable_to_title[["max_age"]] := max_age, 
-                   !! variable_to_title[["element_redox_network"]] := element_redox_network,
-                   !! variable_to_title[["num_localities"]] := num_localities,
-                   !! variable_to_title[["pauling"]] := pauling,
-                   !! variable_to_title[["mean_pauling"]] := mean_pauling,
-                  #!! variable_to_title[["sd_pauling"]] := sd_pauling,
-                   !! variable_to_title[["cov_pauling"]] := cov_pauling) %>%
-            distinct() %>%
-            datatable() %>%
-            DT::formatRound(columns = c(variable_to_title[["network_degree"]], 
-                                          variable_to_title[["network_degree_norm"]], 
-                                          variable_to_title[["closeness"]], 
-                                          variable_to_title[["max_age"]],
-                                          variable_to_title[["element_redox_network"]],
-                                          variable_to_title[["pauling"]],
-                                          variable_to_title[["mean_pauling"]], 
-                                          variable_to_title[["cov_pauling"]]), digits=input$table_digits),
-         extensions = c('Buttons', 'ColReorder', 'Responsive'),
-                        options = list(
-                        dom = 'Bfrtip',
-                        colReorder = TRUE, 
-                        buttons = c('copy', 'csv', 'excel'))
-        ) 
-        
+    output$networkTable <- renderDT(rownames= FALSE,  server = FALSE, escape = FALSE,  
+        network_table(),
+        extensions = c('Buttons', 'ColReorder', 'Responsive'),
+         options = list(
+             dom = 'Bfrtip',
+             colReorder = TRUE, 
+             buttons = c('copy', 'csv', 'excel'))
+    )
 
                        
     
@@ -541,6 +534,18 @@ server <- function(input, output, session) {
     })
     #################################################################################################################
     #################################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
