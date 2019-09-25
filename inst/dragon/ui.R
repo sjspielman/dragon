@@ -58,36 +58,47 @@ dashboardPage(skin = "red",
             ),
             tipify(
                 awesomeRadio("max_age_type", "Use maximum or minimum age of minerals", checkbox=TRUE, inline = TRUE, choices = c("Maximum", "Minimum"), selected="Maximum", status="danger"),
-                title = "Determines which recorded date (maximum or minimum) is considered for including minerals in the network"
+                title = "Determines which recorded date (maximum or minimum) is considered for including minerals in the network."
             ),
-
-       
+            tipify(
+                prettyCheckbox("build_only","Build network without display",value = FALSE, status="danger"),
+                title = "When checked, you will be able to build export the specified network but it will not be displayed. Useful for extremely large networks."
+            ),
             fluidRow(
                 column(8,
                     tipify(
-                        pickerInput("network_layout", tags$span(style="font-weight:400", "Network layout:"),
-                            choices = list(
-                               `Force-directed` = c("Fruchterman Reingold" = "layout_with_fr",
-                                                  "GEM force-directed"      = "layout_with_gem"),
-                                Other = c("Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
-                                                  #"Multidimensional scaling"    = "layout_with_mds",
-                                                  "Layout in circle"             = "layout_in_circle",
-                                                  "Layout in sphere"            = "layout_on_sphere")
-                            )
-                        ),
-                    title = "Algorithm for rendering the initial state of the interactive network"
-                    )
+                            pickerInput("network_layout", tags$span(style="font-weight:400", "Network layout:"),
+                                choices = list(
+                                   `Force-directed` = c("Fruchterman Reingold" = "layout_with_fr",
+                                                      "GEM force-directed"      = "layout_with_gem"),
+                                    Other = c("Dynamic physics layout (WARNING: Do not use if photosensitive)" = "physics",
+                                              "Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
+                                              "Layout in circle"             = "layout_in_circle",
+                                               "Layout in sphere"            = "layout_on_sphere")
+                                                      
+                                )
+                            ),
+                        title = "Algorithm for rendering the initial state of the interactive network"
+                        )
                 ),
                 column(4,
-                    conditionalPanel('input.network_layout == "layout_with_fr" | input.network_layout == "layout_with_gem"',{
                         tipify(
                            numericInput("network_layout_seed", tags$span(style="font-weight:400", "Seed:"), min = 0, max = Inf, value = 1),
-                           title = "Set the random seed for stochastic network layouts here."
-                        )
-                    })
-                
+                           title = "Set the random seed for stochastic (force-directed and dynamic) network layouts here."
+                        )            
                 )
-            ),     
+            ),
+            conditionalPanel('input.network_layout == "physics"', {
+                #tipify(
+                    pickerInput("physics_solver", tags$span(style="font-weight:400", "Solver for physics layout:"),
+                                    choices = c("forceAtlas2Based" = "forceAtlas2Based",
+                                                "Barnes-Hut" = "barnesHut",
+                                                "Repulsion"  = "repulsion", 
+                                                "Hierarchical repulsion" = "hierarchicalRepulsion"), selected = "forceAtlas2Based"
+                                )#,
+                    #title = "Algorithm for initial node positioning with physics layout"
+                #)
+            }),             
             pickerInput("cluster_algorithm", tags$span(style="font-weight:400", "Network community detection (clustering) algorithm:"),
                 choices = c("Louvain",
                             "Leading eigenvector"), selected = "Louvain"
@@ -267,15 +278,23 @@ dashboardPage(skin = "red",
                                  unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
                              )
                          )
-                       )}        
-                     )
-                   )
-                ), ## fluid
-                fluidRow(
-                    column(12, sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10))
+                    )}        
+                    )
                 )
+               ), ## fluid
+            fluidRow(
+                column(12, sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10))
             )
-        
+        ), # menuitem
+        menuItem("Other network options",
+            sliderInput("selected_degree", "Node selection highlight degree", min=1, max=5, value = 2, step=1),
+            switchInput("hover","Emphasize on hover",value = TRUE, size="normal", labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+            switchInput("hide_edges_on_drag","Hide edges when dragging nodes",value = FALSE, size="normal",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+            switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="normal",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+            switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="normal",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+            switchInput("nav_buttons","Show navigation buttons",value = FALSE, size="normal",labelWidth = "200px", onStatus = "success", offStatus = "danger")
+        ) 
+            
     )),
     dashboardBody(
         tags$head(
@@ -299,22 +318,19 @@ dashboardPage(skin = "red",
                                     textOutput("n_mineral_nodes"),
                                     textOutput("n_edges")
                                 ),
-                                div(style = "float:right;", 
-                                    dropdown(status = "danger", right=TRUE, width="300px", circle=FALSE, icon=icon("gear"), size = "default", tooltip = tooltipOptions(title = "Network interaction preferences"),
-                                       # uiOutput("select_nodes"), 
-                                        numericInput("selected_degree", "Node selection highlight degree", min=1, max=5, 2, width = "240px"),
-                                        switchInput("hover","Emphasize on hover",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                                        switchInput("hide_edges_on_drag","Hide edges when dragging nodes",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                                        switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                                        switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                                        switchInput("nav_buttons","Show navigation buttons",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger")
-                                    ) 
-                                ),
+                                conditionalPanel('input.build_only == true', {
+                                    div(style = "text-align:center; font-weight:bold; color:red; font-size:1.25em;",
+                                        br(),br(),br(),br(),
+                                        textOutput("no_network_display")
+                                    )
+                                }),
                                 visNetworkOutput("networkplot", height = "90%")
+
                             ),
+                            conditionalPanel('input.build_only == false', {
                             div(style = "height:80px;",
                                 plotOutput("networklegend", height = "80%", width = "100%")
-                            )
+                            )})
                         ),  ## tabPanel
                         
                         
@@ -399,57 +415,9 @@ dashboardPage(skin = "red",
                     ), # tabBox
                     
                     br(),br(),br(),
-                    box(width=12,status = "primary", 
-                        title = "Selected Node Information", 
-                            h5("Choose which variables to include in table."),
-                            div(style="display:inline-block;vertical-align:top;",
-                                prettyCheckboxGroup(
-                                       inputId = "columns_selectednode_1",
-                                       label = tags$span(style="font-weight:700", "Mineral variables:"), 
-                                       choices = selected_node_table_column_choices_mineral,
-                                       status = "danger",
-                                       animation="smooth",
-                                       icon = icon("check")
-                                )),
-                            div(style="display:inline-block;vertical-align:top;",
-                                prettyCheckboxGroup(
-                                       inputId = "columns_selectednode_2",
-                                       label = tags$span(style="font-weight:700", "Element variables:"), 
-                                       choices = selected_node_table_column_choices_element,
-                                       status = "danger",
-                                       animation="smooth",
-                                       icon = icon("check")
-                                )),
-                            div(style="display:inline-block;vertical-align:top;",
-                                prettyCheckboxGroup(
-                                       inputId = "columns_selectednode_4",
-                                       label = tags$span(style="font-weight:700", "Network variables:"), 
-                                       choices = selected_node_table_column_choices_netinfo,
-                                       status = "danger",
-                                       animation="smooth",
-                                       icon = icon("check")
-                                )),
-                            div(style="display:inline-block;vertical-align:top;",
-                                prettyCheckboxGroup(
-                                       inputId = "columns_selectednode_3",
-                                       label = tags$span(style="font-weight:700", "Locality variables:"), 
-                                       choices = selected_node_table_column_choices_locality,
-                                       status = "danger",
-                                       animation="smooth",
-                                       icon = icon("check")
-                                )),
-                        div(style="font-size:90%;", DT::dataTableOutput("nodeTable"))
-                    ),
-                    
-                    #br(),br(),br(),
-                    #tabBox(width=12, 
-                    #    tabPanel("Selected Node Information", 
-                    #        DT::dataTableOutput("nodeTable")
-                    #    ),
-                    #    tabPanel("Node Clustering and Centrality", 
-                    #        DT::dataTableOutput("clusterTable")
-                    #    )                       
-                    #), # tabBox
+                    conditionalPanel('input.build_only == false', {
+                        uiOutput("show_nodeTable")
+                    }),
                     box(width = 12,status = "primary", title = "Network Export",
                         fluidRow(
                             column(3,

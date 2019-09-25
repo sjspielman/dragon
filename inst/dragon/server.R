@@ -87,7 +87,7 @@ server <- function(input, output, session) {
         
         network <- construct_network(network_information, elements_by_redox)
 
-        nodes <- network$nodes
+        nodes <- network$nodes %>% mutate(fancy_group = ifelse(group == "element", "All elements", "All minerals")) ## for node selection
         edges <- network$edges
         graph <- network$graph
         
@@ -145,6 +145,8 @@ server <- function(input, output, session) {
 
     ############################## NETWORK ITSELF AND NETWORK-LEVEL METRICS #############################
     observeEvent(input$go,{
+    
+        build_only <- isolate(input$build_only)
     
         
         output$modularity <- renderText({
@@ -221,29 +223,39 @@ server <- function(input, output, session) {
               ggsave(file, p, width=18, height=8)
         }) 
    
+   
+   
+        output$no_network_display <- renderText({"Your network has been built and is available for export below and/or analysis in other tabs."})
     
         output$networkplot <- renderVisNetwork({
-
-
+        
             nodes <- chemistry_network()$nodes
-            edges <- chemistry_network()$edges
-            network_layout <- input$network_layout
-            network_layout_seed <- input$network_layout_seed
-                           
             isolate({
                 starting_nodes <- node_styler()$styled_nodes
                 starting_edges <- edge_styler()$styled_edges
-                    visNetwork(starting_nodes, starting_edges)  %>%
-                    visLayout(improvedLayout=TRUE) %>%
-                   # visLayout() %>%  ### TODO: Can introduce a physics option, with other option hierarchical T/F. Need random seed for F.
-                    visIgraphLayout(layout = network_layout, type = "full", randomSeed = network_layout_seed) %>% ## stabilizes
+                
+                if (!(build_only)){
+                
+                base_network <- visNetwork(starting_nodes, starting_edges)
+                
+                if (input$network_layout == "physics") {
+                    base_network %<>% visPhysics(solver = input$physics_solver, stabilization = TRUE) # default is 1000 iterations we dont have time for that.
+                } else {
+                    base_network %<>% visIgraphLayout(layout = input$network_layout, type = "full", randomSeed = input$network_layout_seed) 
+                }
+                base_network %>%
                     visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
                                 nodesIdSelection = list(enabled = TRUE, 
                                                         #selected = selected_element,
                                                         values = c( sort(nodes$id[nodes$group == "element"]), sort(nodes$id[nodes$group == "mineral"]) ),
-                                                        main    = "Select node",
-                                                        style   = "float:right; width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: -1.4em 0.5em 0em 0em;")  ##t r b l 
-                            ) %>%                     visInteraction(dragView          = TRUE, 
+                                                        style   = "float:right; width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: -1.4em 0.5em 0em 0em;",  ##t r b l 
+                                                        main    = "Select an individual node"),
+                                selectedBy = list(variable = "fancy_group", 
+                                                  values=c("All elements", "All minerals"),
+                                                  style   = "float:right; width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: -1.4em 0.5em 0em 0em;",  ##t r b l 
+                                                  main    = "Select group of nodes")
+                                )  %>%              
+                    visInteraction(dragView  = TRUE, 
                                    dragNodes         = TRUE, 
                                    zoomView          = TRUE, 
                                    hover             = TRUE,
@@ -263,49 +275,33 @@ server <- function(input, output, session) {
                      visEdges(color = input$edge_color,
                              width = input$edge_weight,
                              smooth = FALSE) ## no visual effect that I can perceive, and improves speed. Cool. 
+                }
             })          
         })
-    
-
-
-#        output$select_nodes <- renderUI({
-#             nodes <- chemistry_network()$nodes
-#             node_choices <- c( sort(nodes$id[nodes$group == "element"]), sort(nodes$id[nodes$group == "mineral"]) )
-#             pickerInput("selected_nodes", "Select node(s)",             
-#                             choices = unique(node_choices),
-#                             options = list(`actions-box` = TRUE, 
-#                                            size = 6, 
-#                                            `live-search` = TRUE), 
-#                             multiple = TRUE
-#                         )
-#         })
-
-
-
-    
+        
         observe({
-
-            #print(input$selected_nodes)
-            ## visGroups, visNodes, visEdges are global options shared among nodes/edges
-            ## Need to use visUpdateNodes and visUpdateEdges for changing individually. This applies to color schemes.
-            visNetworkProxy("networkplot") %>%
-                visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
-                visUpdateEdges(edges = edge_styler()$styled_edges) %>%
-                visEdges(width = input$edge_weight) %>%
-                visGetNodes(input = "nodes_coord") %>%  ### retains last position
-               # visSelectNodes(id = input$selected_nodes) %>%
-                visGetSelectedNodes() %>%
-                visGetPositions() %>%
-                visInteraction(dragView          = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
-                               hover             = input$hover, 
-                               selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
-                               zoomView          = input$zoom_view,
-                               multiselect       = TRUE,
-                               hideEdgesOnDrag   = input$hide_edges_on_drag,
-                               navigationButtons = input$nav_buttons) %>%
-                visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree),
-                           nodesIdSelection = list(enabled = TRUE, main  = "Select node")) 
- 
+            if (build_only ==  FALSE)
+            {
+                #print(input$selected_nodes)
+                ## visGroups, visNodes, visEdges are global options shared among nodes/edges
+                ## Need to use visUpdateNodes and visUpdateEdges for changing individually. This applies to color schemes.
+                visNetworkProxy("networkplot") %>%
+                    visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
+                    visUpdateEdges(edges = edge_styler()$styled_edges) %>%
+                    visEdges(width = input$edge_weight) %>%
+                    visGetNodes(input = "nodes_coord") %>%  ### retains last position
+                    visGetSelectedNodes() %>%
+                    visGetPositions() %>%
+                    visInteraction(dragView          = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
+                                   hover             = input$hover, 
+                                   selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
+                                   zoomView          = input$zoom_view,
+                                   multiselect       = TRUE,
+                                   hideEdgesOnDrag   = input$hide_edges_on_drag,
+                                   navigationButtons = input$nav_buttons) %>%
+                    visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree),
+                               nodesIdSelection = list(enabled = TRUE, main  = "Select node"))
+            }
         })     
     
 
@@ -350,9 +346,14 @@ server <- function(input, output, session) {
         filename <- function() { paste0('dragon_network-', Sys.Date(), '.html') },
         content <- function(file) 
         {
-            visNetwork(nodes = node_styler()$styled_nodes, edges = edge_styler()$styled_edges, height = "800px") %>%
-                visIgraphLayout(layout = input$network_layout, type = "full", randomSeed = input$network_layout_seed) %>% ## stabilizes
-                visExport(type = "png") %>% ## somehow pdf is worse resolution than png.......??
+            outnet <- visNetwork(nodes = node_styler()$styled_nodes, edges = edge_styler()$styled_edges, height = "800px")
+            if (input$network_layout == "physics") {
+                    outnet %<>% visPhysics(solver = input$physics_solver, stabilization = TRUE) 
+            } else {
+                    outnet %<>% visIgraphLayout(layout = input$network_layout, type = "full", randomSeed = input$network_layout_seed) 
+            }
+            outnet %>% 
+                visExport(type = "png") %>% 
                 visSave(file)
         })
         
@@ -383,16 +384,16 @@ server <- function(input, output, session) {
     ###############################################################################################################
 
 
+
+
+
+
+
+    ################################### NODE TABLES ##############################################    
+    
     network_table <- reactive({
         chemistry_network()$nodes %>% 
                 left_join(network_cluster()$tib) %>%
-               # left_join(chemistry_network()$locality_info) %>%
-                #mutate(mean_pauling        = round(mean_pauling, input$table_digits),
-                #       #sd_pauling          = round(sd_pauling, 5),
-                #       cov_pauling         = round(cov_pauling, input$table_digits), 
-                #       closeness           = round(closeness, input$table_digits),
-                #       network_degree_norm = round(network_degree_norm, input$table_digits), 
-                #       element_redox_network = round(element_redox_network, input$table_digits)) %>%
                 dplyr::select(id, group, max_age, num_localities, cluster_ID, network_degree, network_degree_norm, closeness, element_redox_network, pauling, mean_pauling, cov_pauling) %>% #sd_pauling
                 arrange(group, id) %>%
                 mutate(group = str_to_title(group)) %>%
@@ -411,74 +412,72 @@ server <- function(input, output, session) {
                        !! variable_to_title[["cov_pauling"]] := cov_pauling) %>%
                 distinct() 
     })
+             
+    node_table <- reactive({
+        list(input$networkplot_selectedBy, input$networkplot_selected, input$columns_selectednode_1, input$columns_selectednode_2, input$columns_selectednode_3, input$columns_selectednode_4)
 
-
-
-
-
-    ################################### NODE TABLES ##############################################    
-    output$networkTable <- renderDT(rownames= FALSE,  server = FALSE, escape = FALSE,  
-        network_table(),
-        extensions = c('Buttons', 'ColReorder', 'Responsive'),
-         options = list(
-             dom = 'Bfrtip',
-             colReorder = TRUE, 
-             buttons = c('copy', 'csv', 'excel'))
-    )
-
-                       
-    
-    selected_node_table_columns <- reactive({
-        list(input$networkplot_selected, input$columns_selectednode_1, input$columns_selectednode_2, input$columns_selectednode_3, input$columns_selectednode_4)
-    })
-    observeEvent(selected_node_table_columns(), {
-        
-        sel <- input$networkplot_selected
+        sel    <- input$networkplot_selected
+        sel_by <- input$networkplot_selectedBy
         e <- chemistry_network()$edges
         n <- chemistry_network()$nodes
-        
-        if (sel %in% e$mineral_name) 
+
+        if ( sel == "" & sel_by == "" )
         {
-            sel_type      <- "mineral"
-            selected_name <- "Selected Node (Mineral)"
-        } else {
-            sel_type <- "element"
-            selected_name <- "Selected Node (Element)"
-        }  
-                    
-        selected_nodes <- c(input$columns_selectednode_1, input$columns_selectednode_2, input$columns_selectednode_3, input$columns_selectednode_4)
+            return(NULL)
+        } 
         
-        if (is.null(sel))
+        if (sel != "" | sel_by != "")
         {
-            node_table <- NULL
-        } else {            
-            if (is.null(selected_nodes)) 
+            if (sel_by != "")
             {
-                selected_nodes <- selected_name
+                sel_by <- ifelse(input$networkplot_selectedBy == "All elements", "element", "mineral")
+
+                sel_type <- sel_by
+                selected_group_title <- paste0("Selected Node (", str_to_title(sel_type), ")")
+                sel <- unique(n$id[n$group == sel_type])
+            } else if (sel != "") {
+                if (sel %in% e$mineral_name) 
+                {
+                    sel_type      <- "mineral"
+                    selected_group_title <- "Selected Node (Mineral)"
+                } else {
+                    sel_type <- "element"
+                    selected_group_title <- "Selected Node (Element)"
+                }  
+                sel <- c(sel)
+            }            
+            selected_vars <- c(input$columns_selectednode_1, input$columns_selectednode_2, input$columns_selectednode_3, input$columns_selectednode_4)
+
+                  
+            if (is.null(selected_vars)) 
+            {
+                selected_vars <- selected_group_title
             }   
             e %>%
                 filter(
-                    if (sel_type == "mineral") { mineral_name == sel } 
-                    else {  element == sel }
+                    if (sel_type == "mineral") { mineral_name %in% sel } 
+                    else {  element %in% sel }
                 ) %>%
                 left_join(chemistry_network()$locality_info) %>%
                 dplyr::select(-from, -to) -> node_table
             n %>% 
-                filter(id == sel) %>% 
+                filter(id %in% sel) %>% 
                 select(id, closeness, network_degree_norm) -> node_net_info
-            network_cluster()$tib %>% filter(id == sel) -> cluster_tib
-            if (sel %in% e$mineral_name) { 
-                node_net_info %<>% rename(mineral_name = id)
-                cluster_tib %<>% rename(mineral_name = id)
+            network_cluster()$tib %>% filter(id %in% sel) -> cluster_tib
+            
+            if (sel_type == "mineral") { 
+               node_net_info %<>% rename(mineral_name = id)
+               cluster_tib %<>% rename(mineral_name = id)
             }
             else { 
-                node_net_info %<>% rename(element = id)
-                cluster_tib %<>% rename(element = id)
+               node_net_info %<>% rename(element = id)
+               cluster_tib %<>% rename(element = id)
             }
-                        
+
             node_table %<>% 
                 left_join(node_net_info) %>%
                 left_join(cluster_tib) %>%
+                distinct() %>%
                 mutate(network_degree_norm  = round(network_degree_norm, 5),
                        closeness  = round(closeness, 5),
                        mean_pauling  = round(mean_pauling, 5),
@@ -513,41 +512,93 @@ server <- function(input, output, session) {
                      # !! variable_to_title[["Density"]] := Density,
                      # !! variable_to_title[["SpecificHeat"]] := SpecificHeat)
                       # !! variable_to_title[["NumberofProtons"]] := NumberofProtons,
-                      # !! variable_to_title[["AtomicMass"]] := AtomicMass,
-                      
+                      # !! variable_to_title[["AtomicMass"]] := AtomicMass,                      
+            if (sel_type == "element") 
+             {
+                 selected_vars <- selected_vars[ selected_vars != variable_to_title[["element"]] ]
+                 node_table %<>% rename( !!selected_group_title := !!variable_to_title[["element"]])
+             }
+             else if (sel_type == "mineral") 
+             {
+                 selected_vars <- selected_vars[ selected_vars != variable_to_title[["mineral_name"]] ]
+                 node_table %<>% rename( !!selected_group_title := !! variable_to_title[["mineral_name"]])
+             }
 
-                      
-                if (sel_type == "element") 
-                {
-                   # print(selected_nodes)
-                   # if (variable_to_title[["mineral_name"]] %in% selected_nodes)  selected_nodes <- c(selected_nodes, !!variable_to_title[["mineral_name"]])
-                   # print(selected_nodes)
-                    selected_nodes <- selected_nodes[ selected_nodes != variable_to_title[["element"]] ]
-                    node_table %<>% rename( !!selected_name := !!variable_to_title[["element"]])
-                }
-                else if (sel_type == "mineral") 
-                {
-                   # if (variable_to_title[["element"]] %in% selected_nodes)  selected_nodes <- c(selected_nodes, !!variable_to_title[["element"]])
-                    selected_nodes <- selected_nodes[ selected_nodes != variable_to_title[["mineral_name"]] ]
-                    node_table %<>% rename( !!selected_name := !! variable_to_title[["mineral_name"]])
-                }
-
-                
-                node_table %<>% 
-                    dplyr::select(!!selected_name, selected_nodes) %>%
-                    distinct() %>%
-                    dplyr::select(!!selected_name, everything())   
-            }
-        output$nodeTable <- renderDT( rownames= FALSE, server=FALSE, escape = FALSE, 
-                                node_table, 
-                                extensions = c('Buttons', 'ColReorder', 'Responsive'),
-                                options = list(
-                                    dom = 'Bfrtip',
-                                    colReorder = TRUE, 
-                                    buttons = c('copy', 'csv', 'excel')
-                                ))
+             
+             node_table %>% 
+                 dplyr::select(!!selected_group_title, selected_vars) %>%
+                 distinct() %>%
+                 dplyr::select(!!selected_group_title, everything())   
+        }
+        
 
     })
+
+    output$networkTable <- renderDT(rownames= FALSE,   
+        network_table(),
+        extensions = c('Buttons', 'ColReorder', 'Responsive'),
+         options = list(
+             dom = 'Bfrtip',
+             colReorder = TRUE, 
+             buttons = c('copy', 'csv', 'excel'))
+    )
+                
+     output$nodeTable <- renderDT( rownames= FALSE, escape = FALSE, ### escape=FALSE for HTML rendering, i.e. the IMA formula
+                            node_table(), 
+                            extensions = c('Buttons', 'ColReorder', 'Responsive'),
+                            options = list(
+                                dom = 'Bfrtip',
+                                colReorder = TRUE, 
+                                 buttons = c('copy', 'csv', 'excel')
+                        ))
+                        
+    
+    output$show_nodeTable <- renderUI({
+            box(width=12,status = "primary", 
+                        title = "Selected Node Information", 
+                            h5("Choose which variables to include in table."),
+                                            
+                            div(style="display:inline-block;vertical-align:top;",
+                                prettyCheckboxGroup(
+                                       inputId = "columns_selectednode_1",
+                                       label = tags$span(style="font-weight:700", "Mineral variables:"), 
+                                       choices = selected_node_table_column_choices_mineral,
+                                       status = "danger",
+                                       animation="smooth",
+                                       icon = icon("check")
+                                )),
+                            div(style="display:inline-block;vertical-align:top;",
+                                prettyCheckboxGroup(
+                                       inputId = "columns_selectednode_2",
+                                       label = tags$span(style="font-weight:700", "Element variables:"), 
+                                       choices = selected_node_table_column_choices_element,
+                                       status = "danger",
+                                       animation="smooth",
+                                       icon = icon("check")
+                                )),
+                            div(style="display:inline-block;vertical-align:top;",
+                                prettyCheckboxGroup(
+                                       inputId = "columns_selectednode_4",
+                                       label = tags$span(style="font-weight:700", "Network variables:"), 
+                                       choices = selected_node_table_column_choices_netinfo,
+                                       status = "danger",
+                                       animation="smooth",
+                                       icon = icon("check")
+                                )),
+                            div(style="display:inline-block;vertical-align:top;",
+                                prettyCheckboxGroup(
+                                       inputId = "columns_selectednode_3",
+                                       label = tags$span(style="font-weight:700", "Locality variables:"), 
+                                       choices = selected_node_table_column_choices_locality,
+                                       status = "danger",
+                                       animation="smooth",
+                                       icon = icon("check")
+                                )),
+                        div(style="font-size:90%;", DT::dataTableOutput("nodeTable"))
+                    )
+    })   
+    
+
     #################################################################################################################
     #################################################################################################################
 
@@ -571,7 +622,6 @@ server <- function(input, output, session) {
     ################################################ LINEAR MODEL TAB ###############################################
     #################################################################################################################
     mineral_nodes <- reactive({
-       # print(names( chemistry_network()$nodes))
        chemistry_network()$nodes %>%
             left_join(network_cluster()$tib) %>%
             filter(group == "mineral") %>%
@@ -581,7 +631,6 @@ server <- function(input, output, session) {
                    !! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
                    !! variable_to_title[["closeness"]] := closeness,
                    !! variable_to_title[["mean_pauling"]] := mean_pauling,
-                  # !! variable_to_title[["sd_pauling"]] := sd_pauling, 
                    !! variable_to_title[["cov_pauling"]] := cov_pauling,
                    !! variable_to_title[["num_localities"]] := num_localities,
                    !! variable_to_title[["max_age"]] := max_age)    
