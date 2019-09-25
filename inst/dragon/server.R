@@ -236,41 +236,56 @@ server <- function(input, output, session) {
                     visNetwork(starting_nodes, starting_edges)  %>%
                     visLayout(improvedLayout=TRUE) %>%
                    # visLayout() %>%  ### TODO: Can introduce a physics option, with other option hierarchical T/F. Need random seed for F.
-                     visIgraphLayout(layout = network_layout, type = "full", randomSeed = network_layout_seed) %>% ## stabilizes
-                     visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
+                    visIgraphLayout(layout = network_layout, type = "full", randomSeed = network_layout_seed) %>% ## stabilizes
+                    visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree), 
                                 nodesIdSelection = list(enabled = TRUE, 
                                                         #selected = selected_element,
                                                         values = c( sort(nodes$id[nodes$group == "element"]), sort(nodes$id[nodes$group == "mineral"]) ),
                                                         main    = "Select node",
                                                         style   = "float:right; width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: -1.4em 0.5em 0em 0em;")  ##t r b l 
-                            ) %>%
-                    visInteraction(dragView          = TRUE, 
+                            ) %>%                     visInteraction(dragView          = TRUE, 
                                    dragNodes         = TRUE, 
                                    zoomView          = TRUE, 
                                    hover             = TRUE,
                                    selectConnectedEdges = TRUE,
                                    hideEdgesOnDrag   = FALSE,
-                                   multiselect       = FALSE,
+                                   multiselect       = TRUE,
                                    navigationButtons = FALSE) %>%
-                    visGroups(groupname = "element", 
+                     visGroups(groupname = "element", 
                               color = input$element_color, 
                               shape = input$element_shape,
                               font  = list(size = input$element_label_size)) %>%
-                    visGroups(groupname = "mineral", 
+                     visGroups(groupname = "mineral", 
                               color = input$mineral_color, 
                               shape = input$mineral_shape,
                               size  = input$mineral_size,
                               font  = list(size = ifelse(input$mineral_label_size == 0, "NA", input$mineral_label_size))) %>%
-                    visEdges(color = input$edge_color,
+                     visEdges(color = input$edge_color,
                              width = input$edge_weight,
                              smooth = FALSE) ## no visual effect that I can perceive, and improves speed. Cool. 
             })          
         })
     
 
+
+#        output$select_nodes <- renderUI({
+#             nodes <- chemistry_network()$nodes
+#             node_choices <- c( sort(nodes$id[nodes$group == "element"]), sort(nodes$id[nodes$group == "mineral"]) )
+#             pickerInput("selected_nodes", "Select node(s)",             
+#                             choices = unique(node_choices),
+#                             options = list(`actions-box` = TRUE, 
+#                                            size = 6, 
+#                                            `live-search` = TRUE), 
+#                             multiple = TRUE
+#                         )
+#         })
+
+
+
     
         observe({
 
+            #print(input$selected_nodes)
             ## visGroups, visNodes, visEdges are global options shared among nodes/edges
             ## Need to use visUpdateNodes and visUpdateEdges for changing individually. This applies to color schemes.
             visNetworkProxy("networkplot") %>%
@@ -278,13 +293,14 @@ server <- function(input, output, session) {
                 visUpdateEdges(edges = edge_styler()$styled_edges) %>%
                 visEdges(width = input$edge_weight) %>%
                 visGetNodes(input = "nodes_coord") %>%  ### retains last position
+               # visSelectNodes(id = input$selected_nodes) %>%
                 visGetSelectedNodes() %>%
                 visGetPositions() %>%
                 visInteraction(dragView          = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
                                hover             = input$hover, 
                                selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
                                zoomView          = input$zoom_view,
-                               multiselect       = input$select_multiple_nodes,
+                               multiselect       = TRUE,
                                hideEdgesOnDrag   = input$hide_edges_on_drag,
                                navigationButtons = input$nav_buttons) %>%
                 visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree),

@@ -37,7 +37,8 @@ dashboardPage(skin = "red",
                                                     choices = all_elements,
                                                     options = list(
                                                         `actions-box` = TRUE, 
-                                                        size = 4
+                                                        size = 6,
+                                                        `live-search` = TRUE
                                                     ), 
                                                     multiple = TRUE
                         ),
@@ -299,15 +300,15 @@ dashboardPage(skin = "red",
                                     textOutput("n_edges")
                                 ),
                                 div(style = "float:right;", 
-                                    dropdownButton(status = "danger", right=TRUE, width="300px", circle=FALSE, icon=icon("gear"), size = "sm", tooltip = tooltipOptions(title = "Network interaction preferences"),
+                                    dropdown(status = "danger", right=TRUE, width="300px", circle=FALSE, icon=icon("gear"), size = "default", tooltip = tooltipOptions(title = "Network interaction preferences"),
+                                       # uiOutput("select_nodes"), 
                                         numericInput("selected_degree", "Node selection highlight degree", min=1, max=5, 2, width = "240px"),
-                                        switchInput("select_multiple_nodes", "Select multiple nodes at once", value=FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
                                         switchInput("hover","Emphasize on hover",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-                                        switchInput("hide_edges_on_drag","Hide edges when dragging nodes (more efficient)",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+                                        switchInput("hide_edges_on_drag","Hide edges when dragging nodes",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
                                         switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
                                         switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
                                         switchInput("nav_buttons","Show navigation buttons",value = FALSE, size="mini",labelWidth = "200px", onStatus = "success", offStatus = "danger")
-                                    )
+                                    ) 
                                 ),
                                 visNetworkOutput("networkplot", height = "90%")
                             ),
