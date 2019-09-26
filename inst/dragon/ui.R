@@ -289,7 +289,7 @@ dashboardPage(skin = "red",
         menuItem("Other network options",
             sliderInput("selected_degree", "Node selection highlight degree", min=1, max=5, value = 2, step=1),
             switchInput("hover","Emphasize on hover",value = TRUE, size="normal", labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-            switchInput("hide_edges_on_drag","Hide edges when dragging nodes",value = FALSE, size="normal",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
+            switchInput("hide_edges_on_drag","Hide edges when dragging nodes",value = TRUE, size="normal",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
             switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="normal",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
             switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="normal",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
             switchInput("nav_buttons","Show navigation buttons",value = FALSE, size="normal",labelWidth = "200px", onStatus = "success", offStatus = "danger")
@@ -335,11 +335,16 @@ dashboardPage(skin = "red",
                         
                         
                         tabPanel("Network Information",
-                            div(style = "font-size:85%;",
-                                div(style = "float:right;",
-                                    numericInput("table_digits", tags$span(style="font-size:85%", "Number of digits:"), min = 1, value = 3, width = "133px")
-                                ),
-                                DT::dataTableOutput("networkTable")
+                            fluidRow(
+                                column(width = 12,
+                                    div(style = "font-size:85%;", DT::dataTableOutput("networkTable"))
+                                )
+                            ),
+                            br(),
+                            fluidRow(
+                                column(width = 2, offset = 10,
+                                    downloadBttn("download_networkTable", "Download network information", size = "xs", style = "bordered", color = "danger")
+                                )
                             )
                         ),
 
@@ -416,7 +421,11 @@ dashboardPage(skin = "red",
                     
                     br(),br(),br(),
                     conditionalPanel('input.build_only == false', {
-                        uiOutput("show_nodeTable")
+                        fluidRow(
+                            column(width = 12,
+                                uiOutput("show_nodeTable")
+                            )
+                        )
                     }),
                     box(width = 12,status = "primary", title = "Network Export",
                         fluidRow(

@@ -260,7 +260,7 @@ server <- function(input, output, session) {
                                    zoomView          = TRUE, 
                                    hover             = TRUE,
                                    selectConnectedEdges = TRUE,
-                                   hideEdgesOnDrag   = FALSE,
+                                   hideEdgesOnDrag   = TRUE,
                                    multiselect       = TRUE,
                                    navigationButtons = FALSE) %>%
                      visGroups(groupname = "element", 
@@ -408,13 +408,12 @@ server <- function(input, output, session) {
                        !! variable_to_title[["num_localities"]] := num_localities,
                        !! variable_to_title[["pauling"]] := pauling,
                        !! variable_to_title[["mean_pauling"]] := mean_pauling,
-                      #!! variable_to_title[["sd_pauling"]] := sd_pauling,
                        !! variable_to_title[["cov_pauling"]] := cov_pauling) %>%
                 distinct() 
     })
              
     node_table <- reactive({
-        list(input$networkplot_selectedBy, input$networkplot_selected, input$columns_selectednode_1, input$columns_selectednode_2, input$columns_selectednode_3, input$columns_selectednode_4)
+        list(input$networkplot_selectedBy, input$networkplot_selected, input$columns_selectednode_mineral, input$columns_selectednode_element, input$columns_selectednode_netinfo, input$columns_selectednode_locality)
 
         sel    <- input$networkplot_selected
         sel_by <- input$networkplot_selectedBy
@@ -446,7 +445,7 @@ server <- function(input, output, session) {
                 }  
                 sel <- c(sel)
             }            
-            selected_vars <- c(input$columns_selectednode_1, input$columns_selectednode_2, input$columns_selectednode_3, input$columns_selectednode_4)
+            selected_vars <- c(input$columns_selectednode_mineral, input$columns_selectednode_element, input$columns_selectednode_netinfo, input$columns_selectednode_locality)
 
                   
             if (is.null(selected_vars)) 
@@ -508,11 +507,7 @@ server <- function(input, output, session) {
                        !! variable_to_title[["element_name"]] := element_name,
                        !! variable_to_title[["TableGroup"]] := TableGroup,
                        !! variable_to_title[["TablePeriod"]] := TablePeriod,
-                       !! variable_to_title[["MetalType"]] := MetalType) #,
-                     # !! variable_to_title[["Density"]] := Density,
-                     # !! variable_to_title[["SpecificHeat"]] := SpecificHeat)
-                      # !! variable_to_title[["NumberofProtons"]] := NumberofProtons,
-                      # !! variable_to_title[["AtomicMass"]] := AtomicMass,                      
+                       !! variable_to_title[["MetalType"]] := MetalType)              
             if (sel_type == "element") 
              {
                  selected_vars <- selected_vars[ selected_vars != variable_to_title[["element"]] ]
@@ -536,68 +531,113 @@ server <- function(input, output, session) {
 
     output$networkTable <- renderDT(rownames= FALSE,   
         network_table(),
-        extensions = c('Buttons', 'ColReorder', 'Responsive'),
+        extensions = c('ColReorder', 'Responsive'),
          options = list(
              dom = 'Bfrtip',
-             colReorder = TRUE, 
-             buttons = c('copy', 'csv', 'excel'))
+             colReorder = TRUE)
     )
-                
-     output$nodeTable <- renderDT( rownames= FALSE, escape = FALSE, ### escape=FALSE for HTML rendering, i.e. the IMA formula
+
+
+        
+    output$download_networkTable <- downloadHandler(
+        filename <- function() { paste0('dragon_network_information_', Sys.Date(), '.csv') },
+        content <- function(file) 
+        {
+            write_csv(network_table(), file)
+        })
+        
+        
+    output$nodeTable <- renderDT( rownames= FALSE, escape = FALSE, ### escape=FALSE for HTML rendering, i.e. the IMA formula
                             node_table(), 
-                            extensions = c('Buttons', 'ColReorder', 'Responsive'),
+                            extensions = c('ColReorder', 'Responsive'),
                             options = list(
                                 dom = 'Bfrtip',
-                                colReorder = TRUE, 
-                                 buttons = c('copy', 'csv', 'excel')
-                        ))
+                                colReorder = TRUE)
+    )
                         
-    
+    output$download_nodeTable <- downloadHandler(
+        filename <- function() { paste0('dragon_selected_node_information_', Sys.Date(), '.csv') },
+        content <- function(file) 
+        {
+            write_csv(node_table(), file)
+    })
+            
     output$show_nodeTable <- renderUI({
-            box(width=12,status = "primary", 
-                        title = "Selected Node Information", 
-                            h5("Choose which variables to include in table."),
-                                            
-                            div(style="display:inline-block;vertical-align:top;",
-                                prettyCheckboxGroup(
-                                       inputId = "columns_selectednode_1",
-                                       label = tags$span(style="font-weight:700", "Mineral variables:"), 
-                                       choices = selected_node_table_column_choices_mineral,
-                                       status = "danger",
-                                       animation="smooth",
-                                       icon = icon("check")
-                                )),
-                            div(style="display:inline-block;vertical-align:top;",
-                                prettyCheckboxGroup(
-                                       inputId = "columns_selectednode_2",
-                                       label = tags$span(style="font-weight:700", "Element variables:"), 
-                                       choices = selected_node_table_column_choices_element,
-                                       status = "danger",
-                                       animation="smooth",
-                                       icon = icon("check")
-                                )),
-                            div(style="display:inline-block;vertical-align:top;",
-                                prettyCheckboxGroup(
-                                       inputId = "columns_selectednode_4",
-                                       label = tags$span(style="font-weight:700", "Network variables:"), 
-                                       choices = selected_node_table_column_choices_netinfo,
-                                       status = "danger",
-                                       animation="smooth",
-                                       icon = icon("check")
-                                )),
-                            div(style="display:inline-block;vertical-align:top;",
-                                prettyCheckboxGroup(
-                                       inputId = "columns_selectednode_3",
-                                       label = tags$span(style="font-weight:700", "Locality variables:"), 
-                                       choices = selected_node_table_column_choices_locality,
-                                       status = "danger",
-                                       animation="smooth",
-                                       icon = icon("check")
-                                )),
-                        div(style="font-size:90%;", DT::dataTableOutput("nodeTable"))
-                    )
+        box(width=12,status = "primary", 
+            title = "Selected Node Information", 
+                h5("Choose which variables to include in table."),
+                                
+                div(style="display:inline-block;vertical-align:top;",
+                    prettyCheckboxGroup(
+                           inputId = "columns_selectednode_mineral",
+                           label = tags$span(style="font-weight:700", "Mineral variables:"), 
+                           choices = selected_node_table_column_choices_mineral
+                    )),
+                div(style="display:inline-block;vertical-align:top;",
+                    prettyCheckboxGroup(
+                           inputId = "columns_selectednode_element",
+                           label = tags$span(style="font-weight:700", "Element variables:"), 
+                           choices = selected_node_table_column_choices_element
+                    )),
+                div(style="display:inline-block;vertical-align:top;",
+                    prettyCheckboxGroup(
+                           inputId = "columns_selectednode_netinfo",
+                           label = tags$span(style="font-weight:700", "Network variables:"), 
+                           choices = selected_node_table_column_choices_netinfo
+                    )),
+                div(style="display:inline-block;vertical-align:top;",
+                    prettyCheckboxGroup(
+                           inputId = "columns_selectednode_locality",
+                           label = tags$span(style="font-weight:700", "Locality variables:"), 
+                           choices = selected_node_table_column_choices_locality
+                    )),
+                div(style="display:inline-block;vertical-align:top;",
+                    actionButton("include_all_selectednodes", label="Include all variables"),
+                    actionButton("clear_all_selectednodes", label="Clear variable selection")
+                ),
+                div(style="font-size:85%;", DT::dataTableOutput("nodeTable")),
+                br(),
+                div(style = "float:right;", downloadBttn("download_nodeTable", "Download selected node information", size = "xs", style = "bordered", color = "danger"))
+        )
     })   
+    observeEvent(input$include_all_selectednodes, {
+        updatePrettyCheckboxGroup(session=session, 
+                                    inputId="columns_selectednode_mineral", 
+                                    choices = selected_node_table_column_choices_mineral, 
+                                    selected = selected_node_table_column_choices_mineral)
+        updatePrettyCheckboxGroup(session=session, 
+                                    inputId="columns_selectednode_element", 
+                                    choices = selected_node_table_column_choices_element, 
+                                    selected = selected_node_table_column_choices_element)
+        updatePrettyCheckboxGroup(session=session, 
+                                    inputId="columns_selectednode_netinfo", 
+                                    choices = selected_node_table_column_choices_netinfo, 
+                                    selected = selected_node_table_column_choices_netinfo)
+        updatePrettyCheckboxGroup(session=session, 
+                                    inputId="columns_selectednode_locality", 
+                                    choices = selected_node_table_column_choices_locality, 
+                                    selected = selected_node_table_column_choices_locality)
+    })
     
+    observeEvent(input$clear_all_selectednodes, {
+        updatePrettyCheckboxGroup(session=session, 
+                                    inputId="columns_selectednode_mineral", 
+                                    choices = selected_node_table_column_choices_mineral, 
+                                    selected = NULL)
+        updatePrettyCheckboxGroup(session=session, 
+                                    inputId="columns_selectednode_element", 
+                                    choices = selected_node_table_column_choices_element, 
+                                    selected = NULL)
+        updatePrettyCheckboxGroup(session=session, 
+                                    inputId="columns_selectednode_netinfo", 
+                                    choices = selected_node_table_column_choices_netinfo, 
+                                    selected = NULL)
+        updatePrettyCheckboxGroup(session=session, 
+                                    inputId="columns_selectednode_locality", 
+                                    choices = selected_node_table_column_choices_locality, 
+                                    selected = NULL)
+    })
+
 
     #################################################################################################################
     #################################################################################################################
