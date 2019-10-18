@@ -14,8 +14,8 @@ This submission is a patch update (0.2.1) of the package `dragon`, currently on 
 No errors, notes, or warnings were produced. R CMD check completed with:
 
 ```
-── R CMD check results ─────────────────────────────────────── dragon 0.2.0 ────
-Duration: 11.1s
+── R CMD check results ─────────────────────────────────────── dragon 0.2.1 ────
+Duration: 18.2s
 
 0 errors ✔ | 0 warnings ✔ | 0 notes ✔
 ```
