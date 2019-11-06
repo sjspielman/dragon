@@ -753,7 +753,7 @@ server <- function(input, output, session) {
             
                 aov_fit <- aov(as.formula(aov_fit_string), data = mineral_nodes2, na.action = na.omit )
 
-                output$fitted_tukey <- renderDT( rownames= FALSE, server=FALSE, options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
+                output$fitted_tukey <- renderDT( rownames= FALSE, server=FALSE, extensions = 'Buttons', options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
                                             TukeyHSD(aov_fit) %>% 
                                                 tidy() %>%
                                                 dplyr::select(-term) %>%
@@ -801,7 +801,7 @@ server <- function(input, output, session) {
             }
 
         
-            output$fitted_model <- renderDT( rownames= FALSE, server=FALSE, options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
+            output$fitted_model <- renderDT( rownames= FALSE, server=FALSE, extensions = 'Buttons', options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
                                                     broom::tidy(fit) %>%
                                                     mutate(term = str_replace_all(term, "`", ""),
                                                            estimate = round(estimate, 6),
