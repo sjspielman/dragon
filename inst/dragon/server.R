@@ -769,20 +769,11 @@ server <- function(input, output, session) {
                                                          "Adjusted P-value" = adj.p.value)
                                          })
                                          
-
-                #if (!(is.null(input$community_include_lm))) {
-                    use_cluster_colors <- network_cluster()$cluster_colors[ unique(mineral_nodes2$community_cluster) ]
-                #} else
-                #{
-                #    use_cluster_colors <- network_cluster()$cluster_colors
-                #}                           
-                
-
                 fitted_model_plot <- ggplot(mineral_nodes2, aes(x = community_cluster, y = !!sym(input$response))) + 
                                         xlab(input$predictor) + 
                                         ylab(input$response) +
                                         geom_jitter(aes(color = community_cluster), size=3, width=0.1) + 
-                                        scale_color_manual(values = use_cluster_colors, name = input$predictor) +
+                                        scale_color_manual(values = network_cluster()$cluster_colors, name = input$predictor) +
                                         stat_summary(geom="errorbar", width=0, color = "grey30", size=1)+
                                         stat_summary(geom="point", color = "grey30", size=3.5) + 
                                         theme(legend.text=element_text(size=12), legend.title=element_text(size=13))
