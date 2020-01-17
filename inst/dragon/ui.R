@@ -19,7 +19,6 @@ library(cowplot)
 library(igraph)
 library(visNetwork)
 
-
 source("build_network.R")
 source("defs.R")
 
@@ -307,7 +306,7 @@ dashboardPage(skin = "red",
             tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
         ),
           fluidRow(
-                bsAlert("alert"),          
+                bsAlert("alert"),  
                 div(style = "margin-right:1%; margin-left:1%;",
                                     
                     tabBox(width=12, 
@@ -322,7 +321,7 @@ dashboardPage(skin = "red",
                                     textOutput("modularity"),
                                     textOutput("n_element_nodes"),
                                     textOutput("n_mineral_nodes"),
-                                    textOutput("n_edges")
+                                    textOutput("n_edges"),
                                 ),
                                 conditionalPanel('input.build_only == true', {
                                     div(style = "text-align:center; font-weight:bold; color:red; font-size:1.25em;",
@@ -433,22 +432,78 @@ dashboardPage(skin = "red",
                             )
                         )
                     }),
-                    box(width = 12,status = "primary", title = "Network Export",
+
+                    box(width = 9,status = "primary", title = "Network Export",
+           
                         fluidRow(
+                            column(3, 
+                                downloadBttn("downloadNetwork_pdf", "Export network as PDF", size = "sm", style = "minimal", color = "danger")
+                            ),
+                            column(3,
+                                downloadBttn("download_legend", "Export legend as PDF", size = "sm", style = "minimal", color = "danger")                              
+                            ),
+                            #column(3, 
+                            #    downloadBttn("downloadNetwork_html", "Export network as HTML", size = "sm", style = "minimal", color = "danger")
+                            #),
                             column(3,
                                 downloadBttn("exportNodes", "Export nodes as CSV", size = "sm", style = "minimal", color = "danger")
                             ),
                             column(3,
                                 downloadBttn("exportEdges", "Export edges as CSV", size = "sm", style = "minimal", color = "danger")
-                            ),
-                            column(3, 
-                                downloadBttn("downloadNetwork_html", "Export HTML network", size = "sm", style = "minimal", color = "danger")
-                            ),
-                            column(3,
-                                downloadBttn("download_legend", "Download Legend as PNG", size = "sm", style = "minimal", color = "danger")                              
                             )
                         )
+                    ),
+                    box(width = 3, status = "primary", title = "Export Options",
+                       actionButton("store_position", "Click to export current node positions."),
+                       br(), br(), 
+                       numericInput("output_pdf_width", "Width of network PDF", min=1, max=20, 10),
+                       numericInput("output_pdf_height", "Height of network PDF", min=1, max=20, 6),
+                       numericInput("output_pdf_aspect_ratio", "Aspect ratio of network PDF", min=0.1, max=5, 0.5)#,
+                       #numericInput("output_legend_width", "Width of legend PDF", min=1, max=50, 6),
+                       #numericInput("output_legend_height", "Height of legend PDF", min=1, max=50, 3)
                     )
+
+
+
+
+#                     box(width = 12,status = "primary", title = "Network Export",
+#            
+#                         fluidRow(
+#                             column(2,
+#                                 downloadBttn("exportNodes", "Export nodes as CSV", size = "sm", style = "minimal", color = "danger")
+#                             ),
+#                             column(2,
+#                                 downloadBttn("exportEdges", "Export edges as CSV", size = "sm", style = "minimal", color = "danger")
+#                             ),
+#                             column(2, 
+#                                 downloadBttn("downloadNetwork_pdf", "Export network as PDF", size = "sm", style = "minimal", color = "danger")
+#                             ),
+#                             column(2,
+#                                 downloadBttn("download_legend", "Export Legend as PDF", size = "sm", style = "minimal", color = "danger")                              
+#                             ),
+#                             column(2, 
+#                                 downloadBttn("downloadNetwork_html", "Export network as HTML", size = "sm", style = "minimal", color = "danger")
+#                             )
+#                         ),
+#                         fluidRow(
+#                             column(2,
+#                                numericInput("output_pdf_width", "Width of PDF network image file", min=1, max=50, 7)
+#                             ),
+#                             column(2,
+#                                    numericInput("output_pdf_aspect_ratio", "Aspect ratio of PDF network image file", min=0.01, max=5, 1)
+#                             ),
+#                             column(2,
+#                                    numericInput("output_pdf_aspect_ratio", "Aspect ratio of PDF network image file", min=0.01, max=5, 1)
+#                             ),
+#                             column(2,
+#                                    numericInput("output_legend_width", "Width of PDF legend image", min=1, max=50, 8)
+#                             ),
+#                             column(2,
+#                                    numericInput("output_legend_height", "Height of PDF legend image", min=1, max=50, 4)
+#                             )
+#                                                               
+#                         )
+#                     )
 
                     
                      

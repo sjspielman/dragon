@@ -381,3 +381,89 @@ obtain_node_sizes <- function(dat, size_variable, lowsize, highsize, size_scale 
     return (data.size)
 }
   
+##########################################################################################################################
+######################## Convert visNetwork to suitable igraph version for exporting the image ###########################
+visnetwork_to_igraph <- function(nodes, edges, xcol, ycol)
+{
+    
+    ############################ PENDING ####################################
+    ## dragon's 50 is igraph's 15
+    #dragon_default_element_size <- 50
+    #target_element_size         <- 10
+    #size_scale <- target_element_size / dragon_default_element_size
+    #
+    ## We want to scale element label size as 1, for now
+    #label_size_scale <- nodes$font.size[nodes$group == "element"][1]
+    ##########################################################################
+    
+    ###### FOR NOW ######
+    element_size <- 20
+    mineral_size <- 5
+    label_size_scale <- nodes$font.size[nodes$group == "element"][1] # probably also for now
+    #####################
+    
+    vis_shapes_only <- c("diamond", "triangle", "star", "ellipse") # these shapes are not available in igraph, so we may remove them from dragon as well?
+    ## igraph shapes: “circle”, “square”, “csquare”, “rectangle”, “crectangle”, “vrectangle”, “pie” (see vertex.shape.pie), ‘sphere’, and “none” are supported,
+
+    ### Keep only the columns we need from edges and nodes, AND rename columns to their igraph names rather than visNetwork names
+    nodes %>%
+      dplyr::select(id, group, shape, size, color.background, color.border, font.color, font.size, font.face, x, y) %>%
+      mutate(shape = case_when(
+                        shape %in% c("dot", "circle") ~ "circle",
+                        shape %in% c("square", "box") ~ "square", 
+                        shape %in% vis_shapes_only    ~ "circle",
+                        shape == "text"               ~ "none"
+                      ),
+            ### TODO: size appropriately ???!!!
+            size         = ifelse(group == "element", element_size, mineral_size),
+            label        = ifelse(font.size == 0, NA, id),
+            label.color  = font.color,
+            label.font   = 1, 
+            label.family = "mono",  ## courier in visNetwork, this is equivalent
+            label.cex    = font.size/label_size_scale) %>% 
+      rename(color       = color.background,
+             frame.color = color.border) -> nodes_igraph
+ 
+     edges %>% 
+      dplyr::select(from, to, color) -> edges_igraph
+
+
+    nodes_igraph %>%
+        dplyr::select(x, y) %>% ## Select order can flip 180, FYI
+        ## igraph plots upside down from visNetwork, because sure why not, so flip the sign.
+        mutate(y = -1 * y) -> coords
+
+    inet <- graph_from_data_frame(edges_igraph, directed=FALSE, vertices = nodes_igraph)
+
+        
+    ################# TODO: Come up with a sensible automated way to size things #####################
+    ### Find overall size by normalized coordinates    
+    coords %>%
+        mutate(x = x / max(x),
+               x = y / max(y)) -> norm_coords
+    y_size <- abs( max(norm_coords$y) - min(norm_coords$y) ) 
+    x_size <- abs( max(norm_coords$x) - min(norm_coords$x) ) 
+    
+    print(paste("X:", x_size))
+    print(paste("Y:", x_size))
+    ### How many element nodes?
+    nodes %>%
+        filter(group == "element") %>%
+        tally() %>%
+        pull(n) -> n_element_nodes
+    ##################################################################################################
+    
+        
+
+
+    return (list("igraph_network" = inet, "coords" = as.matrix(coords)))
+}
+
+
+
+
+
+
+
+
+

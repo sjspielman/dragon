@@ -30,13 +30,12 @@ source("defs.R")          ### Variables and stylizing functions
   
   
   
-  
 server <- function(input, output, session) {
     
-    
+
     ################################# Build network ####################################
     
-    
+
     chemistry_network <- reactive({
         
         req(input$elements_of_interest)
@@ -93,7 +92,7 @@ server <- function(input, output, session) {
         
         network <- construct_network(network_information, elements_by_redox)
 
-        nodes <- network$nodes %>% mutate(fancy_group = ifelse(group == "element", "All elements", "All minerals")) ## for node selection
+        nodes <- network$nodes %>% mutate(type = ifelse(group == "element", "All elements", "All minerals")) ## for node selection
         edges <- network$edges
         graph <- network$graph
         
@@ -154,7 +153,7 @@ server <- function(input, output, session) {
     
         build_only <- isolate(input$build_only)
     
-        
+
         output$modularity <- renderText({
             membership <- network_cluster()$clustering
             paste0("Network modularity: ", round( membership$modularity[[1]], 4))    
@@ -254,12 +253,13 @@ server <- function(input, output, session) {
                                 nodesIdSelection = list(enabled = TRUE, 
                                                         #selected = selected_element,
                                                         values = c( sort(nodes$id[nodes$group == "element"]), sort(nodes$id[nodes$group == "mineral"]) ),
-                                                        style   = "float:right; width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: -1.4em 0.5em 0em 0em;",  ##t r b l 
+                                                        style   = "float:right; width: 200px; font-size: 14px; color: #000; background-color: #F1F1F1; border-radius: 0px; border: solid 1px #DCDCDC; height: 34px; margin: -1.4em 0.5em 0em 0em;",  ##t r b l 
                                                         main    = "Select an individual node"),
-                                selectedBy = list(variable = "fancy_group", 
-                                                  values=c("All elements", "All minerals"),
-                                                  style   = "float:right; width: 200px; font-size: 14px; color: #989898; background-color: #F1F1F1; border-radius: 0; border: solid 1px #DCDCDC; height: 32px; margin: -1.4em 0.5em 0em 0em;",  ##t r b l 
-                                                  main    = "Select group of nodes")
+                                selectedBy = list(variable = "type", 
+                                                  #values=c("All elements", "All minerals"),
+                                                  #highlight=TRUE,
+                                                  style   = "float:right; width: 200px; font-size: 14px; color: #000; background-color: #F1F1F1; border-radius: 0px; border: solid 1px #DCDCDC; height: 34px; margin: -1.4em 0.5em 0em 0em;"
+                                            ) 
                                 )  %>%              
                     visInteraction(dragView  = TRUE, 
                                    dragNodes         = TRUE, 
@@ -280,11 +280,16 @@ server <- function(input, output, session) {
                               font  = list(size = ifelse(input$mineral_label_size == 0, "NA", input$mineral_label_size))) %>%
                      visEdges(color = input$edge_color,
                              width = input$edge_weight,
-                             smooth = FALSE) ## no visual effect that I can perceive, and improves speed. Cool. 
+                             smooth = FALSE)  ## smooth=FALSE has no visual effect that I can perceive, and improves speed. Cool. 
+                     
                 }
             })          
         })
         
+        observeEvent(input$store_position, {
+            if (build_only == FALSE) visNetworkProxy("networkplot") %>% visGetPositions()
+        })   
+      
         observe({
             if (build_only ==  FALSE)
             {
@@ -295,9 +300,7 @@ server <- function(input, output, session) {
                     visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
                     visUpdateEdges(edges = edge_styler()$styled_edges) %>%
                     visEdges(width = input$edge_weight) %>%
-                    visGetNodes(input = "nodes_coord") %>%  ### retains last position
                     visGetSelectedNodes() %>%
-                    visGetPositions() %>%
                     visInteraction(dragView          = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
                                    hover             = input$hover, 
                                    selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
@@ -306,10 +309,10 @@ server <- function(input, output, session) {
                                    hideEdgesOnDrag   = input$hide_edges_on_drag,
                                    navigationButtons = input$nav_buttons) %>%
                     visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree),
-                               nodesIdSelection = list(enabled = TRUE, main  = "Select node"))
+                               nodesIdSelection = list(enabled = TRUE, main  = "Select an individual node.")) 
             }
         })     
-    
+
 
         ########################################## legend ######################################
         output$networklegend <- renderPlot({
@@ -347,43 +350,84 @@ server <- function(input, output, session) {
     })  
     
     ##################################### DOWNLOAD LINKS #######################################################
-    output$downloadNetwork_html <- downloadHandler(
-        #req(input$go > 0)
-        filename <- function() { paste0('dragon_network-', Sys.Date(), '.html') },
-        content <- function(file) 
+   
+    ########## PREP NODES FOR DOWNLOAD ##########
+    styled_nodes_with_positions <- reactive({
+        nodes <- node_styler()$styled_nodes
+        positions <- input$networkplot_positions
+        if (is.null(positions)){
+            ## DEFAULT LAYOUT
+            set.seed(input$network_layout_seed)
+            inet <- chemistry_network()$graph
+            coord_string <- paste0("igraph::", input$network_layout, "(inet)")
+            as.data.frame( eval(parse(text = coord_string)) ) %>%
+                rename(x = V1, y = V2) %>%
+                mutate(id = vertex_attr(inet, "name")) -> coords
+        } else {
+            ## CUSTOM LAYOUT by dragging network around
+            coords <- do.call("rbind", lapply(positions, function(p){ data.frame(x = p$x, y = p$y)}))
+            coords$id <- names(positions)
+        }
+        nodes %>% left_join(coords, by = "id")     
+    })
+
+    output$downloadNetwork_pdf <- downloadHandler(
+        filename <- function() { paste0('dragon_network_', Sys.Date(), '.pdf') },
+        content <- function(outfile)
         {
-            outnet <- visNetwork(nodes = node_styler()$styled_nodes, edges = edge_styler()$styled_edges, height = "800px")
-            if (input$network_layout == "physics") {
-                    outnet %<>% visPhysics(solver = input$physics_solver, stabilization = TRUE) 
-            } else {
-                    outnet %<>% visIgraphLayout(layout = input$network_layout, type = "full", randomSeed = input$network_layout_seed) 
-            }
-            outnet %>% 
-                visExport(type = "png") %>% 
-                visSave(file)
-        })
-        
-        
+            igraph_version <- visnetwork_to_igraph(styled_nodes_with_positions(), edge_styler()$styled_edges)      
+                      
+                      
+            pdf(file = outfile, width=input$output_pdf_width, height=input$output_pdf_height)
+            igraph::plot.igraph(igraph_version$igraph_network, layout = igraph_version$coords, asp=input$output_pdf_aspect_ratio)
+            dev.off()
+        }
+    
+    )
+    
+############################## DEPRECATING #####################################
+#     output$downloadNetwork_html <- downloadHandler(
+#         filename = function() {
+#             paste0('network-', Sys.Date(), '.html')
+#         },
+#         content <- function(outfile) 
+#         {
+# 
+#             outnet <- visNetwork(nodes = styled_nodes_with_positions(), edges = edge_styler()$styled_edges, height = "800px")
+#             if (input$network_layout == "physics") {
+#                 outnet %<>% visPhysics(solver = input$physics_solver, stabilization = TRUE) 
+#             }                       
+#             outnet %>%
+#                 visExport() %>%
+#                 visSave(outfile)
+#      }
+#    )
+   
+
+
+
     output$exportNodes <- downloadHandler(
         filename <- function() { paste0('dragon_node_data_', Sys.Date(), '.csv') },
-        content <- function(file) 
+        content <- function(outfile) 
         {
-            write_csv(node_styler()$styled_nodes, file)
+            write_csv(node_styler()$styled_nodes, outfile)
         })
         
         
     output$exportEdges <- downloadHandler(
         filename <- function() { paste0('dragon_edge_data_', Sys.Date(), '.csv') },
-        content <- function(file) 
+        content <- function(outfile) 
         {
-            write_csv(edge_styler()$styled_edges, file)
+            write_csv(edge_styler()$styled_edges, outfile)
         })
 
     output$download_legend <- downloadHandler(
-        filename <- function() { paste0('dragon_legend_', Sys.Date(), '.png') },
-        content <- function(file) 
+        filename <- function() { paste0('dragon_legend_', Sys.Date(), '.pdf') },
+        content <- function(outfile) 
         {
-            save_plot(file,  ggdraw( finallegend() ) , base_width = 8 )
+            #save_plot(outfile,  ggdraw( finallegend() ) , base_width = input$output_legend_width, base_height = input$output_legend_height )
+            save_plot(outfile,  ggdraw( finallegend() ) , base_width = 8 ) ## due to cowplot args, it's too easy to mess this up. we choose for users.
+
         })
         
 
@@ -452,7 +496,6 @@ server <- function(input, output, session) {
                 sel <- c(sel)
             }            
             selected_vars <- c(input$columns_selectednode_mineral, input$columns_selectednode_element, input$columns_selectednode_netinfo, input$columns_selectednode_locality)
-
                   
             if (is.null(selected_vars)) 
             {
@@ -838,6 +881,7 @@ server <- function(input, output, session) {
     
     ######################################### NODE AND EDGE STYLING ##################################################
     ##################################################################################################################
+
     
     ################################## Node colors, shape, size, labels ##############################################
     node_styler <- reactive({
@@ -982,7 +1026,8 @@ server <- function(input, output, session) {
                                                 color.hover.border = darken(color.background, 0.3),
                                                 color.hover.background = lighten(color.background, 0.3))%>%
                                          arrange(desc(group)) ## arranging minerals first is necessary so that element nodes are always on top and not obscured by giant minerally networks; https://github.com/spielmanlab/dragon/issues/5
-        ######################################################
+        ###############################################################################
+         
         return ( node_attr )
     })   
     
