@@ -396,16 +396,41 @@ visnetwork_to_igraph <- function(nodes, edges, xcol, ycol)
     #label_size_scale <- nodes$font.size[nodes$group == "element"][1]
     ##########################################################################
     
-    ###### FOR NOW ######
-    element_size <- 20
-    mineral_size <- 5
-    label_size_scale <- nodes$font.size[nodes$group == "element"][1] # probably also for now
+    # If an attribute is >= to these max values, rescale all to make this size the maximum
+    max_node_size  <- 20    
+    
+    prohibitive_visnetwork_font_size <- 50 ## over this font size we break???
+    max_node_font_size <-  2.5
+    
+    ### tentative plan: reduce all size by a factor of 10?
+    ## dw
+    
+    
+    ####### node max size settings and ratios ########    
+    element_mean_size <- mean(nodes$size[nodes$group == "element"])
+    mineral_mean_size <- mean(nodes$size[nodes$group == "mineral"])
+    element_to_mineral_ratio <- element_mean_size /  mineral_mean_size
+    
+    max_element_node_size  <- 20    ####### HHHHHHAAAARRRRRDDDD
+    max_mineral_node_size <- max_element_node_size / element_to_mineral_ratio 
+
+
+    ####### label max size settings and ratios ########    
+    element_mean_cex <- mean(nodes$font.size[nodes$group == "element"])
+    mineral_mean_cex <- mean(nodes$font.size[nodes$group == "mineral"])
+    if (mineral_mean_cex != 0)
+    {   
+        element_to_mineral_ratio <- element_mean_size /  mineral_mean_size
+    }
+    cex_to_size_ratio <- 0.01
+   # label_size_scale <- mean(nodes$font.size[nodes$group == "element"]) # probably also for now
     #####################
     
     vis_shapes_only <- c("diamond", "triangle", "star", "ellipse") # these shapes are not available in igraph, so we may remove them from dragon as well?
     ## igraph shapes: “circle”, “square”, “csquare”, “rectangle”, “crectangle”, “vrectangle”, “pie” (see vertex.shape.pie), ‘sphere’, and “none” are supported,
 
     ### Keep only the columns we need from edges and nodes, AND rename columns to their igraph names rather than visNetwork names
+    #### remember: for elements, font.size IS size due to how visNetwork handles labeling
     nodes %>%
       dplyr::select(id, group, shape, size, color.background, color.border, font.color, font.size, font.face, x, y) %>%
       mutate(shape = case_when(
@@ -414,16 +439,61 @@ visnetwork_to_igraph <- function(nodes, edges, xcol, ycol)
                         shape %in% vis_shapes_only    ~ "circle",
                         shape == "text"               ~ "none"
                       ),
-            ### TODO: size appropriately ???!!!
-            size         = ifelse(group == "element", element_size, mineral_size),
             label        = ifelse(font.size == 0, NA, id),
+            label.cex    = cex_to_size_ratio * font.size,
             label.color  = font.color,
             label.font   = 1, 
-            label.family = "mono",  ## courier in visNetwork, this is equivalent
-            label.cex    = font.size/label_size_scale) %>% 
+            label.family = "mono") %>%  ## courier in visNetwork, this is equivalent
       rename(color       = color.background,
              frame.color = color.border) -> nodes_igraph
+
+
+    ### And now for the great sizing hellscape
+    
+    ############################# NODE SIZE ##############################    
+    nodes_igraph %>%
+        dplyr::select(group, id, size, font.size) %>%
+        group_by(group) %>%
+        summarize(maxsize = max(size)) -> max_sizes
+    
+    if (max_sizes$maxsize[max_sizes$group == "element"] > max_element_node_size) nodes_igraph %<>% mutate(size = ifelse(group == "element", max_element_node_size * size/max(size), size))
+    if (max_sizes$maxsize[max_sizes$group == "mineral"] > max_mineral_node_size) nodes_igraph %<>% mutate(size = ifelse(group == "mineral", max_mineral_node_size * size/max(size), size))
+
+
+
+###############################################################
+
+    
+    #element_size_data %<>%
+    #    mutate(label.cex = ifelse(shape == "text", size * cex_to_size_ratio ) ) 
+
+
+
+
+#     nodes_igraph %>%
+#         filter(group == "mineral") %>%
+#         mutate()
+#  
+#     nodes_igraph %>%
+#         filter(group)
+#  
+#     nodes_igraph %>%
+#         filter(group == "element") %>%
+#         summarize(max_size = max(font.size)) -> element_max_size
+#         # now there is one variable for two sizes, but we have different limits for them now. 
+#     if (element_max_size$max_size >= 
+#     
+#     
+#     
+#     
+#                label.cex = max_node_font_size * (font.size / max_size),
+#                size      = max_node_size      * (font.size / max_size)) %>%
+#         dplyr::select(-max_size) -> elements 
+#                  
  
+    write_csv(nodes_igraph, "nodesigraph.csv")
+    
+    
      edges %>% 
       dplyr::select(from, to, color) -> edges_igraph
 

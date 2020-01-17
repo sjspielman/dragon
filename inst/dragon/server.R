@@ -378,7 +378,7 @@ server <- function(input, output, session) {
             igraph_version <- visnetwork_to_igraph(styled_nodes_with_positions(), edge_styler()$styled_edges)      
                       
                       
-            pdf(file = outfile, width=input$output_pdf_width, height=input$output_pdf_height)
+            pdf(file = outfile, useDingbats=FALSE) #, width=input$output_pdf_width, height=input$output_pdf_height)
             igraph::plot.igraph(igraph_version$igraph_network, layout = igraph_version$coords, asp=input$output_pdf_aspect_ratio)
             dev.off()
         }

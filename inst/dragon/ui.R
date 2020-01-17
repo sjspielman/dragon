@@ -204,7 +204,7 @@ dashboardPage(skin = "red",
                                        "Specific Heat"  = "SpecificHeat"), selected = "singlesize")
                     ),
                 column(6, conditionalPanel(condition = "input.element_size_type == 'singlesize'", 
-                            {sliderInput("element_label_size","Element size",value=50,min=10,max=100, step=10)}) #### !!!!!!! label size!!!!!!!
+                            {sliderInput("element_label_size","Element size",value=50,min=10,max=100, step=10)}) #### !!!!!!! label size - this is how visnetwork does <shrug>!!!!!!!
                     ),
                 column(6, conditionalPanel(condition = "input.element_size_type != 'singlesize'", 
                             {sliderInput("element_size_scale","Scale element size",value=20,min=10,max=100,step=10)}) 
@@ -231,9 +231,6 @@ dashboardPage(skin = "red",
             fluidRow(
                 column(6, colourpicker::colourInput("element_label_color","Element font color",value = "#000000"))
             ),
-            #fluidRow(
-            #    column(12, prettyCheckbox("only_use_element_label_color", "Always use the above color for element labels", value = FALSE, animation="smooth", icon = icon("check"), status="danger"))
-            #),
             fluidRow( 
                 column(6, colourpicker::colourInput("mineral_label_color","Mineral font color",value = "#000000")),
                 column(6, sliderInput("mineral_label_size","Mineral font size",value=0,min=0,max=50))
@@ -242,20 +239,16 @@ dashboardPage(skin = "red",
         menuItem(text = "Node Shapes", 
             fluidRow(
                column(6,
-                   pickerInput("element_shape", "Element shape", ## shapes that scale with font
+                   pickerInput("element_shape", "Element shape", ## shapes that scale with font. NOTE: removing those incompatible with igraph
                         c("Circle"     = "circle",
-                          "Ellipse"    = "ellipse",
-                          "Box"        = "box", 
+                          "Square"        = "box", 
                           "Text only (no shape)"  = "text"), selected = "Circle" 
                     )
                 ),
                 column(6, 
-                    pickerInput("mineral_shape", "Mineral shape",  ## shapes that DO NOT scale with font
+                    pickerInput("mineral_shape", "Mineral shape",  ## shapes that DO NOT scale with font. NOTE: removing those incompatible with igraph
                                 c("Circle"   = "dot", #### !!!!!!
-                                  "Square"   = "square",
-                                  "Star"     = "star",
-                                  "Triangle" = "triangle",
-                                  "Diamond"  = "diamond"), selected = "Circle"    
+                                  "Square"   = "square"), selected = "Circle"    
                     )
                 )
             )
@@ -453,12 +446,13 @@ dashboardPage(skin = "red",
                             )
                         )
                     ),
-                    box(width = 3, status = "primary", title = "Export Options",
+                    box(width = 3, status = "primary", title = "Export Options",   #collapsible=TRUE, 
                        actionButton("store_position", "Click to export current node positions."),
                        br(), br(), 
-                       numericInput("output_pdf_width", "Width of network PDF", min=1, max=20, 10),
-                       numericInput("output_pdf_height", "Height of network PDF", min=1, max=20, 6),
-                       numericInput("output_pdf_aspect_ratio", "Aspect ratio of network PDF", min=0.1, max=5, 0.5)#,
+                       numericInput("output_pdf_aspect_ratio", "Aspect ratio of network PDF (<1 wide, >1 long)", min=0.1, max=10, 0.5),
+                       #numericInput("output_pdf_width", "Width of network PDF", min=1, max=20, 8),
+                       #numericInput("output_pdf_height", "Height of network PDF", min=1, max=20, 6),
+                       ######## MORE OPTIONS: ADVANCED ########
                        #numericInput("output_legend_width", "Width of legend PDF", min=1, max=50, 6),
                        #numericInput("output_legend_height", "Height of legend PDF", min=1, max=50, 3)
                     )
