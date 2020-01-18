@@ -47,13 +47,14 @@ dashboardPage(skin = "red",
                                                     ), 
                                                     multiple = TRUE
                         ),
+            
             tipify(
-                prettyCheckbox("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger"),
+                prettySwitch("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger"),
                 title = "Separate element nodes into one per redox state, e.g. rather than one node for Iron (Fe) there may be several nodes such as Fe3+ and Fe2+, etc."
             ), 
             
             tipify(
-                prettyCheckbox("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
+                prettySwitch("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
                 title = "When multiple elements are selected, this option ensures that only minerals containing all elements appear in the network."
             ),
             
@@ -62,56 +63,13 @@ dashboardPage(skin = "red",
                 title = "Based on mineral discovery dates as recorded in MED"
             ),
             tipify(
-                awesomeRadio("max_age_type", "Use maximum or minimum age of minerals", checkbox=TRUE, inline = TRUE, choices = c("Maximum", "Minimum"), selected="Maximum", status="danger"),
+                prettyRadioButtons("max_age_type", "Use maximum or minimum age of minerals", inline = TRUE, choices = c("Maximum", "Minimum"), selected="Maximum", status="danger"),
                 title = "Determines which recorded date (maximum or minimum) is considered for including minerals in the network."
             ),
             tipify(
-                prettyCheckbox("build_only","Build network without display",value = FALSE, status="danger"),
+                prettySwitch("build_only","Build network without display",value = FALSE, status="danger"),
                 title = "When checked, you will be able to build export the specified network but it will not be displayed. Useful for extremely large networks."
             ),
-            fluidRow(
-                column(8,
-                    tipify(
-                            pickerInput("network_layout", tags$span(style="font-weight:400", "Network layout:"),
-                                choices = list(
-                                   `Force-directed` = c("Fruchterman Reingold" = "layout_with_fr",
-                                                      "GEM force-directed"      = "layout_with_gem"),
-                                    Other = c("Dynamic physics layout (WARNING: Do not use if photosensitive)" = "physics",
-                                              "Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
-                                              "Layout in circle"             = "layout_in_circle",
-                                               "Layout in sphere"            = "layout_on_sphere")
-                                                      
-                                )
-                            ),
-                        title = "Algorithm for rendering the initial state of the interactive network"
-                        )
-                ),
-                column(4,
-                        tipify(
-                           numericInput("network_layout_seed", tags$span(style="font-weight:400", "Seed:"), min = 0, max = Inf, value = 1),
-                           title = "Set the random seed for stochastic (force-directed and dynamic) network layouts here."
-                        )            
-                )
-            ),
-            conditionalPanel('input.network_layout == "physics"', {
-                #tipify(
-                    pickerInput("physics_solver", tags$span(style="font-weight:400", "Solver for physics layout:"),
-                                    choices = c("forceAtlas2Based" = "forceAtlas2Based",
-                                                "Barnes-Hut" = "barnesHut",
-                                                "Repulsion"  = "repulsion", 
-                                                "Hierarchical repulsion" = "hierarchicalRepulsion"), selected = "forceAtlas2Based"
-                                )#,
-                    #title = "Algorithm for initial node positioning with physics layout"
-                #)
-            }),             
-            pickerInput("cluster_algorithm", tags$span(style="font-weight:400", "Network community detection (clustering) algorithm:"),
-                choices = c("Louvain",
-                            "Leading eigenvector"), selected = "Louvain"
-                ),
-            br(), 
-
-            actionBttn("go", "Initialize Network", size="sm", color = "danger"),
-        br(),
         menuItem(text = "Node Colors",
 
             fluidRow(
@@ -178,12 +136,12 @@ dashboardPage(skin = "red",
                     ) 
                  )
             ),
-            prettyCheckbox("color_by_cluster","Color by Community Cluster",value = FALSE, status="danger",icon = icon("check")),
+            prettySwitch("color_by_cluster","Color by Community Cluster", value = FALSE, status = "danger"),
             br()
             ),
         menuItem(text = "Color individual elements",
             fluidRow(
-                column(7,prettyCheckbox("highlight_element","Highlight focal element(s)",value = FALSE, icon = icon("check"), animation="smooth", status="danger")
+                column(7,prettySwitch("highlight_element","Highlight focal element(s)", value = FALSE,  status = "danger")
                     ),
                 column(5, colourpicker::colourInput("highlight_color", "Color:", value = "lightgoldenrod1")
                     )
@@ -284,16 +242,59 @@ dashboardPage(skin = "red",
                 column(12, sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10))
             )
         ), # menuitem
-        menuItem("Other network options",
+        menuItem("Network layout and clustering options",
+            fluidRow(
+                column(8,
+                    tipify(
+                            pickerInput("network_layout", tags$span(style="font-weight:400", "Network layout:"),
+                                choices = list(
+                                   `Force-directed` = c("Fruchterman Reingold" = "layout_with_fr",
+                                                      "GEM force-directed"      = "layout_with_gem"),
+                                    Other = c("Dynamic physics layout (WARNING: Do not use if photosensitive)" = "physics",
+                                              "Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
+                                              "Layout in circle"             = "layout_in_circle",
+                                               "Layout in sphere"            = "layout_on_sphere")
+                                                      
+                                )
+                            ),
+                        title = "Algorithm for rendering the initial state of the interactive network"
+                        )
+                ),
+                column(4,
+                        tipify(
+                           numericInput("network_layout_seed", tags$span(style="font-weight:400", "Seed:"), min = 0, max = Inf, value = 1),
+                           title = "Set the random seed for stochastic (force-directed and dynamic) network layouts here."
+                        )            
+                )
+            ),
+            conditionalPanel('input.network_layout == "physics"', {
+                pickerInput("physics_solver", tags$span(style="font-weight:400", "Solver for physics layout:"),
+                                choices = c("forceAtlas2Based" = "forceAtlas2Based",
+                                            "Barnes-Hut" = "barnesHut",
+                                            "Repulsion"  = "repulsion", 
+                                            "Hierarchical repulsion" = "hierarchicalRepulsion"), selected = "forceAtlas2Based"
+                            )
+            }),             
+            pickerInput("cluster_algorithm", tags$span(style="font-weight:400", "Network community detection (clustering) algorithm:"),
+                choices = c("Louvain",
+                            "Leading eigenvector"), selected = "Louvain"
+            )
+        ), # menuitem
+        menuItem("Network interaction options",
             sliderInput("selected_degree", "Node selection highlight degree", min=1, max=5, value = 2, step=1),
-            switchInput("hover","Emphasize on hover",value = TRUE, size="normal", labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-            switchInput("hide_edges_on_drag","Hide edges when dragging nodes",value = TRUE, size="normal",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-            switchInput(inputId = "drag_view", "Drag network in frame",value = TRUE, size="normal",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-            switchInput("zoom_view","Scroll in network frame to zoom",value = TRUE, size="normal",labelWidth = "200px", onStatus = "success", offStatus = "danger"),
-            switchInput("nav_buttons","Show navigation buttons",value = FALSE, size="normal",labelWidth = "200px", onStatus = "success", offStatus = "danger")
-        ) 
-            
-    )),
+            prettySwitch("hover","Emphasize on hover",value = TRUE, status = "danger"),
+            prettySwitch("hide_edges_on_drag","Hide edges when dragging nodes",value = TRUE, status = "danger"),
+            prettySwitch("drag_view", "Drag network in frame",value = TRUE, status = "danger"),
+            prettySwitch("zoom_view","Scroll in network frame to zoom", value = TRUE, status = "danger"),
+            prettySwitch("nav_buttons","Show navigation buttons", value = FALSE, status = "danger")        
+        ), # menu item
+        
+        actionBttn("go", "Initialize Network", size="md", color = "danger", style = "fill")
+        ) # sidebar menu
+    ), #dashboard menu
+    
+    
+    
     dashboardBody(
         tags$head(
             tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
@@ -385,9 +386,9 @@ dashboardPage(skin = "red",
                                     #    uiOutput("fitted_model_plot_preferences")
                                     #}),
                                     p(tags$b("Plot styling options (except for community cluster analysis):")),                      
-                                    prettyCheckbox("logx", "Use log scale on X-axis", value = FALSE, status="danger", animation="smooth", icon = icon("check")),
-                                    prettyCheckbox("logy", "Use log scale on Y-axis", value = FALSE, status="danger", animation="smooth", icon = icon("check")),
-                                    prettyCheckbox("bestfit", "Show regression line (with 95% confidence interval).", value = FALSE, status="danger", animation="smooth", icon = icon("check")),
+                                    prettySwitch("logx", "Use log scale on X-axis", value = FALSE, status="danger"),
+                                    prettySwitch("logy", "Use log scale on Y-axis", value = FALSE, status="danger",),
+                                    prettySwitch("bestfit", "Show regression line (with 95% confidence interval).", value = FALSE, status="danger"),
                                     fluidRow(
                                         column(6, colourpicker::colourInput("point_color", "Color for points", value = "black")),
                                         column(6, colourpicker::colourInput("bestfit_color", "Color for regression line", value = "blue"))
@@ -426,78 +427,34 @@ dashboardPage(skin = "red",
                         )
                     }),
 
-                    box(width = 9,status = "primary", title = "Network Export",
-           
+                    box(width = 12,status = "primary", title = "Network Export", collapsible = TRUE,
+
+                       actionBttn("store_position", "Click to prepare network for export to PDF.", color = "danger", style = "fill", block = TRUE), 
+                        div(style = "float:left;margin-top:20px;",
+                            dropdownButton(circle =FALSE, up=TRUE, label  = "PDF options", icon = icon("cogs", lib = "font-awesome"), status = "info", width = "250px", size = "default",
+                                numericInput("output_pdf_width", "Width of network PDF", min=1, max=20, 10),
+                                numericInput("output_pdf_height", "Height of network PDF", min=1, max=20, 6),
+                                prettySwitch("output_pdf_node_frame","Show node outlines in PDF?",value = FALSE, status="danger")
+                            )
+                        ),
+                        br(),br(),br(),br(),
                         fluidRow(
                             column(3, 
-                                downloadBttn("downloadNetwork_pdf", "Export network as PDF", size = "sm", style = "minimal", color = "danger")
+                                downloadBttn("downloadNetwork_pdf", "Export network as PDF", size = "sm", style = "bordered", color = "danger")   
                             ),
                             column(3,
-                                downloadBttn("download_legend", "Export legend as PDF", size = "sm", style = "minimal", color = "danger")                              
-                            ),
-                            #column(3, 
-                            #    downloadBttn("downloadNetwork_html", "Export network as HTML", size = "sm", style = "minimal", color = "danger")
-                            #),
-                            column(3,
-                                downloadBttn("exportNodes", "Export nodes as CSV", size = "sm", style = "minimal", color = "danger")
+                                downloadBttn("download_legend", "Export legend as PDF", size = "sm", style = "bordered", color = "danger")                              
                             ),
                             column(3,
-                                downloadBttn("exportEdges", "Export edges as CSV", size = "sm", style = "minimal", color = "danger")
+                                downloadBttn("exportNodes", "Export nodes as CSV", size = "sm", style = "bordered", color = "danger")   
+                            ),
+                            column(3,
+                                downloadBttn("exportEdges", "Export edges as CSV", size = "sm", style = "bordered", color = "danger")   
                             )
                         )
-                    ),
-                    box(width = 3, status = "primary", title = "Export Options",   #collapsible=TRUE, 
-                       actionButton("store_position", "Click to export current node positions."),
-                       br(), br(), 
-                       numericInput("output_pdf_aspect_ratio", "Aspect ratio of network PDF (<1 wide, >1 long)", min=0.1, max=10, 0.5),
-                       #numericInput("output_pdf_width", "Width of network PDF", min=1, max=20, 8),
-                       #numericInput("output_pdf_height", "Height of network PDF", min=1, max=20, 6),
-                       ######## MORE OPTIONS: ADVANCED ########
-                       #numericInput("output_legend_width", "Width of legend PDF", min=1, max=50, 6),
-                       #numericInput("output_legend_height", "Height of legend PDF", min=1, max=50, 3)
                     )
 
 
-
-
-#                     box(width = 12,status = "primary", title = "Network Export",
-#            
-#                         fluidRow(
-#                             column(2,
-#                                 downloadBttn("exportNodes", "Export nodes as CSV", size = "sm", style = "minimal", color = "danger")
-#                             ),
-#                             column(2,
-#                                 downloadBttn("exportEdges", "Export edges as CSV", size = "sm", style = "minimal", color = "danger")
-#                             ),
-#                             column(2, 
-#                                 downloadBttn("downloadNetwork_pdf", "Export network as PDF", size = "sm", style = "minimal", color = "danger")
-#                             ),
-#                             column(2,
-#                                 downloadBttn("download_legend", "Export Legend as PDF", size = "sm", style = "minimal", color = "danger")                              
-#                             ),
-#                             column(2, 
-#                                 downloadBttn("downloadNetwork_html", "Export network as HTML", size = "sm", style = "minimal", color = "danger")
-#                             )
-#                         ),
-#                         fluidRow(
-#                             column(2,
-#                                numericInput("output_pdf_width", "Width of PDF network image file", min=1, max=50, 7)
-#                             ),
-#                             column(2,
-#                                    numericInput("output_pdf_aspect_ratio", "Aspect ratio of PDF network image file", min=0.01, max=5, 1)
-#                             ),
-#                             column(2,
-#                                    numericInput("output_pdf_aspect_ratio", "Aspect ratio of PDF network image file", min=0.01, max=5, 1)
-#                             ),
-#                             column(2,
-#                                    numericInput("output_legend_width", "Width of PDF legend image", min=1, max=50, 8)
-#                             ),
-#                             column(2,
-#                                    numericInput("output_legend_height", "Height of PDF legend image", min=1, max=50, 4)
-#                             )
-#                                                               
-#                         )
-#                     )
 
                     
                      

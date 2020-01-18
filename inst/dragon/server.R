@@ -286,8 +286,15 @@ server <- function(input, output, session) {
             })          
         })
         
+        ### This is it. This is the _only way_. Need an observer within input$go
         observeEvent(input$store_position, {
             if (build_only == FALSE) visNetworkProxy("networkplot") %>% visGetPositions()
+            
+            
+            
+            
+            
+            
         })   
       
         observe({
@@ -375,11 +382,10 @@ server <- function(input, output, session) {
         filename <- function() { paste0('dragon_network_', Sys.Date(), '.pdf') },
         content <- function(outfile)
         {
-            igraph_version <- visnetwork_to_igraph(styled_nodes_with_positions(), edge_styler()$styled_edges)      
+            igraph_version <- visnetwork_to_igraph(styled_nodes_with_positions(), edge_styler()$styled_edges, input$output_pdf_node_frame)      
                       
-                      
-            pdf(file = outfile, useDingbats=FALSE) #, width=input$output_pdf_width, height=input$output_pdf_height)
-            igraph::plot.igraph(igraph_version$igraph_network, layout = igraph_version$coords, asp=input$output_pdf_aspect_ratio)
+            pdf(file = outfile, useDingbats=FALSE, width=input$output_pdf_width, height=input$output_pdf_height)
+            igraph::plot.igraph(igraph_version$igraph_network, layout = igraph_version$coords, asp=igraph_version$vis_aspect_ratio)
             dev.off()
         }
     
@@ -613,8 +619,14 @@ server <- function(input, output, session) {
             
     output$show_nodeTable <- renderUI({
         box(width=12,status = "primary", 
-            title = "Selected Node Information", 
-                h5("Choose which variables to include in table."),
+            title = "Selected Node Information", collapsible = TRUE,
+                tags$b("Choose which variables to include in table."),
+                br(),
+                #div(style="display:inline-block;vertical-align:top;",
+                    actionButton("include_all_selectednodes", label="Include all variables"),
+                    actionButton("clear_all_selectednodes", label="Clear variable selection"),
+                #),
+                br(),br(),
                                 
                 div(style="display:inline-block;vertical-align:top;",
                     prettyCheckboxGroup(
@@ -640,10 +652,6 @@ server <- function(input, output, session) {
                            label = tags$span(style="font-weight:700", "Locality variables:"), 
                            choices = selected_node_table_column_choices_locality
                     )),
-                div(style="display:inline-block;vertical-align:top;",
-                    actionButton("include_all_selectednodes", label="Include all variables"),
-                    actionButton("clear_all_selectednodes", label="Clear variable selection")
-                ),
                 div(style="font-size:85%;", DT::dataTableOutput("nodeTable")),
                 br(),
                 div(style = "float:right;", downloadBttn("download_nodeTable", "Download selected node information", size = "xs", style = "bordered", color = "danger"))
