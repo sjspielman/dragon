@@ -48,16 +48,6 @@ dashboardPage(skin = "red",
                                                     multiple = TRUE
                         ),
             
-            tipify(
-                prettySwitch("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger"),
-                title = "Separate element nodes into one per redox state, e.g. rather than one node for Iron (Fe) there may be several nodes such as Fe3+ and Fe2+, etc."
-            ), 
-            
-            tipify(
-                prettySwitch("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
-                title = "When multiple elements are selected, this option ensures that only minerals containing all elements appear in the network."
-            ),
-            
             tipify( 
                 sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = total_max_age, step = 0.1, value = c(0,total_max_age)), 
                 title = "Based on mineral discovery dates as recorded in MED"
@@ -67,9 +57,56 @@ dashboardPage(skin = "red",
                 title = "Determines which recorded date (maximum or minimum) is considered for including minerals in the network."
             ),
             tipify(
+                prettySwitch("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger"),
+                title = "Separate element nodes into one per redox state, e.g. rather than one node for Iron (Fe) there may be several nodes such as Fe3+ and Fe2+, etc."
+            ), 
+            
+            tipify(
+                prettySwitch("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
+                title = "When multiple elements are selected, this option ensures that only minerals containing all elements appear in the network."
+            ),
+            tipify(
                 prettySwitch("build_only","Build network without display",value = FALSE, status="danger"),
                 title = "When checked, you will be able to build export the specified network but it will not be displayed. Useful for extremely large networks."
             ),
+        menuItem("Network layout and clustering options",
+            fluidRow(
+                column(8,
+                    tipify(
+                            pickerInput("network_layout", tags$span(style="font-weight:400", "Network layout:"),
+                                choices = list(
+                                   `Force-directed` = c("Fruchterman Reingold" = "layout_with_fr",
+                                                      "GEM force-directed"      = "layout_with_gem"),
+                                    Other = c("Dynamic physics layout (WARNING: Do not use if photosensitive)" = "physics",
+                                              "Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
+                                              "Layout in circle"             = "layout_in_circle",
+                                               "Layout in sphere"            = "layout_on_sphere")
+                                                      
+                                )
+                            ),
+                        title = "Algorithm for rendering the initial state of the interactive network"
+                        )
+                ),
+                column(4,
+                        tipify(
+                           numericInput("network_layout_seed", tags$span(style="font-weight:400", "Seed:"), min = 0, max = Inf, value = 1),
+                           title = "Set the random seed for stochastic (force-directed and dynamic) network layouts here."
+                        )            
+                )
+            ),
+            conditionalPanel('input.network_layout == "physics"', {
+                pickerInput("physics_solver", tags$span(style="font-weight:400", "Solver for physics layout:"),
+                                choices = c("forceAtlas2Based" = "forceAtlas2Based",
+                                            "Barnes-Hut" = "barnesHut",
+                                            "Repulsion"  = "repulsion", 
+                                            "Hierarchical repulsion" = "hierarchicalRepulsion"), selected = "forceAtlas2Based"
+                            )
+            }),             
+            pickerInput("cluster_algorithm", tags$span(style="font-weight:400", "Network community detection (clustering) algorithm:"),
+                choices = c("Louvain",
+                            "Leading eigenvector"), selected = "Louvain"
+            )
+        ), # menuitem
         menuItem(text = "Node Colors",
 
             fluidRow(
@@ -86,7 +123,7 @@ dashboardPage(skin = "red",
                                    "Number of protons" = "NumberofProtons",
                                    "Periodic Table Group"       = "TableGroup", 
                                    "Periodic Table Period"       = "TablePeriod", 
-                                  # "Metal type"    = "MetalType", ## legend bad
+                                  # "Metal type"    = "MetalType", ## legend is a disaster. unless someone requests this feature, it's out
                                    "Density"       = "Density",
                                    "Specific Heat"  = "SpecificHeat"))   
                                    
@@ -96,13 +133,13 @@ dashboardPage(skin = "red",
                     conditionalPanel(condition = "input.color_element_by == 'singlecolor'",   
                         {colourpicker::colourInput("element_color", "Color:", value = "skyblue")}
                     ),      
-                    conditionalPanel(condition = "input.color_element_by != 'singlecolor' & input.color_element_by != 'element_hsab'",   
+                    conditionalPanel(condition = "input.color_element_by != 'singlecolor'",
                         {pickerInput("elementpalette", label = "Palette:",
-                            choices = divseq.list, selected = "Blues", width = "90%",
+                            choices = palette_sd[["palette_names"]], selected = "Blues", width = "90%",
                             choicesOpt = list(
                                 content = sprintf(
                                     "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-                                    unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
+                                    unname(palette_sd[["linear_gradient"]]), palette_sd[["label_colors"]], names(palette_sd[["linear_gradient"]])
                                 )
                             )
                         )}
@@ -125,20 +162,30 @@ dashboardPage(skin = "red",
                     ),
                     conditionalPanel(condition = "input.color_mineral_by != 'singlecolor'",   
                         {pickerInput("mineralpalette", label = "Palette:",
-                          choices = divseq.list, selected = "Reds", width = "90%",
+                          choices = palette_sd[["palette_names"]], selected = "Reds", width = "90%",
                           choicesOpt = list(
                               content = sprintf(
                                   "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-                                  unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
+                                    unname(palette_sd[["linear_gradient"]]), palette_sd[["label_colors"]], names(palette_sd[["linear_gradient"]])
                               )
                           )
                       )}        
                     ) 
                  )
-            ),
-            prettySwitch("color_by_cluster","Color by Community Cluster", value = FALSE, status = "danger"),
-            br()
-            ),
+            ), ## fluid
+            prettySwitch("color_by_cluster","Color all nodes by community cluster", value = FALSE, status = "danger"),
+            conditionalPanel(condition = "input.color_by_cluster == true",
+                {pickerInput("clusterpalette", label = "Community cluster palette:",
+                    choices = palette_q[["palette_names"]], selected = "Dark2", width = "100%",
+                    choicesOpt = list(
+                        content = sprintf(
+                            "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
+                                    unname(palette_q[["linear_gradient"]]), palette_q[["label_colors"]], names(palette_q[["linear_gradient"]])
+                        )
+                    )
+                )}
+            )
+        ),
         menuItem(text = "Color individual elements",
             fluidRow(
                 column(7,prettySwitch("highlight_element","Highlight focal element(s)", value = FALSE,  status = "danger")
@@ -227,11 +274,11 @@ dashboardPage(skin = "red",
 
                      conditionalPanel(condition = "input.color_edge_by != 'singlecolor'",   
                          {pickerInput("edgepalette", label = "Palette:",
-                         choices = divseq.list, selected = "BrBG", width = "90%",
+                         choices = palette_sd[["palette_names"]], selected = "BrBG", width = "90%",
                          choicesOpt = list(
                              content = sprintf(
                                  "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-                                 unname(palette.linear.gradient), palette.label.colors, names(palette.linear.gradient)
+                                 unname(palette_sd[["linear_gradient"]]), palette_sd[["label_colors"]], names(palette_sd[["linear_gradient"]])
                              )
                          )
                     )}        
@@ -240,44 +287,6 @@ dashboardPage(skin = "red",
                ), ## fluid
             fluidRow(
                 column(12, sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10))
-            )
-        ), # menuitem
-        menuItem("Network layout and clustering options",
-            fluidRow(
-                column(8,
-                    tipify(
-                            pickerInput("network_layout", tags$span(style="font-weight:400", "Network layout:"),
-                                choices = list(
-                                   `Force-directed` = c("Fruchterman Reingold" = "layout_with_fr",
-                                                      "GEM force-directed"      = "layout_with_gem"),
-                                    Other = c("Dynamic physics layout (WARNING: Do not use if photosensitive)" = "physics",
-                                              "Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
-                                              "Layout in circle"             = "layout_in_circle",
-                                               "Layout in sphere"            = "layout_on_sphere")
-                                                      
-                                )
-                            ),
-                        title = "Algorithm for rendering the initial state of the interactive network"
-                        )
-                ),
-                column(4,
-                        tipify(
-                           numericInput("network_layout_seed", tags$span(style="font-weight:400", "Seed:"), min = 0, max = Inf, value = 1),
-                           title = "Set the random seed for stochastic (force-directed and dynamic) network layouts here."
-                        )            
-                )
-            ),
-            conditionalPanel('input.network_layout == "physics"', {
-                pickerInput("physics_solver", tags$span(style="font-weight:400", "Solver for physics layout:"),
-                                choices = c("forceAtlas2Based" = "forceAtlas2Based",
-                                            "Barnes-Hut" = "barnesHut",
-                                            "Repulsion"  = "repulsion", 
-                                            "Hierarchical repulsion" = "hierarchicalRepulsion"), selected = "forceAtlas2Based"
-                            )
-            }),             
-            pickerInput("cluster_algorithm", tags$span(style="font-weight:400", "Network community detection (clustering) algorithm:"),
-                choices = c("Louvain",
-                            "Leading eigenvector"), selected = "Louvain"
             )
         ), # menuitem
         menuItem("Network interaction options",

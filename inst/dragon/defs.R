@@ -1,21 +1,7 @@
 ##### Global variables, functions, strings used in dragon #####
 
 all_elements = c("Ag", "Al", "As", "Au", "B", "Ba", "Be", "Bi", "Br", "C", "Ca", "Cd", "Ce", "Cl", "Co", "Cr", "Cs", "Cu", "Dy", "Er", "F", "Fe", "Ga", "Gd", "Ge", "H", "Hf", "Hg", "I", "In", "Ir", "K", "La", "Li", "Mg", "Mn", "Mo", "N", "Na", "Nb", "Nd", "Ni", "O", "Os", "P", "Pb", "Pd", "Pt", "Rb", "Re", "REE", "Rh", "Ru", "S", "Sb", "Sc", "Se", "Si", "Sm", "Sn", "Sr", "Ta", "Te", "Th", "Ti", "Tl", "U", "V", "W", "Y", "Yb", "Zn", "Zr")
-options(scipen=10000)
-
-################### plotting size-related ###################
-element_cex_baseline_textonly <- 1.4
-element_cex_baseline <- 1 
-mineral_cex_baseline <- 0.4
-max_cex_limit         <- 2.5
-max_size_limit        <- 20
-element_size_baseline <- 8
-mineral_size_baseline <- 1.5 
-norm_element <- 1
-norm_mineral <- 1 
-baseline_num_elements <- 50 
-baseline_num_minerals <- 1000
-#############################################################
+options(scipen=3) ## sci when more than 3 digits?
 
 
 ################## Variable/column names #####################
@@ -59,7 +45,12 @@ element_density_str         <- "Element density"
 element_specificheat_str    <- "Element specific heat"
 
 
-discrete_color_variables <- c("element_hsab", "MetalType", "TablePeriod", "TableGroup")
+## THESE SHOULD BE ORDERED
+ordinal_color_variables <- c("element_hsab",  "TablePeriod", "TableGroup")
+
+
+
+
 # 
 #  [1] "id"                     "element_hsab"           "element_pH"            
 #  [4] "AtomicMass"             "NumberofNeutrons"       "NumberofProtons"       
@@ -255,14 +246,6 @@ build_timeline_plot <- function(elements_only_minerals, age_lb, age_ub, max_age_
 
 #################################################################################################
 ### Code to setup a palette picker, modified from https://dreamrs.github.io/shinyWidgets/articles/palette_picker.html
-brewer.pal.info %>% 
-    rownames_to_column("palette") %>%
-    filter(category != "qual", colorblind == TRUE) %>%
-    arrange(desc(category)) -> brewer.palettes
-divseq.list <- list("Sequential" = brewer.palettes$palette[brewer.palettes$category == "seq"], "Diverging" = brewer.palettes$palette[brewer.palettes$category == "div"]) 
-brewer.palettes.hex <- brewer.palettes %>% mutate(colorlist = map2(maxcolors,palette, brewer.pal))
-palette.list <- setNames(as.list(brewer.palettes.hex$colorlist), brewer.palettes.hex$palette)
-
 linear_gradient <- function(cols) {
   x <- round(seq(from = 0, to = 100, length.out = length(cols)+1))
   ind <- c(1, rep(seq_along(x)[-c(1, length(x))], each = 2), length(x))
@@ -277,8 +260,34 @@ linear_gradient <- function(cols) {
   res <- paste(res, collapse = ", ")
   paste0("linear-gradient(to right, ", res, ");")
 }
-palette.linear.gradient <- unlist(lapply(X = palette.list, FUN = linear_gradient))
-palette.label.colors <- ifelse(brewer.palettes$category == "seq", "black", "white")
+
+prep_palette_display <- function(target_category)
+{
+
+    brewer.pal.info %>% 
+        rownames_to_column("palette") %>%
+        filter(colorblind == TRUE,
+               category %in% target_category) %>%
+        arrange(desc(category)) -> palettes
+    
+    palettes.hex <- palettes %>% mutate(colorlist = map2(maxcolors, palette, brewer.pal))
+    palette.list <- setNames(as.list(palettes.hex$colorlist), palettes.hex$palette)
+    palette.linear.gradient <- unlist(lapply(X = palette.list, FUN = linear_gradient))
+    palette.label.colors <- case_when(palettes$category == "seq" ~"black",
+                                      palettes$category == "div" ~"white",
+                                      palettes$category == "qual" ~"black")
+    palette.labels <- 
+    if ("qual" %in% target_category){
+        palette.labels <- list("Qualitative" = palettes$palette[palettes$category == "qual"]) 
+    } else {
+        palette.labels <- list("Sequential" = palettes$palette[palettes$category == "seq"], "Diverging" = palettes$palette[palettes$category == "div"]) 
+    }
+
+    return(list("palette_names" = palette.labels, "linear_gradient" = palette.linear.gradient, "label_colors" = palette.label.colors))
+}
+
+palette_q <- prep_palette_display(c("qual"))
+palette_sd <- prep_palette_display(c("seq", "div"))
 #################################################################################################
 
 
@@ -308,6 +317,9 @@ theme_set(theme_cowplot() + theme(legend.position = "bottom",
 
 obtain_colors_legend <- function(session, dat, color_variable, variable_type, palettename, legendtitle, discrete_colors = NA)
 {
+    ## variable type:
+    ## "d" = discrete, ordinal. THERE ARE NO NOMINAL EXCEPT FOR CLUSTER, WHICH IS HANDLED DIFFERENTLY.
+    ## "c" = continuous
     
     cvar <- as.symbol(color_variable)
     dat %>% mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
@@ -334,16 +346,15 @@ obtain_colors_legend <- function(session, dat, color_variable, variable_type, pa
                  guides(colour = guide_legend(title.position="top",  title.hjust = 0.5, byrow=TRUE, nrow=2)  ) +
                  theme(legend.key.size = unit(0.05, 'lines'), legend.title = element_text(size = rel(0.8)))
         if (!(is.na(discrete_colors))) 
-        {
+        {   ## cluster, colors already given
             p <- p + scale_color_manual(name = legendtitle, na.value = na.gray, values = discrete_colors)
         } else {
-            p <- p + scale_color_discrete(name = legendtitle, na.value = na.gray)
+            p <- p + scale_color_brewer(palette = palettename, name = legendtitle, na.value = na.gray)
         } 
     }
     
     if (variable_type == "c")
     {
-    
         p <- ggplot(dat2, aes(x = x, y = !!cvar, color = !!cvar)) + 
                  geom_point(size = geom.point.size) + 
                  scale_color_distiller(name = legendtitle, palette = palettename, direction = -1, na.value = na.gray) + 
@@ -402,6 +413,20 @@ obtain_node_sizes <- function(dat, size_variable, lowsize, highsize, size_scale 
 ######################## Convert visNetwork to suitable igraph version for exporting the image ###########################
 visnetwork_to_igraph <- function(nodes, edges, show_node_frame)
 {
+
+    ####################### BASELINES ###########################
+    element_cex_baseline_textonly <- 1.4
+    element_cex_baseline <- 1 
+    mineral_cex_baseline <- 0.4
+    max_cex_limit         <- 2.5
+    max_size_limit        <- 20
+    element_size_baseline <- 8
+    mineral_size_baseline <- 1.5 
+    norm_element <- 1
+    norm_mineral <- 1 
+    baseline_num_elements <- 50 
+    baseline_num_minerals <- 1000
+    #############################################################
   
    
     ### Modify baselines depending on number of each node types.

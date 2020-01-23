@@ -16,7 +16,6 @@ element_info         <- read_csv(form_file_path("element_information.csv"))
 geo_timeline         <- read_csv(form_file_path("geo_timeline.csv"))
 extinctions          <- read_csv(form_file_path("extinctions.csv"))
 
-hsab_levels <- c("Hard acid", "Int. acid", "Soft acid", "Soft base", "Int. base", "Hard base")
 
 locality <- bind_rows(locality1, locality2) %>% distinct()
 rruff    <- left_join(rruff_raw, locality) %>%
@@ -26,6 +25,9 @@ rruff    <- left_join(rruff_raw, locality) %>%
 total_max_age <- round( max(rruff$max_age) + 0.1, 1)
 
 remove(locality1, locality2, rruff_raw)
+element_hsab_levels     <- c("Hard acid", "Int. acid", "Soft acid", "Soft base", "Int. base", "Hard base")
+
+
                             
 community_detect_network <- function(network, cluster_algorithm)
 {
@@ -193,7 +195,7 @@ construct_network   <- function(network_information, elements_by_redox)
         dplyr::select(-mineral_name, -mineral_id, -num_localities_mineral, -max_age, -mean_pauling, -cov_pauling, -rruff_chemistry, -ima_chemistry, -element_redox_mineral) %>% 
         rename(id = element) %>%
         distinct()
-    element_information$element_hsab <- factor(element_information$element_hsab, levels = hsab_levels)
+    element_information$element_hsab <- factor(element_information$element_hsab, levels = element_hsab_levels)
     element_information$TablePeriod <- factor(element_information$TablePeriod)
     element_information$TableGroup <- factor(element_information$TableGroup)
 

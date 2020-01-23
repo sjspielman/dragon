@@ -122,9 +122,13 @@ server <- function(input, output, session) {
         clustered_net <- community_detect_network(chemistry_network()$graph, input$cluster_algorithm)
         cluster_tibble <- tibble( "id" = clustered_net$names, "cluster_ID" = as.numeric(clustered_net$membership) )
 
+
         ### Set cluster colors forever ### 
         n_clusters <- length(unique(cluster_tibble$cluster_ID))
-        cluster_colors_gghack <- tibble(x=1:n_clusters, y = factor(1:n_clusters)) %>% ggplot(aes(x = x, y = y, color = y)) + geom_point() 
+        cluster_colors_gghack <- tibble(x=1:n_clusters, y = factor(1:n_clusters)) %>% 
+                                    ggplot(aes(x = x, y = y, color = y)) + 
+                                    geom_point() + 
+                                    scale_color_brewer(palette = input$clusterpalette)
         ggplot_build(cluster_colors_gghack)$data[[1]] %>% 
             as_tibble() %>% 
             pull(colour) -> cluster_colors
@@ -383,34 +387,13 @@ server <- function(input, output, session) {
         content <- function(outfile)
         {
             igraph_version <- visnetwork_to_igraph(styled_nodes_with_positions(), edge_styler()$styled_edges, input$output_pdf_node_frame)      
-                      
-            pdf(file = outfile, useDingbats=FALSE, width=input$output_pdf_width, height=input$output_pdf_height)
+                    
+            pdf(outfile, useDingbats=FALSE, width=input$output_pdf_width, height=input$output_pdf_height)
             igraph::plot.igraph(igraph_version$igraph_network, layout = igraph_version$coords, asp=igraph_version$vis_aspect_ratio)
             dev.off()
         }
     
     )
-    
-############################## DEPRECATING #####################################
-#     output$downloadNetwork_html <- downloadHandler(
-#         filename = function() {
-#             paste0('network-', Sys.Date(), '.html')
-#         },
-#         content <- function(outfile) 
-#         {
-# 
-#             outnet <- visNetwork(nodes = styled_nodes_with_positions(), edges = edge_styler()$styled_edges, height = "800px")
-#             if (input$network_layout == "physics") {
-#                 outnet %<>% visPhysics(solver = input$physics_solver, stabilization = TRUE) 
-#             }                       
-#             outnet %>%
-#                 visExport() %>%
-#                 visSave(outfile)
-#      }
-#    )
-   
-
-
 
     output$exportNodes <- downloadHandler(
         filename <- function() { paste0('dragon_node_data_', Sys.Date(), '.csv') },
@@ -908,6 +891,7 @@ server <- function(input, output, session) {
             node_attr[["colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
         } else 
         { 
+            ################################# MINERALS #################################
             if (input$color_mineral_by == "singlecolor")
             {
                 out <- obtain_colors_legend_single("Mineral", vis_to_gg_shape[input$mineral_shape], input$mineral_color)
@@ -927,7 +911,7 @@ server <- function(input, output, session) {
             
             
             
-           
+            ################################# ELEMENTS #################################
             if (input$color_element_by == "singlecolor")
             {
                 if (input$element_shape == "text") { this_color <- input$element_label_color} else { this_color <- input$element_color}
@@ -951,15 +935,15 @@ server <- function(input, output, session) {
             }  else
             {
                 full_nodes %>% filter(group == "element") -> legend_data
-                if (input$color_element_by %in% discrete_color_variables)
+                if (input$color_element_by %in% ordinal_color_variables)
                 {  
-                    out <- obtain_colors_legend(session, legend_data, input$color_element_by, "d", "NA", variable_to_title[[input$color_element_by]])
+                    out <- obtain_colors_legend(session, legend_data, input$color_element_by, "d", input$elementpalette, variable_to_title[[input$color_element_by]])
                 } else {
                     out <- obtain_colors_legend(session, legend_data, input$color_element_by, "c", input$elementpalette, variable_to_title[[input$color_element_by]])
                 }
                 node_attr[["element_legend"]] <- out$leg
                 node_attr[["element_colors"]] <- out$cols %>% select(label, id, color) %>% rename(color.background = color)
-            }   
+        }   
             node_attr[["colors"]] <- bind_rows(node_attr[["element_colors"]], node_attr[["mineral_colors"]]) 
         }   
         
