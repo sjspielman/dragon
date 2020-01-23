@@ -467,8 +467,18 @@ visnetwork_to_igraph <- function(nodes, edges, show_node_frame)
             label.color  = font.color,
             label.font   = 1, 
             label.family = "mono",## courier in visNetwork, this is equivalent
-            frame.color  = ifelse(show_node_frame == TRUE, color.border, NA) ) -> nodes_igraph    ##borders in igraph are overly thick, user can choose
+            frame.color  = ifelse(show_node_frame == TRUE, color.border, NA) ) %>%  ## borders in igraph are overly thick, user can choose
+        # UNGROUP UNGROUP UNGROUP
+        ungroup() -> nodes_igraph   
         
+    ### Hack for getting edges to text-only nodes to look reasonable. Rather than removing shapes, we will make very very tiny white borderless circles.
+    nodes_igraph %<>%
+        mutate(frame.color = ifelse(shape == "none", NA, frame.color),
+               color       = ifelse(shape == "none", "#FFFFFF", color),
+               size        = ifelse(shape == "none", 0.001, size),
+               noshape     = shape == "none", 
+               shape       = ifelse(shape == "none", "circle", shape))
+               
 
     ###### And now for the great sizing hellscape
     nodes_igraph %>% 
@@ -476,8 +486,8 @@ visnetwork_to_igraph <- function(nodes, edges, show_node_frame)
         mutate(mean_font_size = mean(font.size),
                mean_size = mean_font_size,   ## line is NOT a bug - size = font.size for elements in vis 
                size      = size/mean_size * element_size_baseline, 
-               label.cex = case_when(shape == "none" & mean_font_size != 0 ~ font.size/mean_font_size * element_cex_baseline_textonly, 
-                                     shape != "none" & mean_font_size != 0 ~ font.size/mean_font_size * element_cex_baseline,
+               label.cex = case_when(noshape == TRUE & mean_font_size != 0 ~ font.size/mean_font_size * element_cex_baseline_textonly, 
+                                     noshape == FALSE & mean_font_size != 0 ~ font.size/mean_font_size * element_cex_baseline,
                                      mean_font_size == 0                   ~ 0)) -> elements
     nodes_igraph %>% 
         filter(group == "mineral") %>%
