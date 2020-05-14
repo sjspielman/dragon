@@ -2,7 +2,7 @@
 #'
 #' @export
 rundragon <- function() {
-  appDir <- system.file("dragon", package = "dragon")
+  appDir <- system.file("app", package = "dragon")
   if (appDir == "") {
     stop("Could not find example directory. Try re-installing `dragon` from github with `remotes::install_github('spielmanlab/dragon').", call. = FALSE)
   }
