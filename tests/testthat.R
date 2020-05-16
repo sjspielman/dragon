@@ -1,4 +1,4 @@
 library(testthat)
-library(whatisgolem)
+library(dragon)
 
-test_check("whatisgolem")
+test_check("dragon")

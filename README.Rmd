@@ -1,7 +1,7 @@
 ---
 output: github_document
 ---
-R CMD build whatisgolem ; R CMD install whatisgolem_0.0.0.9000.tar.gz 
+R CMD build dragon ; R CMD install dragon_0.2.1.tar.gz 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
@@ -13,20 +13,20 @@ knitr::opts_chunk$set(
 )
 ```
 
-# whatisgolem
+# dragon
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 <!-- badges: end -->
 
-The goal of whatisgolem is to ...
+The goal of dragon is to ...
 
 ## Installation
 
-You can install the released version of whatisgolem from [CRAN](https://CRAN.R-project.org) with:
+You can install the released version of dragon from [CRAN](https://CRAN.R-project.org) with:
 
 ``` r
-install.packages("whatisgolem")
+install.packages("dragon")
 ```
 
 ## Example
@@ -34,7 +34,7 @@ install.packages("whatisgolem")
 This is a basic example which shows you how to solve a common problem:
 
 ```{r example}
-library(whatisgolem)
+library(dragon)
 ## basic example code
 ```
 
