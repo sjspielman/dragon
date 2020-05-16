@@ -558,7 +558,7 @@ app_server <- function( input, output, session ) {
     
   })
   
-  output$networkTable <- DT::renderDT(rownames= FALSE,   
+  output$networkTable <- DT::renderDataTable(rownames= FALSE,   
                                   network_table(),
                                   extensions = c('ColReorder', 'Responsive'),
                                   options = list(
@@ -576,7 +576,7 @@ app_server <- function( input, output, session ) {
     })
   
   
-  output$nodeTable <- DT::renderDT( rownames= FALSE, escape = FALSE, ### escape=FALSE for HTML rendering, i.e. the IMA formula
+  output$nodeTable <- DT::renderDataTable( rownames= FALSE, escape = FALSE, ### escape=FALSE for HTML rendering, i.e. the IMA formula
                                 node_table(), 
                                 extensions = c('ColReorder', 'Responsive'),
                                 options = list(
@@ -757,7 +757,7 @@ app_server <- function( input, output, session ) {
     }
     
     if (bad) {
-      output$fitted_model <- DT::renderDT({})
+      output$fitted_model <- DT::renderDataTable({})
       output$fitted_model_plot <- renderPlot({})
     } else {
       
@@ -784,7 +784,7 @@ app_server <- function( input, output, session ) {
         
         aov_fit <- aov(as.formula(aov_fit_string), data = mineral_nodes2, na.action = na.omit )
         
-        output$fitted_tukey <- DT::renderDT( rownames= FALSE, server=FALSE, extensions = 'Buttons', options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
+        output$fitted_tukey <- DT::renderDataTable( rownames= FALSE, server=FALSE, extensions = 'Buttons', options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
           TukeyHSD(aov_fit) %>% 
             tidy() %>%
             dplyr::select(-term) %>%
@@ -823,7 +823,7 @@ app_server <- function( input, output, session ) {
       }
       
       
-      output$fitted_model <- DT::renderDT( rownames= FALSE, server=FALSE, extensions = 'Buttons', options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
+      output$fitted_model <- DT::renderDataTable( rownames= FALSE, server=FALSE, extensions = 'Buttons', options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
         broom::tidy(fit) %>%
           mutate(term = str_replace_all(term, "`", ""),
                  estimate = round(estimate, 6),
