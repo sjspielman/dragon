@@ -31,7 +31,7 @@ golem::set_golem_options()
 usethis::use_gpl3_license( name = "Stephanie J. Spielman" )  # You can set another license here
 usethis::use_readme_rmd( open = FALSE )
 usethis::use_code_of_conduct()
-usethis::use_lifecycle_badge( "Experimental" )
+usethis::use_lifecycle_badge( "Stable" )
 usethis::use_news_md( open = FALSE )
 
 ## Use git ----
