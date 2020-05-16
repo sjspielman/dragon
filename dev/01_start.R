@@ -17,9 +17,9 @@ golem::fill_desc(
   pkg_name = "dragon", # The Name of the package containing the App 
   pkg_title = "Deep Time Redox Analysis of the Geobiology Ontology Network", # The Title of the package containing the App 
   pkg_description = "Visualization and manipulation of the mineral-chemistry network across deep time on earth.", # The Description of the package containing the App 
-  author_first_name = "STEPHANIE", # Your First Name
-  author_last_name = "SPIELMAN", # Your Last Name
-  author_email = "SPIELMAN@ROWAN.EDU", # Your Email
+  author_first_name = "Stephanie", # Your First Name
+  author_last_name = "Spielman", # Your Last Name
+  author_email = "spielman@rowan.edu", # Your Email
   repo_url = "https://github.com/spielmanlab/dragon" # The URL of the GitHub Repo (optional) 
 )     
 

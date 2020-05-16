@@ -1,7 +1,7 @@
 ---
 output: github_document
 ---
-R CMD build dragon ; R CMD install dragon_0.2.1.tar.gz 
+
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
@@ -29,6 +29,12 @@ You can install the released version of dragon from [CRAN](https://CRAN.R-projec
 install.packages("dragon")
 ```
 
+And the development version from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("spielmanlab/dragon")
+```
 ## Example
 
 This is a basic example which shows you how to solve a common problem:
