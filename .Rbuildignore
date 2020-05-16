@@ -5,3 +5,5 @@ rsconnect/
 .Rapp.history
 ^CRAN-RELEASE$
 ^LICENSE$
+^.*\.Rproj$
+^\.Rproj\.user$
