@@ -222,7 +222,7 @@ add_shiny_node_titles <- function(nodes, element_by_redox)
   }
   
   nodes %>%
-    dplyr::mutate(font.face = "courier"
+    dplyr::mutate(font.face = "courier",
                   label = dplyr::case_when(group == "mineral"                     ~ label,
                                           group == "element" & nchar(label) == 1+charadd  ~ paste0(" ", label, " "),
                                           group == "element" & nchar(label) == 2+charadd  ~ paste0(" ", label),
