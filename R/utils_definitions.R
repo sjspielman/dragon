@@ -7,6 +7,9 @@ options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Setting for DT to show
 options(scipen=3)                                      ## Sci when more than 3 digits
 
 
+
+css_string_selectedNode <- "float:right; width: 200px; font-size: 14px; color: #000; background-color: #F1F1F1; border-radius: 0px; border: solid 1px #DCDCDC; height: 34px; margin: -1.4em 0.5em 0em 0em;"
+
 ## Definitions 
 
 ## Variable names as shown in UI menus ------------------------------------------------------
@@ -123,12 +126,8 @@ model_response_choices <- c(max_age_str,
                             closeness_str,
                             num_localities_str) #sd_pauling_str,
 
-
 model_predictor_choices <- c(model_response_choices, cluster_ID_str)
 
-
-palette_q <- prep_palette_display(c("qual"))
-palette_sd <- prep_palette_display(c("seq", "div"))
 
 ## mediocre matching here.
 vis_to_gg_shape <- list("circle"  = 19,

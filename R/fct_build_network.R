@@ -2,8 +2,8 @@ rruff_separated <-  element_redox_states %>% dplyr::select(-element_redox_minera
 total_max_age   <- round( max(rruff$max_age) + 0.1, 1)
 community_detect_network <- function(network, cluster_algorithm)
 {
-  if (cluster_algorithm == "Louvain")               return (cluster_louvain(network))
-  if (cluster_algorithm == "Leading eigenvector")   return (cluster_leading_eigen(network))    
+  if (cluster_algorithm == "Louvain")             return (igraph::cluster_louvain(network))
+  if (cluster_algorithm == "Leading eigenvector") return (igraph::cluster_leading_eigen(network))    
 }
 
 
@@ -143,25 +143,11 @@ construct_network   <- function(network_information, elements_by_redox)
   network_information %>% 
     dplyr::select(mineral_name, element) %>%
     dplyr::distinct() -> network_to_from
-      
   element_network                 <- igraph::graph.data.frame(network_to_from, directed=FALSE)
   igraph::V(element_network)$type <- igraph::bipartite_mapping(element_network)$type  ## mineral is FALSE and element is TRUE
   
+  ## Convert to visNetwork object for use in shiny -------------------------
   
-  ### VERTEX_INFORMATION WAS BUILT HERE. IT;S ON THE DESKTOP RIGHT NOW
-  ### TODO: CREATE A SEPARATE FUNCTION FOR CONVERSION TO VISNETWORK, TO ALLOW FOR SOME CMD LINE USE FREE OF SHINY
-  ## vertexinformation is one row per node in the network
-  ## networkinformation is one row per separated out element. eg if a mineral has 5 elements it has 5 rows
-  
-  ## Convery to visNetwork object for use in shiny
-  net <- visNetwork::toVisNetworkData(element_network)
-  
-  #   tibble::as_tibble(net$edges) # this is columns from and to
-    
-  ## Obtain data associated with nodes -------------------------------------------
-  deg       <- 
-  closeness <- igraph::closeness(element_network)
-
   
   ## Mineral node data ------------------------------------------------
   network_information %>% 
@@ -181,15 +167,14 @@ construct_network   <- function(network_information, elements_by_redox)
   
     
   ## Merge nodes with associated data ---------------------------------------------
-  tibble::as_tibble(net$nodes) %>%  # names:  id type label 
-    dplyr::mutate(type           = dplyr::if_else(type == FALSE, "mineral", "element"),
-                  network_degree = as.numeric( igraph::degree(element_network) ), 
+  tibble::tibble(id    = unique(c(network_to_from$mineral_name, network_to_from$element)), 
+         label = id, 
+         group = ifelse(id %in% network_to_from$mineral_name, "mineral", "element")) %>%
+    dplyr::mutate(network_degree = as.numeric( igraph::degree(element_network) ), 
                   closeness      = as.numeric( igraph::closeness(element_network) )   
                  ) %>%  
-    dplyr::group_by(type) %>%
+    dplyr::group_by(group) %>%
     dplyr::mutate(network_degree_norm = network_degree / max(network_degree)) %>%
-    dplyr::ungroup() %>%
-    dplyr::rename(group = type) %>%       
     dplyr::left_join(mineral_information) %>%  
     dplyr::left_join(element_information) %>%
     dplyr::mutate(num_localities = ifelse(is.na(num_localities_mineral), 
@@ -200,21 +185,28 @@ construct_network   <- function(network_information, elements_by_redox)
 
   ## Obtain data associated with edges -------------------------------------------
   network_information %>% 
-    dplyr::select(mineral_name, max_age, num_localities_mineral) %>%
-    distinct() -> edge_only_information
+    dplyr::select(mineral_name, 
+                  element,
+                  max_age, 
+                  num_localities_mineral,
+                  mean_pauling,
+                  element_redox_mineral,
+                  element_redox_network,
+                  cov_pauling) %>%
+    dplyr::distinct() -> edge_only_information
 
   ## Merge edges with associated data ---------------------------------------------
-  tibble::as_tibble(net$edges) %>%
-    rename(mineral_name = from,
-           element = to) %>%
-    inner_join(edge_only_information) -> edges
+  network_to_from %>% 
+    dplyr::mutate(from = mineral_name, ## MUST RETAIN from/to, otherwise cannot build a network
+           to = element) %>%
+    dplyr::inner_join(edge_only_information) -> edges
   
   return (list("nodes" = nodes, "edges" = edges, "graph" = element_network))
 }
 
 
 
-add_shiny_node_titles <- function(nodes, element_by_redox)
+add_shiny_node_titles <- function(nodes, elements_by_redox)
 {
   charadd <- 0
   if (elements_by_redox){

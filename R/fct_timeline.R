@@ -1,3 +1,11 @@
+#' The application server-side
+#' 
+#' @param input,output,session Internal parameters for {shiny}. 
+#'     DO NOT REMOVE.
+#' @import shiny
+#' @import shinyBS
+#' @import dplyr
+#' @noRd
 
 prepare_timeline_plot <- function()
 {
@@ -24,8 +32,8 @@ prepare_timeline_plot <- function()
   
   
   ## Plot timeline data for *baseline* -----------------------------------------------
-  all_geo_colors <- c( colorRampPalette(RColorBrewer::brewer.pal(9,"BuPu"))(level_ncat[1]),
-                       colorRampPalette(RColorBrewer::brewer.pal(9,"BuPu"))(level_ncat[2])
+  all_geo_colors <- c( grDevices::colorRampPalette(RColorBrewer::brewer.pal(9,"BuPu"))(level_ncat[1]),
+                       grDevices::colorRampPalette(RColorBrewer::brewer.pal(9,"BuPu"))(level_ncat[2])
   ) 
   timeline_upper <- 12
   timeline_space <- 6

@@ -24,7 +24,7 @@ prep_palette_display <- function(target_category)
     dplyr::arrange(desc(category)) -> palettes
   
   palettes.hex <- palettes %>% dplyr::mutate(colorlist = purrr::map2(maxcolors, palette, RColorBrewer::brewer.pal))
-  palette.list <- setNames(as.list(palettes.hex$colorlist), palettes.hex$palette)
+  palette.list <- stats::setNames(as.list(palettes.hex$colorlist), palettes.hex$palette)
   palette.linear.gradient <- unlist(lapply(X = palette.list, FUN = linear_gradient))
   palette.label.colors <- dplyr::case_when(palettes$category == "seq" ~"black",
                                            palettes$category == "div" ~"white",
@@ -38,3 +38,6 @@ prep_palette_display <- function(target_category)
   
   return(list("palette_names" = palette.labels, "linear_gradient" = palette.linear.gradient, "label_colors" = palette.label.colors))
 }
+
+palette_q <- prep_palette_display(c("qual"))
+palette_sd <- prep_palette_display(c("seq", "div"))

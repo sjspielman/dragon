@@ -1,6 +1,6 @@
 Package: dragon
 Title: Deep Time Redox Analysis of the Geobiology Ontology Network
-Version: 0.0.0.9000
+Version: 0.2.1
 Authors@R: person('Stephanie', 'Spielman', email = 'spielman@rowan.edu', role = c('cre', 'aut'))
 Description: Visualization and manipulation of the mineral-chemistry network across deep time on earth.
 License: GPL-3
@@ -42,3 +42,5 @@ Suggests:
 VignetteBuilder: knitr
 URL: https://github.com/spielmanlab/dragon
 BugReports: https://github.com/spielmanlab/dragon/issues
+Depends: 
+    R (>= 2.10)

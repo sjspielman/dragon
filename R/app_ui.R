@@ -134,7 +134,7 @@ app_ui <- function(request) {
                                                                                   {colourInput("element_color", "Color:", value = "skyblue")}
                                                                  ), ## END conditionalPanel         
                                                                  conditionalPanel(condition = "input.color_element_by != 'singlecolor'",
-                                                                                  {pickerInput("elementpalette", label = "Palette:",
+                                                                                  {pickerInput("element_palette", label = "Palette:",
                                                                                                choices = palette_sd[["palette_names"]], selected = "Blues", width = "90%",
                                                                                                choicesOpt = list(
                                                                                                  content = sprintf(
@@ -162,7 +162,7 @@ app_ui <- function(request) {
                                                                                   {colourInput("mineral_color", "Color:", value = "firebrick3")}
                                                                  ), ## END conditionalPanel   
                                                                  conditionalPanel(condition = "input.color_mineral_by != 'singlecolor'",   
-                                                                                  {pickerInput("mineralpalette", label = "Palette:",
+                                                                                  {pickerInput("mineral_palette", label = "Palette:",
                                                                                                choices = palette_sd[["palette_names"]], selected = "Reds", width = "90%",
                                                                                                choicesOpt = list(
                                                                                                  content = sprintf(
@@ -292,7 +292,12 @@ app_ui <- function(request) {
                                                                              c("Single color" = "singlecolor",  
                                                                                "Element redox state in network" = "element_redox_network",
                                                                                "Element redox state in mineral" = "element_redox_mineral",
-                                                                               "Number of known mineral localities" = "num_localities_mineral"))
+                                                                               "Number of known mineral localities" = "num_localities_mineral",
+                                                                               ## TODO I ADDED THESE JUST NOW IS IT A NEW BUG?
+                                                                               "Mean mineral electronegativity"     = "mean_pauling",
+                                                                               "COV mineral electronegativity"     = "cov_pauling",
+                                                                               "Maximum known age of mineral"      = "max_age")
+                                                                             ) ## END pickerInput
                                                           ), ## END column
                                                           column(6,
                                                                  conditionalPanel(condition = "input.color_edge_by == 'singlecolor'", {  
@@ -301,7 +306,7 @@ app_ui <- function(request) {
                                                           ), ## END column
                                                           
                                                           conditionalPanel(condition = "input.color_edge_by != 'singlecolor'", { 
-                                                            pickerInput("edgepalette", label = "Palette:",
+                                                            pickerInput("edge_palette", label = "Palette:",
                                                                         choices = palette_sd[["palette_names"]], selected = "BrBG", width = "90%",
                                                                         choicesOpt = list(
                                                                           content = sprintf(
@@ -362,17 +367,15 @@ app_ui <- function(request) {
                                                     br(),br(),br(),br(),
                                                     textOutput("no_network_display")
                                                 )
-                                              }), ## END conditionalPanel
-                                              
-                                              visNetworkOutput("networkplot", height = "90%")
-                                              
+                                              }), ## END `true` conditionalPanel
+                                              visNetworkOutput("networkplot", height = "90%") #NOTE: this cannot be in a conditionalPanel; div1 gets ignored
                                           ), ## END div1
                                           
                                           conditionalPanel('input.build_only == false', {
                                             div(style = "height:80px;",
                                                 plotOutput("networklegend", height = "80%", width = "100%")
                                             )
-                                          }) ## END conditionalPanel
+                                          }) ## END 2nd `false` conditionalPanel
                                  ), ## END "Visualize Network" tabPanel
                                  
                                  
