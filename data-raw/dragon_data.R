@@ -6,6 +6,8 @@ library(tidyr)
 library(stringr)
 library(usethis)
 
+## LAST UPDATED ON 5/18/20 ##
+
 ## Download MED tables-------------------------------------------
 m1 <- readr::read_tsv("http://rruff.info/mineral_list/MED/exporting/tbl_mineral.csv", guess_max=10000)
 m2 <- readr::read_tsv("http://rruff.info/mineral_list/MED/exporting/tbl_locality_age_cache_alt.csv", guess_max=10000)
@@ -62,7 +64,7 @@ for (mineral in mineral_chem$mineral_name)
         names(temp2) <- c("mineral_name", "element", "element_redox_mineral", "n")
     }
 
-    element_redox_states_raw <- bind_rows( element_redox_states, temp2 )
+    element_redox_states_raw <- bind_rows( element_redox_states_raw, temp2 )
 }
 
 ## Merge with elements unknown redox state (NA) -----------------------------------
@@ -90,15 +92,9 @@ if(nrow(num_zero_redox) != 0) stop("Redox states of 0 recovered.")
 
 ## WHAT DO?
 element_info  <- readr::read_csv("/Users/spielman/Projects/dragon/inst/extdata/element_information.csv")
-geo_timeline  <- readr::read_csv("/Users/spielman/Projects/dragon/inst/extdata/geo_timeline.csv")
-extinctions   <- readr::read_csv("/Users/spielman/Projects/dragon/inst/extdata/extinctions.csv")
-
-                   
                    
 usethis::use_data(rruff,
                   element_redox_states,
                   element_info,
-                  geo_timeline,
-                  extinctions,
                   internal = TRUE, overwrite = TRUE, compress = "bzip2")
 

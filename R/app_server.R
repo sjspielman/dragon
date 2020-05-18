@@ -434,31 +434,6 @@ app_server <- function( input, output, session ) {
     })
 
 
-  ## Download button for "Timeline View" tabPanel ------------------------------------------------------------------
-  output$download_timeline_plot <- downloadHandler(
-    filename = function() {
-      paste("dragon_timeline_plot-", Sys.Date(), ".pdf", sep="")
-    },
-    content = function(file) {
-      p <-  build_timeline_plot(chemistry_network()$elements_only_minerals, chemistry_network()$age_lb, chemistry_network()$age_ub, input$max_age_type, input$timeline_color_selected, input$timeline_color_notselected)
-      
-      ggplot2::ggsave(file, p, width=18, height=8)
-  })   
-
-  
-  
-  ## Render the "Timeline View" tabPanel ------------------------------------------------------------------
-  output$timeline <- renderPlot({
-    build_timeline_plot(chemistry_network()$elements_only_minerals, 
-                        chemistry_network()$age_lb, 
-                        chemistry_network()$age_ub, 
-                        input$max_age_type, 
-                        input$timeline_color_selected, 
-                        input$timeline_color_notselected) -> final_timeline_plot
-    print(final_timeline_plot)
-  })
-  
-
   ## RENDER THE "Network Information" tabPanel --------------------------------------------------------------------------------
   
   ## Define the table used in "Network Information" tabPanel ------------------------------------------------------------------

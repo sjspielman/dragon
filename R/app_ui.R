@@ -447,23 +447,6 @@ app_ui <- function(request) {
                                             ) ## END column
                                           ) ## END fluidRow
                                  ), ## END "Analyze Network Minerals" tabPanel  
-                                 
-                                 
-                                 ## TIMELINE VIEW PANEL ---------------------------------------------------------------------------------------------                   
-                                 tabPanel("Timeline View", id = "timeline", 
-                                          div(style = "height:700px;", 
-                                              plotOutput("timeline", width = "100%", height = "80%"),                                
-                                              div(style = "display:inline-block; float:left; height:15%; width:210px; margin-top:30px; margin-right:10px;",
-                                                  colourInput("timeline_color_notselected", "Minerals outside selected age range", value = "chocolate4")
-                                              ),
-                                              div(style = "display:inline-block; float:left; height:15%; width:210px; margin-top:30px; margin-left:10px;",
-                                                  colourInput("timeline_color_selected", "Minerals within selected age range", value = "peru")
-                                              ),
-                                              div(style="display:inline-block; float:right; height:15%; margin-top:75px;",
-                                                  downloadBttn("download_timeline_plot", "Download Plot", size = "sm", style = "minimal", color = "danger")
-                                              )                             
-                                          ) ## END div
-                                 )  ## END "Timeline View" tabPanel          
                           ), ## END TOP tabBox
                           
                           

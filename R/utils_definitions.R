@@ -139,7 +139,6 @@ vis_to_gg_shape <- list("circle"  = 19,
                         "star"    = 8,
                         "diamond" = 18,
                         "triangle" = 17)
-
 na.gray <- "#DCDCDC"
 geom.point.size <- 8
 ggplot2::theme_set(cowplot::theme_cowplot() + 
