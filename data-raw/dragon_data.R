@@ -82,7 +82,7 @@ rruff %>%
                                                   element %in% c("Cl", "F")    ~ -1, 
                                                   element %in% group1_elements ~ 1,
                                                   element %in% group2_elements ~ 2,
-                                                  TRUE                         ~ element_redox_mineral
+                                                  TRUE                         ~ as.numeric(element_redox_mineral)
                                                  ) ## END case_when
                 ) -> element_redox_states
 
