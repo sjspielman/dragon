@@ -62,8 +62,7 @@ app_server <- function( input, output, session ) {
     nodes <- network$nodes 
     edges <- network$edges
     graph <- network$graph
-    readr::write_csv(nodes, "nodes.csv")
-    
+
     ## Add title, font to labels if we are viewing the network
     if(build_only == FALSE)
     {
@@ -360,20 +359,27 @@ app_server <- function( input, output, session ) {
     positions <- input$networkplot_positions
     
     if (is.null(positions)){
-      ## DEFAULT LAYOUT. Obtain the original coordinates. 
-      ## TODO: What if the user selected physics? This should default to something else in that case
+      ## DEFAULT LAYOUT. Obtain the original coordinates, *unless physics* 
+      output_layout <- isolate(input$network_layout)
+      if(output_layout == "physics")
+      {
+        shinyBS::createAlert(session, "alert", "pdf_layout", title = '<h4 style="color:black;">Error</h4>', style = "warning", 
+                             content = '<p style="color:black;">Note: Dynamic physics layout cannot be exported to PDF. Exporting Fruchterman-Reingold layout.</p>')
+        output_layout <- "layout_with_fr"
+      }
+      shiny::validate( shiny::need(output_layout != "physics", ""))
       set.seed(input$network_layout_seed)
       inet <- chemistry_network()$graph
       coord_string <- paste0("igraph::", input$network_layout, "(inet)")
       as.data.frame( eval(parse(text = coord_string)) ) %>%
-        rename(x = V1, y = V2) %>%
-        mutate(id = vertex_attr(inet, "name")) -> coords
+        dplyr::rename(x = V1, y = V2) %>%
+        dplyr::mutate(id = igraph::vertex_attr(inet, "name")) -> coords
     } else {
       ## CUSTOM LAYOUT by dragging network around
       coords <- do.call("rbind", lapply(positions, function(p){ data.frame(x = p$x, y = p$y)}))
       coords$id <- names(positions)
     }
-    nodes %>% left_join(coords, by = "id")     
+    nodes %>% dplyr::left_join(coords, by = "id")     
   })
   
   ## DOWNLOAD LINKS ------------------------------------------------------------------------
@@ -406,7 +412,7 @@ app_server <- function( input, output, session ) {
     content <- function(outfile) 
     {
       #save_plot(outfile,  ggdraw( finallegend() ) , base_width = input$output_legend_width, base_height = input$output_legend_height )
-      save_plot(outfile,  ggdraw( finallegend() ) , base_width = 8 ) ## due to cowplot args, it's too easy to mess this up. we choose for users.
+      cowplot::save_plot(outfile,  cowplot::ggdraw( finallegend() ) , base_width = 8 ) ## due to cowplot args, it's too easy to mess this up. we choose for users.
       
     })
   
@@ -415,7 +421,7 @@ app_server <- function( input, output, session ) {
     filename <- function() { paste0('dragon_node_data_', Sys.Date(), '.csv') },
     content <- function(outfile) 
     {
-      write_csv(node_styler()$styled_nodes, outfile)
+      readr::write_csv(node_styler()$styled_nodes, outfile)
     })
   
   
@@ -424,7 +430,7 @@ app_server <- function( input, output, session ) {
     filename <- function() { paste0('dragon_edge_data_', Sys.Date(), '.csv') },
     content <- function(outfile) 
     {
-      write_csv(edge_styler()$styled_edges, outfile)
+      readr::write_csv(edge_styler()$styled_edges, outfile)
     })
 
 
@@ -436,7 +442,7 @@ app_server <- function( input, output, session ) {
     content = function(file) {
       p <-  build_timeline_plot(chemistry_network()$elements_only_minerals, chemistry_network()$age_lb, chemistry_network()$age_ub, input$max_age_type, input$timeline_color_selected, input$timeline_color_notselected)
       
-      ggsave(file, p, width=18, height=8)
+      ggplot2::ggsave(file, p, width=18, height=8)
   })   
 
   
@@ -457,24 +463,10 @@ app_server <- function( input, output, session ) {
   
   ## Define the table used in "Network Information" tabPanel ------------------------------------------------------------------
   network_table <- reactive({
-    chemistry_network()$nodes %>% 
-      left_join(network_cluster()$tib) %>%
-      dplyr::select(id, group, max_age, num_localities, cluster_ID, network_degree, network_degree_norm, closeness, element_redox_network, pauling, mean_pauling, cov_pauling) %>% #sd_pauling
-      arrange(group, id) %>%
-      mutate(group = stringr::str_to_title(group)) %>%
-      rename(!! variable_to_title[["id"]] := id,
-             !! variable_to_title[["group"]] := group,
-             !! variable_to_title[["cluster_ID"]] := cluster_ID,
-             !! variable_to_title[["network_degree"]] := network_degree,
-             !! variable_to_title[["network_degree_norm"]] := network_degree_norm,
-             !! variable_to_title[["closeness"]] := closeness, 
-             !! variable_to_title[["max_age"]] := max_age, 
-             !! variable_to_title[["element_redox_network"]] := element_redox_network,
-             !! variable_to_title[["num_localities"]] := num_localities,
-             !! variable_to_title[["pauling"]] := pauling,
-             !! variable_to_title[["mean_pauling"]] := mean_pauling,
-             !! variable_to_title[["cov_pauling"]] := cov_pauling) %>%
-      distinct() 
+    
+    build_network_table(chemistry_network()$nodes, 
+                        network_cluster()$tib)
+    
   })
   
   ## Define the DT to display network_table() reactive ---------------------------------------------
