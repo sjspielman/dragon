@@ -1,5 +1,8 @@
-NEED TO DEFINE AS GLOBAL TO PREVENT R CMD BORKS:
- Undefined global functions or variables:
+Miscellaneous output from `devtools::check()` that needs dealing with:
+
+
+
+Undefined global functions or variables:
     := MetalType TableGroup TablePeriod V1 V2 adj.p.value age_check
     age_type base_element blah category chemistry_elements closeness
     cluster_ID color color.background color.border colorblind colour
@@ -15,3 +18,15 @@ NEED TO DEFINE AS GLOBAL TO PREVENT R CMD BORKS:
     num_localities_mineral obtain_network_information overall_max p.value
     palette pauling rescale_cex rescale_size rruff_chemistry session
     shape size statistic std.error term to type write_csv x y
+    
+Document data:MAYBE??
+W  checking for missing documentation entries (1.8s)
+   Undocumented code objects:
+     ‘element_info’ ‘element_redox_states’ ‘rruff’
+   Undocumented data sets:
+     ‘element_info’ ‘element_redox_states’ ‘rruff’
+     
+   Consider adding
+     importFrom("grDevices", "palette")
+     importFrom("stats", "lm", "na.omit")
+   to your NAMESPACE file.  

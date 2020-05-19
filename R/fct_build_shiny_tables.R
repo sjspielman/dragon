@@ -1,4 +1,4 @@
-## "Selected Nodes" AND/OR "Search Node" table
+## "Selected Nodes" table
 
 
 

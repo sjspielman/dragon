@@ -73,13 +73,6 @@ app_server <- function( input, output, session ) {
                                                      "All minerals")
                      ) -> nodes 
     }
-
-    ## For the timeline, we need all the minerals
-    initialize_data_age(elements_only, c(0, calc_total_max_age()), "Maximum") -> bloop # YES BLOOP WE GOTTA HAVE FUN AROUND HERE
-    bloop$elements_only_age %>%
-      dplyr::select(mineral_name, max_age) %>%
-      dplyr::rename(age = max_age, 
-                    id  = mineral_name) -> all_minerals
     
     
     return (list("nodes" = nodes, 
@@ -107,7 +100,7 @@ app_server <- function( input, output, session ) {
       ggplot2::ggplot() + 
         ggplot2::aes(x = x, y = y, color = y) + 
         ggplot2::geom_point() + 
-        ggplot2::scale_color_brewer(palette = input$clusterpalette) -> cluster_colors_gghack
+        ggplot2::scale_color_brewer(palette = input$cluster_palette) -> cluster_colors_gghack
     ggplot2::ggplot_build(cluster_colors_gghack)$data[[1]] %>% 
       tibble::as_tibble() %>% 
       dplyr::pull(colour) -> cluster_colors
@@ -438,10 +431,7 @@ app_server <- function( input, output, session ) {
   
   ## Define the table used in "Network Information" tabPanel ------------------------------------------------------------------
   network_table <- reactive({
-    
-    build_network_table(chemistry_network()$nodes, 
-                        network_cluster()$tib)
-    
+    build_network_information_table(chemistry_network()$nodes, network_cluster()$tib)
   })
   
   ## Define the DT to display network_table() reactive ---------------------------------------------
@@ -467,9 +457,7 @@ app_server <- function( input, output, session ) {
   
   
   
-  ## TODO: This shoud have an associated mode. Based on selection or user types it?
   ## RENDER THE "Selected Node Information" BOX --------------------------------------------------------------------------------
-  
   node_table <- reactive({
     list(input$networkplot_selectedBy, 
          input$networkplot_selected, 
@@ -544,6 +532,8 @@ app_server <- function( input, output, session ) {
                mean_pauling  = round(mean_pauling, 5),
                cov_pauling   = round(cov_pauling, 5),
                element_redox_mineral  = round(element_redox_mineral, 5)) %>%
+        ## TODO: Can this be made into a function????
+        ## syntax: !!str_variable := current_column_name
         rename(!! variable_to_title[["element_redox_mineral"]] := element_redox_mineral,
                !! variable_to_title[["element_redox_network"]] := element_redox_network,            
                !! variable_to_title[["mineral_id"]] := mineral_id,
