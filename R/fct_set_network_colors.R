@@ -1,6 +1,4 @@
-
-
-obtain_colors_legend <- function(session, dat, color_variable, variable_type, palettename, legendtitle, discrete_colors = NA)
+obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, discrete_colors = NA)
 {
   ## variable type:
   ## "d" = discrete, ordinal. THERE ARE NO NOMINAL EXCEPT FOR CLUSTER, WHICH IS HANDLED DIFFERENTLY.
@@ -8,33 +6,17 @@ obtain_colors_legend <- function(session, dat, color_variable, variable_type, pa
   
   cvar <- as.symbol(color_variable)
   dat %>% dplyr::mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
+  legendtitle <- variable_to_title[[color_variable]]
   
-  dat2 %>% 
-    dplyr::ungroup() %>%
-    dplyr::select( color_variable ) %>% 
-    na.omit() -> dat_check
-  
-  
-  
-  if (nrow(dat_check) <= 0)
-  {
-    shinyBS::createAlert(session, "alert", "bad_network", title = '<h4 style="color:black;">Error</h4>', style = "warning",
-                          content = '<p style="color:black;">The specified color scheme cannot be applied due to insufficient node information in the MED database. Please select a different color scheme.</p>')
-    shiny::validate( shiny::need(nrow(dat_check) > 0, ""))
-  }
   
   if (variable_type == "d")
   {
-    
     p <- ggplot2::ggplot(dat2) + 
-          ggplot2::aes(x = x, y = factor(!!cvar), color = factor(!!cvar)) + 
-          ggplot2::geom_point(size = geom.point.size) + 
-          ggplot2::guides(colour = ggplot2::guide_legend(title.position="top",  
-                                                         title.hjust = 0.5, 
-                                                         byrow=TRUE, nrow=2)  ) +
-          ggplot2::theme(legend.key.size = ggplot2::unit(0.05, 'lines'), 
-                         legend.title = ggplot2::element_text(size = ggplot2::rel(0.8)))
-    if (!(is.na(discrete_colors))) 
+      ggplot2::aes(x = x, y = factor(!!cvar), color = factor(!!cvar)) + 
+      ggplot2::geom_point(size = geom.point.size) + 
+      ggplot2::guides(colour = ggplot2::guide_legend(title.position="top",  title.hjust = 0.5, byrow=TRUE, nrow=2)  ) +
+      ggplot2::theme(legend.key.size = ggplot2::unit(0.05, 'lines'), legend.title = ggplot2::element_text(size = ggplot2::rel(0.8)))
+    if (color_variable == "cluster_ID") 
     {   ## cluster, colors already given
       p <- p + ggplot2::scale_color_manual(name = legendtitle, na.value = na.gray, values = discrete_colors)
     } else {
@@ -45,16 +27,14 @@ obtain_colors_legend <- function(session, dat, color_variable, variable_type, pa
   if (variable_type == "c")
   {
     p <- ggplot2::ggplot(dat2) + 
-          ggplot2::aes(x = x, y = !!cvar, color = !!cvar) +
-          ggplot2::geom_point(size = geom.point.size) + 
-          ggplot2::scale_color_distiller(name = legendtitle, palette = palettename, direction = -1, na.value = na.gray) + 
-          ggplot2::guides(colour = ggplot2::guide_colourbar(title.position="top", 
-                                                            title.hjust = 0.5, 
-                                                            frame.colour = "black", 
-                                                            ticks.colour = "black"), 
-                          size = ggplot2::guide_legend(title.position="top", title.hjust = 0.5)) +
-          ggplot2::theme(legend.text = ggplot2::element_text(size = ggplot2::rel(0.8)))
+      ggplot2::aes(x = x, y = !!cvar, color = !!cvar) + 
+      ggplot2::geom_point(size = geom.point.size) + 
+      ggplot2::scale_color_distiller(name = legendtitle, palette = palettename, direction = -1, na.value = na.gray) + 
+      ggplot2::guides(colour = ggplot2::guide_colourbar(title.position="top", title.hjust = 0.5, frame.colour = "black", ticks.colour = "black"), 
+             size = ggplot2::guide_legend(title.position="top", title.hjust = 0.5)) +
+      ggplot2::theme(legend.text = ggplot2::element_text(size = ggplot2::rel(0.8)))
   }
+  
   
   
   ggplot2::ggplot_build(p)$data[[1]] %>% 

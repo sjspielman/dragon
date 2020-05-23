@@ -40,25 +40,22 @@ app_server <- function( input, output, session ) {
 
     initialized <- initialize_data_age(elements_only, age_limit, max_age_type)
     elements_only_age <- initialized$elements_only_age
-    locality_info     <- initialized$locality_info
+    # NOTE: initialized$locality_info is directly returned below, no need to define 
     
-    if (nrow(elements_only_age) <= 0)
+    if (nrow(elements_only_age) == 0)
     {
       shinyBS::createAlert(session, "alert", "bad_age", title = '<h4 style="color:black;">Error</h4>', style = "warning",
-                  content = '<p style="color:black;">There is no network for selected element(s) at the age specified. Please specify new input(s).</p>')
+                  content = '<p style="color:black;">There is no network for selected element(s) at the age specified. Please adjust input settings.</p>')
       shiny::validate( shiny::need(nrow(elements_only_age) > 0, ""))
     }
 
-    
-    network_information <- obtain_network_information(elements_only_age, elements_by_redox)
-    if (nrow(network_information) <= 0)
+    network <- construct_network(elements_only_age, elements_by_redox)
+    if (length(network) != 3 | nrow(network$nodes) == 0  | nrow(network$edges) == 0)
     {
       shinyBS::createAlert(session, "alert", "bad_network", title = '<h4 style="color:black;">Error</h4>', style = "warning", 
-                  content = '<p style="color:black;">Network could not be constructed. Please adjust input settings.</p>')
-      shiny::validate( shiny::need(nrow(network_information) > 0, ""))
+                           content = '<p style="color:black;">Network could not be constructed. Please adjust input settings.</p>')
+      shiny::validate( shiny::need(length(network) ==3, "") )
     }
-      
-    network <- construct_network(network_information, elements_by_redox)
     nodes <- network$nodes 
     edges <- network$edges
     graph <- network$graph
@@ -66,47 +63,24 @@ app_server <- function( input, output, session ) {
     ## Add title, font to labels if we are viewing the network
     if(build_only == FALSE)
     {
-      add_shiny_node_titles(nodes, elements_by_redox) %>%
-        # Add type column for grouped node selection dropdown menu
-        dplyr::mutate(type = dplyr::if_else(group == "element", 
-                                                     "All elements", 
-                                                     "All minerals")
-                     ) -> nodes 
+      nodes <- add_shiny_node_titles(nodes, elements_by_redox)
     }
-    
-    
-    return (list("nodes" = nodes, 
+    ## Perform community clustering, which also updates nodes ----------------------------
+    clustered <- specify_community_detect_network(graph, nodes, input$cluster_algorithm, input$cluster_palette)
+
+    return (list("nodes" = clustered$nodes, 
                  "edges" = edges, 
                  "graph" = graph, 
                  "elements_of_interest" = elements_of_interest,
                  "age_lb" = age_limit[1],
                  "age_ub" = age_limit[2],
-                 "locality_info" = locality_info, 
-                 "elements_only_minerals" = elements_only))
+                 "locality_info" = initialized$locality_info,
+                 "clustering"     = clustered$clustered_net, 
+                 "cluster_colors" = clustered$cluster_colors))
     
   })
   
-  
-  ## Perform clustering and set up consistent colors for cluster ------------------------------------------
-  network_cluster <- reactive({
-    
-    clustered_net <- community_detect_network(chemistry_network()$graph, input$cluster_algorithm)
-    cluster_tibble <- tibble::tibble( "id" = clustered_net$names, "cluster_ID" = as.numeric(clustered_net$membership) )
-    
-    
-    ### Set cluster colors forever ### 
-    n_clusters <- length(unique(cluster_tibble$cluster_ID))
-    tibble::tibble(x=1:n_clusters, y = factor(1:n_clusters)) %>% 
-      ggplot2::ggplot() + 
-        ggplot2::aes(x = x, y = y, color = y) + 
-        ggplot2::geom_point() + 
-        ggplot2::scale_color_brewer(palette = input$cluster_palette) -> cluster_colors_gghack
-    ggplot2::ggplot_build(cluster_colors_gghack)$data[[1]] %>% 
-      tibble::as_tibble() %>% 
-      dplyr::pull(colour) -> cluster_colors
-    return( list("clustering" = clustered_net, "tib" = cluster_tibble, "cluster_colors" = cluster_colors) )
-  })
-  
+
   
   ## UI component for highlighting a specified set of elements------------------------------------------
   # NOTE: In server since this relies on knowing which elements are actually present in the network
@@ -114,14 +88,15 @@ app_server <- function( input, output, session ) {
     chemistry_network()$nodes %>%
       dplyr::filter(group == "element") %>%
       dplyr::select(id) %>% 
-      tidyr::separate(id, into=c("base_element", "blah")) %>%
+      tidyr::separate(id, c("base_element", "blah"), sep = "[\\s\\+\\-]") %>%
       dplyr::arrange(base_element) %>%
       pull(base_element)-> available_base_elements
     
-    pickerInput("custom_selection_element", "Highlight a set of elements",             
-                choices = unique(available_base_elements),
-                options = list(`actions-box` = TRUE, size = 4), 
-                multiple = TRUE
+    shinyWidgets::pickerInput("custom_selection_element", 
+                              "Highlight a set of elements",             
+                              choices = unique(available_base_elements),
+                              options = list(`actions-box` = TRUE, size = 4), 
+                              multiple = TRUE
     )
   })
   
@@ -136,13 +111,13 @@ app_server <- function( input, output, session ) {
     build_only <- isolate(input$build_only)
     
     ## Text output associated with network display (or non-display) ------------------------------------------------
-
+    
     output$no_network_display <- renderText({
       "Your network has been built and is available for export below and/or analysis in other tabs."
       })
 
     output$modularity <- renderText({
-      membership <- network_cluster()$clustering
+      membership <- chemistry_network()$clustering
       paste0("Network modularity: ", round( membership$modularity[[1]], 4))    
     })    
     
@@ -195,7 +170,6 @@ app_server <- function( input, output, session ) {
     
     ## Render the network itself using visNetwork -----------------------------------------------
     output$networkplot <- renderVisNetwork({
-      
       nodes <- chemistry_network()$nodes
       ## network plot construction should be inside isolate. 
       ## visNetworkProxy() function takes over any viz changes from these initial settings
@@ -204,15 +178,15 @@ app_server <- function( input, output, session ) {
         ## Incorporate user-specified styles ----------------------------------------------------
         starting_nodes <- node_styler()$styled_nodes
         starting_edges <- edge_styler()$styled_edges
-
+        
+        
         
         ## MUST be here!
         if (build_only == FALSE) 
         {
           ## Define baseline network for visualization with user-specified styles -----------------
           base_network <- visNetwork(starting_nodes, starting_edges)
-          
-          
+
           ## Set the network layout ---------------------------------------------------------------
           if (input$network_layout == "physics") {
             ## Seizure-inducing layout
@@ -228,41 +202,41 @@ app_server <- function( input, output, session ) {
           }
           ## Plot it up with visNetwork options
           base_network %>%
-            visOptions(highlightNearest = list(enabled = TRUE, degree = input$selected_degree), 
-                       nodesIdSelection = list(enabled = TRUE, 
-                                               values  = c( sort(nodes$id[nodes$group == "element"]), 
-                                                           sort(nodes$id[nodes$group == "mineral"]) ),
-                                               style   = css_string_selectedNode, 
-                                               main    = "Select an individual node"),
-                       selectedBy = list(variable = "type", 
-                                         style    = css_string_selectedNode
-                                                   
-                       ) 
-            )  %>% ## END visOptions              
-            visInteraction(dragView  = TRUE, 
-                           dragNodes         = TRUE, 
-                           zoomView          = TRUE, 
+           visOptions(highlightNearest = list(enabled = TRUE, degree = input$selected_degree),
+                      nodesIdSelection = list(enabled = TRUE,
+                                              values  = c( sort(nodes$id[nodes$group == "element"]),
+                                                          sort(nodes$id[nodes$group == "mineral"]) ),
+                                              style   = css_string_selectedNode,
+                                              main    = "Select an individual node"),
+                      selectedBy = list(variable = "type",
+                                        style    = css_string_selectedNode
+
+                      )
+            )%>% ## END visOptions
+            visInteraction(dragView  = TRUE,
+                           dragNodes         = TRUE,
+                           zoomView          = TRUE,
                            hover             = TRUE,
                            selectConnectedEdges = TRUE,
                            hideEdgesOnDrag   = TRUE,
                            multiselect       = TRUE,
-                           navigationButtons = FALSE) %>%   
-            visGroups(groupname = "element", 
-                      color = input$element_color, 
+                           navigationButtons = FALSE) %>%
+            visGroups(groupname = "element",
+                      color = input$element_color,
                       shape = input$element_shape,
                       font  = list(size = input$element_label_size)
                       ) %>%
-            visGroups(groupname = "mineral", 
-                      color = input$mineral_color, 
+            visGroups(groupname = "mineral",
+                      color = input$mineral_color,
                       shape = input$mineral_shape,
                       size  = input$mineral_size,
-                      font  = list(size = ifelse(input$mineral_label_size == 0, 
-                                                 "NA", 
+                      font  = list(size = ifelse(input$mineral_label_size == 0,
+                                                 "NA",
                                                  input$mineral_label_size))
                       ) %>%
             visEdges(color = input$edge_color,
                      width = input$edge_weight,
-                     smooth = FALSE)  ## smooth=FALSE has no visual effect that I can perceive, and improves speed. Cool. 
+                     smooth = FALSE)  ## smooth=FALSE has no visual effect that I can perceive, and improves speed. Cool.
         } ## END if(build_only == FALSE)
       })  ## END isolate()        
     }) ## END renderVisNetwork({})
@@ -270,7 +244,7 @@ app_server <- function( input, output, session ) {
 
     ## Output the network legend ----------------------------------------------------------------------------
     output$networklegend <- renderPlot({
-      cowplot::ggdraw(finallegend())
+      cowplot::ggdraw(final_legend())
     })    
     
     
@@ -278,6 +252,7 @@ app_server <- function( input, output, session ) {
     ## NOTE: *must* remain within observeEvent(input$go, 
     ## NOTE: input$store_position is the "Click to prepare network for export to PDF." button
     observeEvent(input$store_position, {
+      print("observe store position")
       # TODO does this need a build_only == F?
       #if (build_only == FALSE) visNetworkProxy("networkplot") %>% visGetPositions()
       visNetworkProxy("networkplot") %>% visGetPositions()
@@ -286,94 +261,61 @@ app_server <- function( input, output, session ) {
     ## visNetworkProxy observer to perform *all network updates* ---------------------------------------
     observe({
       # TODO does this need a build_only == F?
-      #if (build_only ==  FALSE)
-      #{
-        #print(input$selected_nodes)
+      if (build_only ==  FALSE)
+      {
         ## visGroups, visNodes, visEdges are global options shared among nodes/edges
         ## Need to use visUpdateNodes and visUpdateEdges for changing individually. This applies to color schemes.
         visNetworkProxy("networkplot") %>%
           visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
           visUpdateEdges(edges = edge_styler()$styled_edges) %>%
-          visEdges(width = input$edge_weight) %>%
-          visGetSelectedNodes() %>%
-          visInteraction(dragView             = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
-                         hover                = input$hover, 
-                         selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
-                         zoomView             = input$zoom_view,
-                         multiselect          = TRUE,
-                         hideEdgesOnDrag      = input$hide_edges_on_drag,
-                         navigationButtons    = input$nav_buttons) %>%
-          visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree),
-                     nodesIdSelection = list(enabled = TRUE, main  = "Select an individual node.")) 
-     # }
+           visEdges(width = input$edge_weight) %>%
+           visGetSelectedNodes() %>%
+           visInteraction(dragView             = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
+                          hover                = input$hover,
+                          selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
+                          zoomView             = input$zoom_view,
+                          multiselect          = TRUE,
+                          hideEdgesOnDrag      = input$hide_edges_on_drag,
+                          navigationButtons    = input$nav_buttons) %>%
+           visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree),
+                      nodesIdSelection = list(enabled = TRUE, main  = "Select an individual node."))
+      }
     }) ## END observe
     
-
+    
+    
+    ## Build the final legend image ---------------------------------------------------------------------
+    final_legend <- reactive({
+      build_legend(edge_styler(), node_styler())
+    })  ## END final_legend reactive
+    
+    
+    ## Prepare the nodes for download based on current positions -------------------------------------------
+    styled_nodes_with_positions <- reactive({
+      output_layout <- isolate(input$network_layout)
+      seed          <- isolate(input$network_layout_seed)
+      
+      if(output_layout == "physics")
+      {
+        shinyBS::createAlert(session, "alert", "pdf_layout", title = '<h4 style="color:black;">Error</h4>', style = "warning", 
+                             content = '<p style="color:black;">WARNING: Dynamic physics layout cannot be exported to PDF. Preparing export with Fruchterman-Reingold layout.</p>')
+        output_layout <- "layout_with_fr"
+      }
+      calculate_output_node_positions(node_styler()$styled_nodes, 
+                                      input$networkplot_positions, 
+                                      chemistry_network()$graph,
+                                      output_layout,
+                                      seed)
+    })
+    
+    
+    
   }) ## END observeEvent(input$go,
   
   
   
   
-  
-  
-  
-  
-  ## Build the final legend image ---------------------------------------------------------------------
-  finallegend <- reactive({
-    e <- edge_styler()
-    n <- node_styler()
-    finallegend <- NULL
-    if (is.na(n$both_legend)) 
-    {   ## Mineral, element
-      if (is.na(e$edge_legend)) 
-      { 
-        finallegend <- cowplot::plot_grid(n$element_legend, n$mineral_legend, nrow=1)
-      } else {
-        ### mineral, element, edge
-        finallegend <- cowplot::plot_grid(n$element_legend, n$mineral_legend, e$edge_legend, nrow=1, scale=0.75)
-      }
-    } else
-    {
-      ### both
-      if (is.na(e$edge_legend)) 
-      { 
-        finallegend <- n$both_legend
-      } else {
-        ### both, edge
-        finallegend <- cowplot::plot_grid(n$both_legend, e$edge_legend, nrow=1, scale=0.75)
-      }
-    }   
-    return(finallegend)
-  })  ## END finallegend reactive
-  
-  ## Prepare the nodes for download based on current positions -------------------------------------------
-  styled_nodes_with_positions <- reactive({
-    nodes <- node_styler()$styled_nodes
-    positions <- input$networkplot_positions
-    
-    if (is.null(positions)){
-      ## DEFAULT LAYOUT. Obtain the original coordinates, *unless physics* 
-      output_layout <- isolate(input$network_layout)
-      if(output_layout == "physics")
-      {
-        shinyBS::createAlert(session, "alert", "pdf_layout", title = '<h4 style="color:black;">Error</h4>', style = "warning", 
-                             content = '<p style="color:black;">Note: Dynamic physics layout cannot be exported to PDF. Exporting Fruchterman-Reingold layout.</p>')
-        output_layout <- "layout_with_fr"
-      }
-      shiny::validate( shiny::need(output_layout != "physics", ""))
-      set.seed(input$network_layout_seed)
-      inet <- chemistry_network()$graph
-      coord_string <- paste0("igraph::", input$network_layout, "(inet)")
-      as.data.frame( eval(parse(text = coord_string)) ) %>%
-        dplyr::rename(x = V1, y = V2) %>%
-        dplyr::mutate(id = igraph::vertex_attr(inet, "name")) -> coords
-    } else {
-      ## CUSTOM LAYOUT by dragging network around
-      coords <- do.call("rbind", lapply(positions, function(p){ data.frame(x = p$x, y = p$y)}))
-      coords$id <- names(positions)
-    }
-    nodes %>% dplyr::left_join(coords, by = "id")     
-  })
+
   
   ## DOWNLOAD LINKS ------------------------------------------------------------------------
   
@@ -404,8 +346,8 @@ app_server <- function( input, output, session ) {
     filename <- function() { paste0('dragon_legend_', Sys.Date(), '.pdf') },
     content <- function(outfile) 
     {
-      #save_plot(outfile,  ggdraw( finallegend() ) , base_width = input$output_legend_width, base_height = input$output_legend_height )
-      cowplot::save_plot(outfile,  cowplot::ggdraw( finallegend() ) , base_width = 8 ) ## due to cowplot args, it's too easy to mess this up. we choose for users.
+      #save_plot(outfile,  ggdraw( final_legend() ) , base_width = input$output_legend_width, base_height = input$output_legend_height )
+      cowplot::save_plot(outfile,  cowplot::ggdraw( final_legend() ) , base_width = 8 ) ## due to cowplot args, it's too easy to mess this up. we choose for users.
       
     })
   
@@ -431,7 +373,7 @@ app_server <- function( input, output, session ) {
   
   ## Define the table used in "Network Information" tabPanel ------------------------------------------------------------------
   network_table <- reactive({
-    build_network_information_table(chemistry_network()$nodes, network_cluster()$tib)
+    build_network_information_table(chemistry_network()$nodes)
   })
   
   ## Define the DT to display network_table() reactive ---------------------------------------------
@@ -451,7 +393,7 @@ app_server <- function( input, output, session ) {
     filename <- function() { paste0('dragon_network_information_', Sys.Date(), '.csv') },
     content <- function(file) 
     {
-      write_csv(network_table(), file)
+      readr::write_csv(network_table(), file)
     })
   
   
@@ -505,27 +447,23 @@ app_server <- function( input, output, session ) {
       e %>%
         filter(
           if (sel_type == "mineral") { mineral_name %in% sel } 
-          else {  element %in% sel }
+          else {  element %in% sel } ## TODO will probably break
         ) %>%
         left_join(chemistry_network()$locality_info) %>%
         dplyr::select(-from, -to) -> node_table
       n %>% 
         filter(id %in% sel) %>% 
         select(id, closeness, network_degree_norm) -> node_net_info
-      network_cluster()$tib %>% filter(id %in% sel) -> cluster_tib
-      
+
       if (sel_type == "mineral") { 
         node_net_info %<>% rename(mineral_name = id)
-        cluster_tib %<>% rename(mineral_name = id)
       }
       else { 
         node_net_info %<>% rename(element = id)
-        cluster_tib %<>% rename(element = id)
       }
       
       node_table %<>% 
         left_join(node_net_info) %>%
-        left_join(cluster_tib) %>%
         distinct() %>%
         mutate(network_degree_norm  = round(network_degree_norm, 5),
                closeness  = round(closeness, 5),
@@ -538,7 +476,7 @@ app_server <- function( input, output, session ) {
                !! variable_to_title[["element_redox_network"]] := element_redox_network,            
                !! variable_to_title[["mineral_id"]] := mineral_id,
                !! variable_to_title[["mineral_name"]] := mineral_name,
-               !! variable_to_title[["element"]] := element,
+               !! variable_to_title[["element"]] := element,  ## TODO WHAT SHOULD THIS BE
                !! variable_to_title[["element_hsab"]] := element_hsab,
                !! variable_to_title[["mindat_id"]] := mindat_id,
                !! variable_to_title[["locality_longname"]] := locality_longname,
@@ -562,7 +500,7 @@ app_server <- function( input, output, session ) {
                !! variable_to_title[["MetalType"]] := MetalType)              
       if (sel_type == "element") 
       {
-        selected_vars <- selected_vars[ selected_vars != variable_to_title[["element"]] ]
+        selected_vars <- selected_vars[ selected_vars != variable_to_title[["element"]] ]  ## TODO WHAT SHOULD THIS BE
         node_table %<>% rename( !!selected_group_title := !!variable_to_title[["element"]])
       }
       else if (sel_type == "mineral") 
@@ -703,7 +641,6 @@ app_server <- function( input, output, session ) {
   ## Reactive that contains specifically only the data that will be used for linear modeling ---------------------
   mineral_nodes <- reactive({
     chemistry_network()$nodes %>%
-      left_join(network_cluster()$tib) %>%
       filter(group == "mineral") %>%
       dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% #sd_pauling
       mutate(cluster_ID = factor(cluster_ID)) %>%
@@ -812,7 +749,7 @@ app_server <- function( input, output, session ) {
           ggplot2::xlab(input$predictor) + 
           ggplot2::ylab(input$response) +
           ggplot2::geom_jitter(size=3, width=0.1) + 
-          ggplot2::scale_color_manual(values = network_cluster()$cluster_colors, name = input$predictor) +
+          ggplot2::scale_color_manual(values = chemistry_network()$cluster_colors, name = input$predictor) +
           ggplot2::stat_summary(geom="errorbar", width=0, color = "grey30", size=1)+
           ggplot2::stat_summary(geom="point", color = "grey30", size=3.5) + 
           ggplot2::theme(legend.text  = ggplot2::element_text(size=12), 
@@ -884,92 +821,97 @@ app_server <- function( input, output, session ) {
   #################################################################################################################
   #################################################################################################################
 
+  network_style_options <- reactive({
+    ## VALIDATION ---------------------------------------------
+    ## Element color
+    element_color_variable  <- as.symbol(input$color_element_by)
+    if(element_color_variable != "singlecolor"){
+      chemistry_network()$nodes %>%
+        dplyr::filter(group == "element") %>%
+        dplyr::select( element_color_variable ) %>%
+        na.omit -> element_validate
+        if (nrow(element_validate) <= 0)
+        {
+          shinyBS::createAlert(session, "alert", "bad_element_color_by", title = '<h4 style="color:black;">Error</h4>', style = "warning",
+                                content = '<p style="color:black;">The specified color scheme cannot be applied to elements due to insufficient node information in the MED database. Please select a different element color scheme.</p>')
+          shiny::validate( shiny::need(nrow(element_validate) > 0, ""))
+        }
+    }
+    ## Mineral color
+    mineral_color_variable  <- as.symbol(input$color_mineral_by)
+    if(mineral_color_variable != "singlecolor"){
+      chemistry_network()$nodes %>%
+        dplyr::filter(group == "mineral") %>%
+        dplyr::select( mineral_color_variable ) %>%
+        na.omit -> mineral_validate
+      if (nrow(mineral_validate) <= 0)
+      {
+        shinyBS::createAlert(session, "alert", "bad_mineral_color_by", title = '<h4 style="color:black;">Error</h4>', style = "warning",
+                             content = '<p style="color:black;">The specified color scheme cannot be applied to minerals due to insufficient node information in the MED database. Please select a different mineral color scheme.</p>')
+        shiny::validate( shiny::need(nrow(mineral_validate) > 0, ""))
+      }
+    }
+    ## Edge color
+    edge_color_variable  <- as.symbol(input$color_edge_by)
+    if(edge_color_variable != "singlecolor"){
+      chemistry_network()$edges %>%
+        dplyr::select( edge_color_variable ) %>%
+        na.omit -> edges_validate
+      if (nrow(edges_validate) <= 0)
+      {
+        shinyBS::createAlert(session, "alert", "bad_edge_color_by", title = '<h4 style="color:black;">Error</h4>', style = "warning",
+                             content = '<p style="color:black;">The specified color scheme cannot be applied to minerals due to insufficient node information in the MED database. Please select a different mineral color scheme.</p>')
+        shiny::validate( shiny::need(nrow(edges_validate) > 0, ""))
+      }
+    }
+    
+    ## Define, return the styles ----------------------------------------------    
+    ## Colors shapes first
+    list("color_by_cluster"    = input$color_by_cluster,
+         "cluster_colors"      = chemistry_network()$cluster_colors,
+         "color_mineral_by"    = input$color_mineral_by,
+         "mineral_palette"     = input$mineral_palette,
+         "mineral_color"       = input$mineral_color,
+         "mineral_label_color" = input$mineral_label_color,
+         "color_element_by"    = input$color_element_by,
+         "element_palette"     = input$element_palette,
+         "element_color"       = input$element_color,
+         "element_label_color" = input$element_label_color,
+         "mineral_shape"       = input$mineral_shape,
+         "element_shape"       = input$element_shape,
+         ## Sizes
+         "mineral_size_type"  = input$mineral_size_type,
+         "mineral_size_scale" = input$mineral_size_scale,
+         "mineral_label_size" = input$mineral_label_size,
+         "mineral_size"       = input$mineral_size,
+         "element_size_type"  = input$element_size_type,
+         "element_size_scale" = input$element_size_scale,
+         "element_label_size" = input$element_label_size,
+         ## Single element colors, etc.
+         "elements_of_interest"     = chemistry_network()$elements_of_interest,
+         "elements_by_redox"        = input$elements_by_redox,
+         "highlight_element"        = input$highlight_element,
+         "highlight_color"          = input$highlight_color,
+         "custom_selection_element" = input$custom_selection_element, 
+         "custom_selection_color"   = input$custom_selection_color,
+         ## Edges
+         "color_edge_by" = input$color_edge_by,
+         "edge_color"    = input$edge_color, 
+         "edge_palette"  = input$edge_palette)
+    
+    
+  })
+  
+  
   ## Reactive to style nodes by user input ---------------------------------------------------------------------------
   node_styler <- reactive({
-    
-    full_nodes <- left_join(chemistry_network()$nodes, network_cluster()$tib)
-    
-    node_attr <- list()   
-    node_attr[["both_legend"]] <- NA 
-    node_attr[["element_legend"]] <- NA     
-    node_attr[["mineral_legend"]] <- NA     
-   
-    style_options <- list("color_by_cluster" = input$color_by_cluster,
-                          "cluster_colors"   = network_cluster()$cluster_colors,
-                          "color_mineral_by" = input$color_mineral_by,
-                          "mineral_palette"   = input$mineral_palette,
-                          "mineral_color"    = input$mineral_color,
-                          "mineral_label_color"  = input$mineral_label_color,
-                          "color_element_by" = input$color_element_by,
-                          "element_palette"   = input$element_palette,
-                          "element_color"    = input$element_color,
-                          "element_label_color"  = input$element_label_color,
-                          "mineral_shape"    = input$mineral_shape,
-                          "element_shape"    = input$element_shape,
-                          ## Sizes
-                          "mineral_size_type"  = input$mineral_size_type,
-                          "mineral_size_scale" = input$mineral_size_scale,
-                          "mineral_label_size" = input$mineral_label_size,
-                          "mineral_size"       = input$mineral_size,
-                          "element_size_type"  = input$element_size_type,
-                          "element_size_scale" = input$element_size_scale,
-                          "element_label_size" = input$element_label_size,
-                          ## Shapes
-                          "mineral_shape"      = input$mineral_shape,
-                          "element_shape"      = input$element_shape,
-                          ## Single element colors
-                          "elements_of_interest" = chemistry_network()$elements_of_interest,
-                          "highlight_element"    = input$highlight_element,
-                          "highlight_color"      = input$highlight_color,
-                          "custom_selection_element" = input$custom_selection_element, 
-                          "custom_selection_color" = input$custom_selection_color)
-
-    ## Assigns node colors, shapes, and exports legend --------------------------------------
-    node_attr <- style_nodes_colors_legend(session, full_nodes, node_attr, style_options)
-    #print(names(node_attr))
-    #readr::write_csv(node_attr[["colors"]], "nodes_attr_colors.csv")
-    
-    ## Assigns node sizes -------------------------------------------------------------------
-    ## TODO: this will need a legend component for the saved plot eeeeek. 
-    node_attr <- style_nodes_sizes(full_nodes, node_attr, style_options)
-    
-  
-    
-    ## Merge size and color specifications ---------------------------------------------
-    full_nodes %>% 
-      dplyr::left_join( node_attr[["colors"]] ) %>%
-      dplyr::left_join( node_attr[["sizes"]] ) -> node_attr[["styled_nodes"]]
-
-    
-    ## Shape, highlight, and label styles ------------------------------------------------
-    node_attr[["styled_nodes"]] <- style_nodes_shape_highlight_label(node_attr[["styled_nodes"]], style_options)
-    
-
-    ## Style nodes for elements_by_redox = TRUE --------------------------------------------------
-    if (input$elements_by_redox){
-      node_attr[["styled_nodes"]] <- style_nodes_elements_by_redox(node_attr[["styled_nodes"]], 
-                                                                   style_options)
-    }
-
-    ## Lighten and darken colors appropriately
-    node_attr[["styled_nodes"]] %<>% 
-      dplyr::mutate(color.border           = colorspace::darken(color.background, 0.3),
-                    color.highlight        = colorspace::lighten(color.background, 0.3),
-                    color.hover.border     = colorspace::darken(color.background, 0.3),
-                    color.hover.background = colorspace::lighten(color.background, 0.3))%>%
-      dplyr::arrange(dplyr::desc(group)) ## arranging minerals first is necessary so that element nodes are always on top and not obscured by giant minerally networks; https://github.com/spielmanlab/dragon/issues/5
-
-    return ( node_attr )
+    style_nodes(chemistry_network()$nodes, network_style_options())
   })   
   
   
   ## Reactive to style edges by user input ---------------------------------------------------------------------------
   edge_styler <- reactive({
-    edge_options <- list("color_edge_by" = input$color_edge_by,
-                         "edge_color"    = input$edge_color, 
-                         "edge_palette"  = input$edge_palette)
-    style_edges(chemistry_network()$edges, edge_options)
-
+    style_edges(chemistry_network()$edges, network_style_options())
   })
   #################################################################################################################
   #################################################################################################################

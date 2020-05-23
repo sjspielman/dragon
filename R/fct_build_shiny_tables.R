@@ -3,10 +3,9 @@
 
 
 ## Table in "Network Information" tabPanel
-build_network_information_table <- function(nodes, clusters)
+build_network_information_table <- function(nodes)
 {
   nodes %>% 
-    dplyr::left_join(clusters) %>%
     dplyr::select(id, group, max_age, num_localities, cluster_ID, network_degree, network_degree_norm, closeness, element_redox_network, pauling, mean_pauling, cov_pauling) %>% #sd_pauling
     dplyr::arrange(group, id) %>%
     dplyr::mutate(group = stringr::str_to_title(group)) %>%

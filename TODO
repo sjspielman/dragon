@@ -1,3 +1,14 @@
+Add test fct_build_network::specify_community_detect_network()
+
+
+
+
+
+
+
+
+
+----------------------------------------------------------------------------------
 Miscellaneous output from `devtools::check()` that needs dealing with:
 
 

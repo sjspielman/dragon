@@ -121,3 +121,23 @@ visnetwork_to_igraph <- function(nodes, edges, show_node_frame)
 }
 
 
+
+
+
+calculate_output_node_positions <- function(nodes, positions, inet, output_layout, seed)
+{
+  if (is.null(positions)){
+    ## DEFAULT LAYOUT. Obtain the original coordinates, *unless physics* 
+    set.seed(seed)
+    
+    coord_string <- paste0("igraph::", output_layout, "(inet)")
+    as.data.frame( eval(parse(text = coord_string)) ) %>%
+      dplyr::rename(x = V1, y = V2) %>%
+      dplyr::mutate(id = igraph::vertex_attr(inet, "name")) -> coords
+  } else {
+    ## CUSTOM LAYOUT by dragging network around
+    coords <- do.call("rbind", lapply(positions, function(p){ data.frame(x = p$x, y = p$y)}))
+    coords$id <- names(positions)
+  }
+  nodes %>% dplyr::left_join(coords, by = "id")     
+}

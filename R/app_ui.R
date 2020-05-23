@@ -119,9 +119,9 @@ app_ui <- function(request) {
                                             "Electronegativity" = "pauling", 
                                             "Number of localities (based on mineral discovery)" = "num_localities",
                                             "Atomic mass" = "AtomicMass",
-                                            "Number of protons" = "NumberofProtons",
-                                            "Periodic Table Group"       = "TableGroup", 
-                                            "Periodic Table Period"       = "TablePeriod", 
+                                           # "Number of protons" = "NumberofProtons", # NOT FUNDAMENTALLY DIFF FROM ATOMIC MASS
+                                          #  "Periodic Table Group"       = "TableGroup", # TOO MANY FOR PALETTE
+                                          #  "Periodic Table Period"       = "TablePeriod", # TOO MANY FOR PALETTE
                                             # "Metal type"    = "MetalType", ## legend is a disaster. unless someone requests this feature, it's out
                                             "Density"       = "Density",
                                             "Specific Heat"  = "SpecificHeat")
@@ -151,7 +151,6 @@ app_ui <- function(request) {
                                             "Maximum known age"           = "max_age",      
                                             "Number of known localities"  = "num_localities",
                                             "Mean electronegativity" = "mean_pauling", 
-                                            #"Color by std dev Pauling electronegativity" = "sd_pauling",
                                             "COV electronegativity" = "cov_pauling")
                               ) ## END pickerInput   
                        ), ## END column
@@ -298,22 +297,21 @@ app_ui <- function(request) {
                                           ) ## END pickerInput
                        ), ## END column
                        column(6,
-                              conditionalPanel(condition = "input.color_edge_by == 'singlecolor'", {  
-                                colourInput("edge_color", "Color:", value = "#5E5E5E")
-                              })
-                       ), ## END column
-                       
-                       conditionalPanel(condition = "input.color_edge_by != 'singlecolor'", { 
-                         pickerInput("edge_palette", label = "Palette:",
-                                     choices = palette_sd[["palette_names"]], selected = "BrBG", width = "90%",
-                                     choicesOpt = list(
-                                       content = sprintf(
-                                         "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-                                         unname(palette_sd[["linear_gradient"]]), palette_sd[["label_colors"]], names(palette_sd[["linear_gradient"]])
+                          conditionalPanel(condition = "input.color_edge_by == 'singlecolor'", {  
+                            colourInput("edge_color", "Color:", value = "#5E5E5E")
+                          }),
+                         conditionalPanel(condition = "input.color_edge_by != 'singlecolor'", { 
+                           pickerInput("edge_palette", label = "Palette:",
+                                       choices = palette_sd[["palette_names"]], selected = "BrBG", width = "90%",
+                                       choicesOpt = list(
+                                         content = sprintf(
+                                           "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
+                                           unname(palette_sd[["linear_gradient"]]), palette_sd[["label_colors"]], names(palette_sd[["linear_gradient"]])
+                                         )
                                        )
-                                     )
-                         )
-                       })## END conditionalPanel   
+                           )
+                        })## END conditionalPanel  
+                       ) ## END column
                      ), ## END fluidRow 
                      fluidRow(
                        column(12, sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10))

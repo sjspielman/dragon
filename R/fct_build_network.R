@@ -1,4 +1,4 @@
-load("R/sysdata.rda") ## TODO devtools:check() fails without explicit load. how fix?
+load("R/sysdata.rda") ## TODO devtools:check() fails without explicit load. how fix? can i do library(dragon)? probably not?
 
 
 total_max_age   <- round( max(rruff$max_age) + 0.1, 1)
@@ -81,7 +81,7 @@ construct_network   <- function(elements_only_age, elements_by_redox)
                                                                 element_redox_mineral != abs(element_redox_mineral) ~ "-"
                                                                ), ## END case_when  
                   element_as_redox           = dplyr::if_else(is.na(element_redox_mineral), 
-                                                              paste0(element, "  "), 
+                                                              element, 
                                                               paste0(element, element_redox_mineral_sign, abs(element_redox_mineral))
     ) ## END if_else
     ) %>%
@@ -96,7 +96,8 @@ construct_network   <- function(elements_only_age, elements_by_redox)
     dplyr::mutate(mean_pauling = mean(pauling),
                   cov_pauling  = stats::sd(pauling) / mean_pauling ) %>%
     dplyr::distinct() %>%
-    dplyr::ungroup() -> network_information
+    dplyr::ungroup() %>%
+    dplyr::rename(from = mineral_name) -> network_information
   
   
   
@@ -107,7 +108,6 @@ construct_network   <- function(elements_only_age, elements_by_redox)
     network_information %<>% dplyr::mutate(to = element)
   }
   network_information %>% 
-    dplyr::rename(from = mineral_name) %>%
     dplyr::select(from, to) %>%
     dplyr::distinct() -> network_to_from
   element_network                 <- igraph::graph.data.frame(network_to_from, directed = FALSE)
@@ -116,25 +116,31 @@ construct_network   <- function(elements_only_age, elements_by_redox)
   ## Edge metadata ------------------------------------------------
   ## Columns that require an explicit link between minerals and elements, OR are used in edge styling
   network_information %>%
-    dplyr::select(mineral_name, element, element_as_redox, element_redox_mineral, max_age, num_localities_mineral) %>%
+    dplyr::select(from, to, element_redox_mineral, max_age, num_localities_mineral, mean_pauling, cov_pauling) %>%
     dplyr::distinct() -> edge_metadata
-  
-  
+                     
+                     
   ## Node metadata ------------------------------------------------
   network_information %>% 
-    dplyr::select(mineral_name, mineral_id, max_age, num_localities_mineral, ima_chemistry, rruff_chemistry,  mean_pauling, cov_pauling) %>% 
-    dplyr::rename(id = mineral_name) %>%
+    dplyr::select(from, mineral_id, max_age, num_localities_mineral, ima_chemistry, rruff_chemistry,  mean_pauling, cov_pauling) %>% 
+    dplyr::rename(id = from) %>%
     dplyr::distinct() -> mineral_metadata
   
   ## Calculate average element redox state in the whole network to be added into element_metadata
   edge_metadata %>% 
-    dplyr::group_by(element) %>%
+    dplyr::group_by(to) %>%
     dplyr::summarize(element_redox_network = mean(element_redox_mineral, na.rm=T)) %>% 
     dplyr::mutate(element_redox_network = ifelse(is.nan(element_redox_network), 
                                                  NA, element_redox_network)) -> element_redox_network_df
+  ## Average element redox state also needs to be an edge attribute
+  edge_metadata %<>%
+    dplyr::left_join(element_redox_network_df)
+  
+  ## names to, element_redox_network
   network_information %>% 
-    dplyr::select(-mineral_name, -mineral_id, -max_age, -ima_chemistry, -rruff_chemistry, -mean_pauling, -cov_pauling, -element_redox_mineral) %>%
-    dplyr::group_by(element_as_redox) %>%
+    dplyr::select(to, element_name, num_localities_mineral, element_hsab, AtomicMass, NumberofProtons, TablePeriod, TableGroup, AtomicRadius, pauling, MetalType, Density, SpecificHeat) %>%
+    dplyr::distinct() %>%
+    dplyr::group_by(to) %>%
     dplyr::mutate(num_localities_element = sum(num_localities_mineral)) %>% 
     dplyr::select(-num_localities_mineral) %>%
     dplyr::ungroup() %>%
@@ -151,6 +157,7 @@ construct_network   <- function(elements_only_age, elements_by_redox)
                  ) %>%  
     dplyr::group_by(group) %>%
     dplyr::mutate(network_degree_norm = network_degree / max(network_degree)) %>%
+    dplyr::ungroup() %>%
     dplyr::left_join(mineral_metadata) %>%
     dplyr::left_join(element_metadata) %>% 
     dplyr::mutate(num_localities = dplyr::if_else(group == "mineral",  
@@ -162,18 +169,45 @@ construct_network   <- function(elements_only_age, elements_by_redox)
 
   ## Merge edges with associated data ---------------------------------------------
   network_to_from %>% 
-    dplyr::mutate(mineral_name = from) %>%
-    dplyr::inner_join(edge_metadata) -> edges
+    dplyr::inner_join(edge_metadata) %>%
+    dplyr::mutate(mineral_name = from) -> edges
   
   return (list("nodes" = nodes, "edges" = edges, "graph" = element_network))
 }
 
 
 
-community_detect_network <- function(network, cluster_algorithm)
+specify_community_detect_network <- function(network, nodes, cluster_algorithm, cluster_palette)
 {
-  if (cluster_algorithm == "Louvain")             return (igraph::cluster_louvain(network))
-  if (cluster_algorithm == "Leading eigenvector") return (igraph::cluster_leading_eigen(network))    
+  
+  if (cluster_algorithm == "Louvain")             clustered_net <- igraph::cluster_louvain(network)
+  if (cluster_algorithm == "Leading eigenvector") clustered_net <- igraph::cluster_leading_eigen(network)
+
+  ## Update nodes ----------------------------
+  tibble::tibble( "id"                = clustered_net$names, 
+                  "cluster_ID"        = as.factor(clustered_net$membership), 
+                  "cluster_algorithm" = cluster_algorithm) %>%
+    right_join(nodes, by = "id") -> nodes 
+
+  ### Set cluster colors forever ------------------------------- 
+  n_clusters <- length(unique(nodes$cluster_ID))
+  tibble::tibble(x=1:n_clusters, y = factor(1:n_clusters)) %>% 
+    ggplot2::ggplot() + 
+    ggplot2::aes(x = x, y = y, color = y) + 
+    ggplot2::geom_point() + 
+    ggplot2::scale_color_brewer(palette = cluster_palette) -> cluster_colors_gghack
+  
+  ggplot2::ggplot_build(cluster_colors_gghack)$data[[1]] %>% 
+    tibble::as_tibble() %>% 
+    dplyr::pull(colour) -> cluster_colors
+  
+  return( 
+    list("nodes"          = nodes, 
+         "clustered_net"  = clustered_net, 
+         "cluster_colors" = cluster_colors
+         ) 
+    )
+  
 }
 
 
@@ -217,7 +251,12 @@ add_shiny_node_titles <- function(nodes, elements_by_redox)
                                                                                                             paste0("Electronegativity: ", pauling)), "</p>")
                                           ), ## END title case_when                     
                  ) %>% ## END mutate
-    dplyr::distinct() 
+    dplyr::distinct()  %>%
+    # Add type column for grouped node selection dropdown menu
+    dplyr::mutate(type = dplyr::if_else(group == "element", 
+                                        "All elements", 
+                                        "All minerals")
+    ) 
   
 }
 

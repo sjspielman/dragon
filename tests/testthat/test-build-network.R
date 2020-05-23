@@ -120,7 +120,7 @@ test_that("fct_build_network::initialize_data_age() using minimum known age", {
 
 
 
-## Test construct_network(), using elements_by_redox = F --------------------------------
+## Test construct_network(), using elements_by_redox = FALSE --------------------------------
 test_that("fct_build_network::construct_network() with elements_by_redox = F", {
   elements_of_interest <- c("Cd")
   age_limit <- c(1, 2.5)
@@ -133,22 +133,28 @@ test_that("fct_build_network::construct_network() with elements_by_redox = F", {
   
   ## Edges tests
   test_edges <- test_output$edges
-  expected_names_edges <- c("from", "to", "mineral_name", "element", "element_as_redox", "element_redox_mineral", "max_age", "num_localities_mineral")
+  expected_names_edges <- c("from", "to", "mineral_name", "element_redox_mineral", "element_redox_network", "mean_pauling", "cov_pauling", "max_age", "num_localities_mineral")
   expect_equal(sort(names(test_edges)), sort(expected_names_edges)) 
+  expect_equal(test_edges$from, test_edges$mineral_name)
   
   # Without redox there should be NO +/- in `to`
   expect_true( sum(stringr::str_detect(test_edges$to, "\\+|-")) == 0)
 
   ## Nodes tests
   test_nodes <- test_output$nodes
-  expected_names_nodes<- c("id", "label", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element", "element_as_redox", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
+  expected_names_nodes<- c("id", "label", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
   expect_equal(sort(names(test_nodes)), sort(expected_names_nodes)) 
+  expect_true(length(test_nodes$id) == length(unique(test_nodes$id)) )
   
+  ## Edges, nodes compatible
+  edges_to_nodes <- unique(c(test_edges$to, test_edges$from ))
+  expect_equal(sort(edges_to_nodes), sort(test_nodes$id)) 
+
    
 })
 
 
-## Test construct_network(), using elements_by_redox = T --------------------------------
+## Test construct_network(), using elements_by_redox = TRUE --------------------------------
 test_that("fct_build_network::construct_network() with elements_by_redox = T", {
   elements_of_interest <- c("Fe") ## Cd is disconnected
   age_limit <- c(3, 4)
@@ -161,16 +167,48 @@ test_that("fct_build_network::construct_network() with elements_by_redox = T", {
   
   ## Edges tests
   test_edges <- test_output$edges
-  expected_names_edges <- c("from", "to", "mineral_name", "element", "element_as_redox", "element_redox_mineral", "max_age", "num_localities_mineral")
+  expected_names_edges <- c("from", "to", "mineral_name", "element_redox_mineral", "element_redox_network", "mean_pauling", "cov_pauling", "max_age", "num_localities_mineral")
   expect_equal(sort(names(test_edges)), sort(expected_names_edges)) 
+  expect_equal(test_edges$from, test_edges$mineral_name)
   
   # Without redox there SHOULD BE +/- in `to`
   expect_true( sum(stringr::str_detect(test_edges$to, "\\+")) != 0)
   
   ## Nodes tests
   test_nodes <- test_output$nodes
-  expected_names_nodes<- c("id", "label", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element", "element_as_redox", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
+  expected_names_nodes<- c("id", "label", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
   expect_equal(sort(names(test_nodes)), sort(expected_names_nodes)) 
+  expect_true(length(test_nodes$id) == length(unique(test_nodes$id)) )
+
+  ## Edges, nodes compatible
+  edges_to_nodes <- unique(c(test_edges$to, test_edges$from ))
+  expect_equal(sort(edges_to_nodes), sort(test_nodes$id)) 
   
 })
+
+
+
+
+## Test specify_community_detect_network(), using Louvain --------------------------------
+test_that("fct_build_network::specify_community_detect_network() with Louvain community clustering", {
+  age_data <- initialize_data_age(initialize_data("Fe", FALSE), c(3, 4), "Maximum")
+  network_raw <- construct_network(age_data$elements_only_age, TRUE)
+  test_cluster <- specify_community_detect_network(network_raw$graph, network_raw$nodes, "Louvain", "Set2")
+  
+  ## Length of 3 with correct names
+  expected_names_one <- c("nodes", "clustered_net", "cluster_colors")
+  expect_equal(sort(names(test_cluster)), sort(expected_names_one)) 
+  
+  ## Check that node nodes contains the added cluster columns
+  expected_names_nodes<- c("id", "cluster_ID", "cluster_algorithm", "label", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
+  expect_equal(sort(names(test_cluster$nodes)), sort(expected_names_nodes)) 
+  
+  
+  ## Same lengths all around
+  expect_true( length(test_cluster$clustered_net) == length(unique(test_cluster$nodes$cluster_ID)) &
+                 length(test_cluster$clustered_net) == length(test_cluster$cluster_colors) )
+  
+})
+
+
 
