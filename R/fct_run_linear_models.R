@@ -1,24 +1,36 @@
 fit_linear_model <- function(response, predictor, use_mineral_nodes)
 {
 
-  ## Build model -----------------------------------------------------
-  if(predictor == cluster_ID_str) predictor <- "cluster_ID" # it's cool don't worry.
+  ## Prep model -----------------------------------------------------
+  if(predictor == cluster_ID_str){
+    # rename to match tibble
+    predictor <- "cluster_ID" 
+    
+    # remove all clusters with <3 minerals
+    use_mineral_nodes %>%
+      dplyr::group_by(cluster_ID) %>% 
+      dplyr::mutate(n = n()) %>%
+      dplyr::ungroup() %>%
+      dplyr::filter(n>=3) %>%
+      dplyr::select(-n) -> use_mineral_nodes 
+  } 
   response_string <- paste0("`", response, "`")
   predictor_string <- paste0("`", predictor, "`")
   fit_string <- paste(response_string, "~", predictor_string)
-  
 
+  ## Build model ------------------------------------------------
   model_fit <- lm(stats::as.formula(fit_string), data = use_mineral_nodes, na.action = na.omit )
-
+  
+  
   # Run a Tukey as needed -------------------------------------------
   tukey_fit_table <- NULL   ## need to return qqch even if not running Tukey
   tukey_ok_variance <- TRUE ## TRUE unless shown FALSE below
-  if(predictor_string == cluster_ID_str)
+  if(predictor == "cluster_ID")
   {
     ## Test for variance assumption and provide warning if not met ----------------------------------------------
     test_variance_pvalue <- stats::bartlett.test(stats::as.formula(fit_string), data = use_mineral_nodes, na.action = na.omit)$p.value
     if (test_variance_pvalue <= 0.05) tukey_ok_variance <- FALSE
-    
+
     stats::TukeyHSD(aov(model_fit)) %>%
       broom::tidy() %>%
       dplyr::select(-term) %>%
@@ -45,7 +57,6 @@ fit_linear_model <- function(response, predictor, use_mineral_nodes)
                   "Standard error"       = std.error,
                   "t-statistic"          = statistic,
                   "P-value"              = p.value) -> model_fit_table
-                  
   return(list("model_fit" = model_fit_table,  ## tibble
               "tukey_fit" = tukey_fit_table,  ## tibble
               "tukey_ok_variance" = tukey_ok_variance ## logical

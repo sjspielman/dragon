@@ -64,7 +64,7 @@ app_server <- function( input, output, session ) {
     }
     ## Perform community clustering, which also updates nodes ----------------------------
     clustered <- specify_community_detect_network(graph, nodes, input$cluster_algorithm, input$cluster_palette)
-    readr::write_csv(clustered$nodes, "nodeshere.csv")
+
     return (list("nodes" = clustered$nodes, 
                  "edges" = network$edges, 
                  "graph" = graph, 
@@ -651,9 +651,7 @@ app_server <- function( input, output, session ) {
     
     
     ## Ensure there are sufficient numbers of minerals to analyze (>= 3) -------------------------------
-    sufficient_minerals <- TRUE
     if (nrow(use_mineral_nodes) < 3) {
-      sufficient_minerals <- FALSE
       createAlert(session, "lm_alert", "not_enough_minerals", title = '<h4 style="color:black;">Error</h4>', style = "warning",
                   content = '<p style="color:black;">There are fewer than three minerals in your network. To perform statistics, you need at least three data points. Please construct a differet network.</p>')
       shiny::validate( shiny::need(nrow(use_mineral_nodes) >= 3, ""))
@@ -663,39 +661,33 @@ app_server <- function( input, output, session ) {
     ## Checks to perform if modeling clustering ---------------------------------------------------------
     if (input$predictor == cluster_ID_str)
     {
-      use_mineral_nodes %<>%
-        dplyr::count(!!sym(cluster_ID_str)) %>%
-        dplyr::filter(n >= 3) ## Only keep clusters with >=3 members
-      
-      use_mineral_nodes %>% 
-        dplyr::select(!!cluster_ID_str) %>%
+      use_mineral_nodes %>%
+        dplyr::count(cluster_ID) %>% 
+        dplyr::filter(n >= 3) %>% ## Only keep clusters with >=3 members 
+        dplyr::select(cluster_ID) %>%
         dplyr::distinct() %>%
         nrow() -> n_clusters ## Need at least two to compare, see the if below.
       
-      if (  nrow(use_mineral_nodes) == 0  | n_clusters < 2  )
+      if ( n_clusters < 2  )
       {                       
         createAlert(session, "lm_alert", "not_enough_clusters", title = '<h4 style="color:black;">Error</h4>', style = "warning",
                     content = '<p style="color:black;">There is insufficient data to analyze community clusters. Please select a different predictor variable.</p>')
-        shiny::validate( shiny::need(nrow(use_mineral_nodes) > 0  & n_clusters >= 2, ""))
+        shiny::validate( shiny::need(n_clusters >= 2, ""))
         cluster_fyi_text <- ""
       } else {            
         cluster_fyi_text <- "Note: Only those community clusters with at least three minerals are considered for this analysis.\n\n"
       }
     } # END  if (input$predictor == cluster_ID_str)
     
-    ## Perform modeling if we have enough data
-    if (nrow(use_mineral_nodes) >= 3)
-    {
-      fitted_linear_model  <- fit_linear_model(input$response, input$predictor, use_mineral_nodes)
-      plotted_linear_model <- plot_linear_model(input$response, input$predictor, use_mineral_nodes, input$logx, input$logy, input$point_color, input$bestfit, input$bestfit_color, chemistry_network()$cluster_colors)
-    
+    ## Perform modeling ----------------------------------------------------------------------------------
+    fitted_linear_model  <- fit_linear_model(input$response, input$predictor, use_mineral_nodes)
+    plotted_linear_model <- plot_linear_model(input$response, input$predictor, use_mineral_nodes, input$logx, input$logy, input$point_color, input$bestfit, input$bestfit_color, chemistry_network()$cluster_colors)
     if (fitted_linear_model$tukey_ok_variance == FALSE) 
-        {
-          createAlert(session, "lm_alert", "bad_clusters", title = '<h4 style="color:black;">Warning</h4>', style = "warning",
-                      content = '<p style="color:black;">Caution: Community clusters have unequal variances and modeling results may not be precise.</p>')
-        }
+    {
+      createAlert(session, "lm_alert", "bad_clusters", title = '<h4 style="color:black;">Warning</h4>', style = "warning",
+                  content = '<p style="color:black;">Caution: Community clusters have unequal variances and modeling results may not be precise.</p>')
+    }
     
-    } ## END if (nrow(use_mineral_nodes) >= 3)
     
     ## RETURNS
     list("fitted_linear_model" = fitted_linear_model,
