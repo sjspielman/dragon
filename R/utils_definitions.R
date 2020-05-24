@@ -119,12 +119,12 @@ ordinal_color_variables <- c("element_hsab",  "TablePeriod", "TableGroup")
 
 
 
-model_response_choices <- c(max_age_str, 
+model_response_choices <- c(max_age_str,
                             mean_pauling_str,
                             cov_pauling_str,
                             network_degree_norm_str,
                             closeness_str,
-                            num_localities_str) #sd_pauling_str,
+                            num_localities_str) 
 
 model_predictor_choices <- c(model_response_choices, cluster_ID_str)
 

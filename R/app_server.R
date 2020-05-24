@@ -64,7 +64,7 @@ app_server <- function( input, output, session ) {
     }
     ## Perform community clustering, which also updates nodes ----------------------------
     clustered <- specify_community_detect_network(graph, nodes, input$cluster_algorithm, input$cluster_palette)
-
+    readr::write_csv(clustered$nodes, "nodeshere.csv")
     return (list("nodes" = clustered$nodes, 
                  "edges" = network$edges, 
                  "graph" = graph, 
@@ -622,45 +622,12 @@ app_server <- function( input, output, session ) {
   
   
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   ## Render the "Analyze Network Minerals" tabPanel --------------------------------------------------------------
+       
   
-  ## Reactive that contains specifically only the data that will be used for linear modeling ---------------------
-  mineral_nodes <- reactive({
-    chemistry_network()$nodes %>%
-      filter(group == "mineral") %>%
-      dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% #sd_pauling
-      mutate(cluster_ID = factor(cluster_ID)) %>%
-      rename(!! variable_to_title[["cluster_ID"]] := cluster_ID,   ###`Community Cluster`
-             !! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
-             !! variable_to_title[["closeness"]] := closeness,
-             !! variable_to_title[["mean_pauling"]] := mean_pauling,
-             !! variable_to_title[["cov_pauling"]] := cov_pauling,
-             !! variable_to_title[["num_localities"]] := num_localities,
-             !! variable_to_title[["max_age"]] := max_age)    
-  })           
-  
-  ## Reactive to check that information is provided before launching into model buildings -------------------------
-  ## TODO: These all have defaults. Can this just be an observeevent with input$go?!
-  build_that_model <- reactive({
-    c(input$go, input$response, input$predictor, input$logx, input$logy, input$bestfit, input$point_color, input$bestfit_color)
-  })
-  
-  
-  ## TODO: is this kosher?
-  #observeEvent(build_that_model(), {
-  observeEvent(input$go, {
+  linear_model_output <- reactive({
     
+    ## TODO: shinyBS STILL BORKED IN GOLEM... 
     ## Perform sanity checking on linear modeling options -------------------------------------
     
     ## Ensure different predictor/reponse variables -------------------------------------------
@@ -670,151 +637,110 @@ app_server <- function( input, output, session ) {
                   content = '<p style="color:black;">You have selected the same predictor and response variable. Please select new variable(s).</p>')
       shiny::validate( shiny::need(input$predictor != input$response, ""))
     }
+    use_mineral_nodes <- chemistry_network()$nodes %>%
+      dplyr::filter(group == "mineral") %>%
+      dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% #sd_pauling
+      dplyr::mutate(cluster_ID = factor(cluster_ID)) %>%
+      dplyr::rename(!! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
+                    !! variable_to_title[["closeness"]] := closeness,
+                    !! variable_to_title[["mean_pauling"]] := mean_pauling,
+                    !! variable_to_title[["cov_pauling"]] := cov_pauling,
+                    !! variable_to_title[["num_localities"]] := num_localities,
+                    !! variable_to_title[["max_age"]] := max_age)  
+      # RENAME AT THE END # !! variable_to_title[["cluster_ID"]] := cluster_ID,   ###`Community Cluster`
     
     
-    use_mineral_nodes <- mineral_nodes() ## since we mutate it sometimes. uh are you kidding isn't this shallow'
-    
-
-    
-    output$cluster_fyi <- renderText({})
+    ## Ensure there are sufficient numbers of minerals to analyze (>= 3) -------------------------------
+    sufficient_minerals <- TRUE
+    if (nrow(use_mineral_nodes) < 3) {
+      sufficient_minerals <- FALSE
+      createAlert(session, "lm_alert", "not_enough_minerals", title = '<h4 style="color:black;">Error</h4>', style = "warning",
+                  content = '<p style="color:black;">There are fewer than three minerals in your network. To perform statistics, you need at least three data points. Please construct a differet network.</p>')
+      shiny::validate( shiny::need(nrow(use_mineral_nodes) >= 3, ""))
+      fitted_linear_model <- NULL
+      plotted_linear_model <- NULL
+    }
+    ## Checks to perform if modeling clustering ---------------------------------------------------------
     if (input$predictor == cluster_ID_str)
     {
       use_mineral_nodes %<>%
-        group_by(!!sym(cluster_ID_str)) %>%
-        mutate(n = n()) %>% 
-        filter(n >= 3)
+        dplyr::count(!!sym(cluster_ID_str)) %>%
+        dplyr::filter(n >= 3) ## Only keep clusters with >=3 members
       
       use_mineral_nodes %>% 
-        select(!!cluster_ID_str) %>%
-        distinct() %>%
-        nrow() -> n_clusters
+        dplyr::select(!!cluster_ID_str) %>%
+        dplyr::distinct() %>%
+        nrow() -> n_clusters ## Need at least two to compare, see the if below.
       
       if (  nrow(use_mineral_nodes) == 0  | n_clusters < 2  )
       {                       
         createAlert(session, "lm_alert", "not_enough_clusters", title = '<h4 style="color:black;">Error</h4>', style = "warning",
                     content = '<p style="color:black;">There is insufficient data to analyze community clusters. Please select a different predictor variable.</p>')
         shiny::validate( shiny::need(nrow(use_mineral_nodes) > 0  & n_clusters >= 2, ""))
-        
+        cluster_fyi_text <- ""
       } else {            
-        
-        output$cluster_fyi <- renderText({
-          "Note: Only those community clusters with at least three minerals are considered for this analysis.\n\n"
-        })
+        cluster_fyi_text <- "Note: Only those community clusters with at least three minerals are considered for this analysis.\n\n"
       }
-      
-    }
-  
-    ## Ensure there are sufficient numbers of minerals to analyze (>= 3) -------------------------------
-    if (nrow(use_mineral_nodes) < 3) {
-      createAlert(session, "lm_alert", "not_enough_minerals", title = '<h4 style="color:black;">Error</h4>', style = "warning",
-                  content = '<p style="color:black;">There are fewer than three minerals in your network. To perform statistics, you need at least three data points. Please construct a differet network.</p>')
-      shiny::validate( shiny::need(nrow(use_mineral_nodes) >= 3, ""))
-      output$fitted_model <- DT::renderDataTable({})
-      output$fitted_model_plot <- renderPlot({})
-      
-    } else {
-      ## There are >=3 minerals. Onward! ---------------------------------------------------------------
-      
-      ## Build the linear model ------------------------------------------------------------------------
-      response_string <- paste0("`", input$response, "`")
-      predictor_string <- paste0("`", input$predictor, "`")
-      fit_string <- paste(response_string, "~", predictor_string)
-      fit <- lm(stats::as.formula(fit_string), data = use_mineral_nodes, na.action = na.omit )
-      
-      ## Special consideration needed for cluster as predictor (categorical variable, perform Tukey test) ----------
-      if (input$predictor == cluster_ID_str)
-      {
-        ## Re-build the model - TukeyHSD dpes not work with spaces in variable names, so have to do some light bs
-        use_mineral_nodes %>% rename(community_cluster = !!cluster_ID_str) -> mineral_nodes2
-        aov_fit_string <- paste(response_string, "~community_cluster")
-        aov_fit <- stats::aov(stats::as.formula(aov_fit_string), data = mineral_nodes2, na.action = na.omit )
-        
-        ## Test for variance assumption and provide warning if not met ----------------------------------------------
-        test_variance_pvalue <- stats::bartlett.test(stats::as.formula(aov_fit_string), data = mineral_nodes2, na.action = na.omit)$p.value
-        if (test_variance_pvalue <= 0.05) 
+    } # END  if (input$predictor == cluster_ID_str)
+    
+    ## Perform modeling if we have enough data
+    if (nrow(use_mineral_nodes) >= 3)
+    {
+      fitted_linear_model  <- fit_linear_model(input$response, input$predictor, use_mineral_nodes)
+      plotted_linear_model <- plot_linear_model(input$response, input$predictor, use_mineral_nodes, input$logx, input$logy, input$point_color, input$bestfit, input$bestfit_color, chemistry_network()$cluster_colors)
+    
+    if (fitted_linear_model$tukey_ok_variance == FALSE) 
         {
           createAlert(session, "lm_alert", "bad_clusters", title = '<h4 style="color:black;">Warning</h4>', style = "warning",
-                      content = '<p style="color:black;">Caution: Clusters have unequal variances and modeling results may not be precise.</p>')
+                      content = '<p style="color:black;">Caution: Community clusters have unequal variances and modeling results may not be precise.</p>')
         }
-        
-        
-        ## Build the strip plot output for models with cluster as predictor ------------------------------------
-        ggplot2::ggplot(mineral_nodes2) + 
-          ggplot2::aes(x = community_cluster, 
-                       y = !!sym(input$response), 
-                       color = community_cluster) + 
-          ggplot2::xlab(input$predictor) + 
-          ggplot2::ylab(input$response) +
-          ggplot2::geom_jitter(size=3, width=0.1) + 
-          ggplot2::scale_color_manual(values = chemistry_network()$cluster_colors, name = input$predictor) +
-          ggplot2::stat_summary(geom="errorbar", width=0, color = "grey30", size=1)+
-          ggplot2::stat_summary(geom="point", color = "grey30", size=3.5) + 
-          ggplot2::theme(legend.text  = ggplot2::element_text(size=12), 
-                         legend.title = ggplot2::element_text(size=13)) -> fitted_model_plot
-        
-      } else {
-        ## Build the scatterplt for models that do NOT HAVE cluster as predictor ------------------------------------
-        ggplot2::ggplot(use_mineral_nodes) + 
-          ggplot2::aes_string(x = predictor_string, y = response_string) +
-          ggplot2::xlab(input$predictor) + 
-          ggplot2::ylab(input$response) + 
-          ggplot2::geom_point(size=2, color = input$point_color) -> fitted_model_plot
-        if (input$logx) fitted_model_plot <- fitted_model_plot + ggplot2::scale_x_log10()
-        if (input$logy) fitted_model_plot <- fitted_model_plot + ggplot2::scale_y_log10()
-        if (input$bestfit) fitted_model_plot <- fitted_model_plot + ggplot2::geom_smooth(method = "lm", color = input$bestfit_color)
-      }
-      
-      
-      ## Render plot of fitted model -------------------------------------------------------
-      output$fitted_model_plot <- renderPlot({
-        print(fitted_model_plot)
-      })      
-      
-      ## Render table specifically for Tukey tests -----------------------------------------------------------------
-      output$fitted_tukey <- DT::renderDataTable( rownames= FALSE, server=FALSE, extensions = 'Buttons', options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
-        stats::TukeyHSD(aov_fit) %>% 
-          broom::tidy() %>%
-          dplyr::select(-term) %>%
-          dplyr::mutate(comparison  = stringr::str_replace_all(comparison, "-", " - "),
-                        estimate    = round(estimate, 6),
-                        conf.low    = round(conf.low, 6),
-                        conf.high   = round(conf.high, 6),
-                        adj.p.value = round(adj.p.value, 6)) %>%
-          ## TODO: perhaps not hardcoded?
-          rename("Cluster Comparison" = comparison, 
-                 "Estimated effect size difference" = estimate,
-                 "95% CI Lower bound" = conf.low,
-                 "95% CI Upper bound" = conf.high,
-                 "Adjusted P-value" = adj.p.value)
-      })
-      
-      ## Render table with fitted model parameters and statistics, for any constructed model -----------------------
-      output$fitted_model <- DT::renderDataTable( rownames= FALSE, server=FALSE, extensions = 'Buttons', options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
-        broom::tidy(fit) %>%
-         dplyr::mutate(term = stringr::str_replace_all(term, "`", ""),
-                       estimate = round(estimate, 6),
-                       std.error = round(std.error, 6),
-                       statistic = round(statistic, 6),
-                       p.value   = round(p.value, 6)) %>%
-         dplyr::rename("Coefficient"          = term, 
-                       "Coefficient estimate" = estimate,
-                       "Standard error"       = std.error,
-                       "t-statistic"          = statistic,
-                       "P-value"              = p.value) 
-      })
-      
-      ## Render the download button for model plot
-      output$download_model_plot <- downloadHandler(
-        filename = function() {
-          paste("dragon_model_plot-", Sys.Date(), ".pdf", sep="")
-        },
-        content = function(file) {
-          ggplot2::ggsave(file, fitted_model_plot)
-        })        
-
-    } ## END the `else` associated with "there are >=3 data points.    
     
-  }) ## END observeEvent(input$go associated with building the linear model
+    } ## END if (nrow(use_mineral_nodes) >= 3)
+    
+    ## RETURNS
+    list("fitted_linear_model" = fitted_linear_model,
+         "plotted_linear_model" = plotted_linear_model
+    )
+  }) ## END linear_model_output reactive
+    
+    
+    
+  ## Render table with fitted model parameters and statistics, for any constructed model -----------------------
+  output$fitted_model <- DT::renderDataTable( rownames= FALSE, server=FALSE, extensions = 'Buttons', options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
+    linear_model_output()$fitted_linear_model$model_fit
+  })
+        
+  ## Render table specifically for Tukey tests -----------------------------------------------------------------
+  output$fitted_tukey <- DT::renderDataTable( rownames= FALSE, server=FALSE, extensions = 'Buttons', options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
+    linear_model_output()$fitted_linear_model$tukey_fit
+  })
+      
+
+  ## Render plot of fitted model -------------------------------------------------------
+  output$fitted_model_plot <- renderPlot({
+    print(linear_model_output()$plotted_linear_model) ## TODO: if null is this blank or throws error?
+  })      
+      
+
+      
+  ## Render the download button for model plot
+  output$download_model_plot <- downloadHandler(
+    filename = function() {
+      paste("dragon_model_plot-", Sys.Date(), ".pdf", sep="")
+    },
+    content = function(file) {
+      ggplot2::ggsave(file, fitted_model_plot)
+  })        
+
+    
+
+
+
+
+
+
+
+
   #################################################################################################################
   #################################################################################################################
 
@@ -827,12 +753,10 @@ app_server <- function( input, output, session ) {
         dplyr::filter(group == "element") %>%
         dplyr::select( element_color_variable ) %>%
         na.omit -> element_validate
-        print(element_validate)
         if (nrow(element_validate) <= 0)
         {
-          print("shouldn't this  be thrown?!")
-          #shinyBS::createAlert(session, "alert", "bad_element_color_by", title = '<h4 style="color:black;">Error</h4>', style = "warning",
-          #                      content = '<p style="color:black;">The specified color scheme cannot be applied to elements due to insufficient node information in the MED database. Please select a different element color scheme.</p>')
+          shinyBS::createAlert(session, "alert", "bad_element_color_by", title = '<h4 style="color:black;">Error</h4>', style = "warning",
+                                content = '<p style="color:black;">The specified color scheme cannot be applied to elements due to insufficient node information in the MED database. Please select a different element color scheme.</p>')
           shiny::validate( shiny::need(nrow(element_validate) > 0, ""))
         }
     }
