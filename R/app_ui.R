@@ -338,7 +338,7 @@ app_ui <- function(request) {
             tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
           ),
           fluidRow(
-            bsAlert("alert"),  
+            shinyBS::bsAlert("alert"),  
             div(style = "margin-right:1%; margin-left:1%;", ## div0                  
                 
               ## MAIN TOP TABBOX ---------------------------------------------------------------------------------------------
@@ -591,11 +591,14 @@ golem_add_external_resources <- function(){
   )
  
   tags$head(
-    favicon(),
+    golem::favicon(),
+    golem::activate_js(),
+    #shinyalert::useShinyalert(),# CAN THIS WORK?
     bundle_resources(
       path = app_sys('app/www'),
       app_title = 'dragon'
     )
+    
     # Add here other external resources
     # for example, you can add shinyalert::useShinyalert() 
   )

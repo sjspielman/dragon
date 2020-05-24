@@ -28,13 +28,12 @@ app_server <- function( input, output, session ) {
                   content = '<p style="color:black;">Networks with all elements, especially at more recent time frames, may be very slow - please be patient.</p>')
     }
     
-    
-    
     elements_only <- initialize_data(elements_of_interest, force_all_elements)
     if (nrow(elements_only) <= 0)
     {
       shinyBS::createAlert(session, "alert", "bad_elements", title = '<h4 style="color:black;">Error</h4>', style = "warning",
                   content = '<p style="color:black;">There is no network for selected element(s) as specified. Please specify new element(s).</p>')
+      
       shiny::validate( shiny::need(nrow(elements_only) > 0, ""))
     }
 
@@ -57,9 +56,7 @@ app_server <- function( input, output, session ) {
       shiny::validate( shiny::need(length(network) ==3, "") )
     }
     nodes <- network$nodes 
-    edges <- network$edges
     graph <- network$graph
-
     ## Add title, font to labels if we are viewing the network
     if(build_only == FALSE)
     {
@@ -69,7 +66,7 @@ app_server <- function( input, output, session ) {
     clustered <- specify_community_detect_network(graph, nodes, input$cluster_algorithm, input$cluster_palette)
 
     return (list("nodes" = clustered$nodes, 
-                 "edges" = edges, 
+                 "edges" = network$edges, 
                  "graph" = graph, 
                  "elements_of_interest" = elements_of_interest,
                  "age_lb" = age_limit[1],
@@ -830,10 +827,12 @@ app_server <- function( input, output, session ) {
         dplyr::filter(group == "element") %>%
         dplyr::select( element_color_variable ) %>%
         na.omit -> element_validate
+        print(element_validate)
         if (nrow(element_validate) <= 0)
         {
-          shinyBS::createAlert(session, "alert", "bad_element_color_by", title = '<h4 style="color:black;">Error</h4>', style = "warning",
-                                content = '<p style="color:black;">The specified color scheme cannot be applied to elements due to insufficient node information in the MED database. Please select a different element color scheme.</p>')
+          print("shouldn't this  be thrown?!")
+          #shinyBS::createAlert(session, "alert", "bad_element_color_by", title = '<h4 style="color:black;">Error</h4>', style = "warning",
+          #                      content = '<p style="color:black;">The specified color scheme cannot be applied to elements due to insufficient node information in the MED database. Please select a different element color scheme.</p>')
           shiny::validate( shiny::need(nrow(element_validate) > 0, ""))
         }
     }

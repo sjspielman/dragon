@@ -148,4 +148,11 @@ ggplot2::theme_set(cowplot::theme_cowplot() +
                                     legend.title          = ggplot2::element_text(size=13),
                                     legend.box.background = ggplot2::element_rect(color = "white")))                                  
 
+element_size_scale_divisor <- 1
+mineral_size_scale_divisor <- 10
+mineral_size_min <- 5
+mineral_size_max <- 30
+element_size_min <- 1
+element_size_max <- 4
+lighten_darken_factor <- 0.3
 
