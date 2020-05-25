@@ -427,8 +427,9 @@ app_ui <- function(request) {
                       prettySwitch("logy", "Use log scale on Y-axis", value = FALSE, status="danger",),
                       prettySwitch("bestfit", "Show regression line (with 95% confidence interval).", value = FALSE, status="danger"),
                       fluidRow(
-                        column(6, colourpicker::colourInput("point_color", "Color for points", value = "black")),
-                        column(6, colourpicker::colourInput("bestfit_color", "Color for regression line", value = "blue"))
+                        column(4, colourpicker::colourInput("point_color", "Point color", value = "black")),
+                        column(4, numericInput("point_size",  "Point size", 2, min = 0.5, max = 4)),
+                        column(4, colourpicker::colourInput("bestfit_color", "Regression line color", value = "blue"))
                       ),
                       div(style="display:inline-block; float:right;",
                           downloadBttn("download_model_plot", "Download Plot", size = "sm", style = "minimal", color = "danger")

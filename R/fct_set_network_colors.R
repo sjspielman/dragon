@@ -1,3 +1,14 @@
+na.gray <- "#DCDCDC"
+geom.point.size <- 8
+ggplot2::theme_set(cowplot::theme_cowplot() + 
+                     ggplot2::theme(legend.position       = "bottom",
+                                    legend.text           = ggplot2::element_text(size=11),
+                                    legend.key.size       = ggplot2::unit(1, "cm"),
+                                    legend.title          = ggplot2::element_text(size=13),
+                                    legend.box.background = ggplot2::element_rect(color = "white")))                                  
+
+
+
 obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, discrete_colors = NA)
 {
   ## variable type:

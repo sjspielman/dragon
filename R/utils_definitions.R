@@ -140,14 +140,6 @@ vis_to_gg_shape <- list("circle"  = 19,
                         "star"    = 8,
                         "diamond" = 18,
                         "triangle" = 17)
-na.gray <- "#DCDCDC"
-geom.point.size <- 8
-ggplot2::theme_set(cowplot::theme_cowplot() + 
-                     ggplot2::theme(legend.position       = "bottom",
-                                    legend.text           = ggplot2::element_text(size=11),
-                                    legend.key.size       = ggplot2::unit(1, "cm"),
-                                    legend.title          = ggplot2::element_text(size=13),
-                                    legend.box.background = ggplot2::element_rect(color = "white")))                                  
 
 element_size_scale_divisor <- 1
 mineral_size_scale_divisor <- 10

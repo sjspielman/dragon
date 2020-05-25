@@ -70,12 +70,25 @@ app_server <- function( input, output, session ) {
     ## Perform community clustering, which also updates nodes ----------------------------
     clustered <- specify_community_detect_network(graph, nodes, input$cluster_algorithm, input$cluster_palette)
 
+    ## Subset mineral nodes, used in modeling (this allows for testing) ------------------
+    clustered$nodes %>%
+      dplyr::filter(group == "mineral") %>%
+      dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% #sd_pauling
+      dplyr::mutate(cluster_ID = factor(cluster_ID)) %>%
+      dplyr::rename(!! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
+                    !! variable_to_title[["closeness"]] := closeness,
+                    !! variable_to_title[["mean_pauling"]] := mean_pauling,
+                    !! variable_to_title[["cov_pauling"]] := cov_pauling,
+                    !! variable_to_title[["num_localities"]] := num_localities,
+                    !! variable_to_title[["max_age"]] := max_age) -> mineral_nodes
+                    
     return (list("nodes" = clustered$nodes, 
                  "edges" = network$edges, 
                  "graph" = graph, 
                  "elements_of_interest" = elements_of_interest,
                  "age_lb" = age_limit[1],
                  "age_ub" = age_limit[2],
+                 "mineral_nodes" = mineral_nodes,
                  "locality_info" = initialized$locality_info,
                  "clustering"     = clustered$clustered_net, 
                  "cluster_colors" = clustered$cluster_colors))
@@ -630,8 +643,6 @@ app_server <- function( input, output, session ) {
   
   
   ## Render the "Analyze Network Minerals" tabPanel --------------------------------------------------------------
-       
-  
   linear_model_output <- reactive({
     
     ## Perform sanity checking on linear modeling options -------------------------------------
@@ -647,33 +658,21 @@ app_server <- function( input, output, session ) {
                             )  
       shiny::validate( shiny::need(input$predictor != input$response, ""))
     }
-    use_mineral_nodes <- chemistry_network()$nodes %>%
-      dplyr::filter(group == "mineral") %>%
-      dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% #sd_pauling
-      dplyr::mutate(cluster_ID = factor(cluster_ID)) %>%
-      dplyr::rename(!! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
-                    !! variable_to_title[["closeness"]] := closeness,
-                    !! variable_to_title[["mean_pauling"]] := mean_pauling,
-                    !! variable_to_title[["cov_pauling"]] := cov_pauling,
-                    !! variable_to_title[["num_localities"]] := num_localities,
-                    !! variable_to_title[["max_age"]] := max_age)  
-      # RENAME AT THE END # !! variable_to_title[["cluster_ID"]] := cluster_ID,   ###`Community Cluster`
-    
     
     ## Ensure there are sufficient numbers of minerals to analyze (>= 3) -------------------------------
-    if (nrow(use_mineral_nodes) < 3) {
+    if (nrow(chemistry_network()$mineral_nodes) < 3) {
       shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
                               "There are fewer than three minerals in your network. To perform statistics, you need at least three data points. Please construct a differet network.",
                               type = "error"
                             )  
-      shiny::validate( shiny::need(nrow(use_mineral_nodes) >= 3, ""))
+      shiny::validate( shiny::need(nrow(chemistry_network()$mineral_nodes) >= 3, ""))
       fitted_linear_model <- NULL
       plotted_linear_model <- NULL
     }
     ## Checks to perform if modeling clustering ---------------------------------------------------------
     if (input$predictor == cluster_ID_str)
     {
-      use_mineral_nodes %>%
+      chemistry_network()$mineral_nodes %>%
         dplyr::count(cluster_ID) %>% 
         dplyr::filter(n >= 3) %>% ## Only keep clusters with >=3 members 
         dplyr::select(cluster_ID) %>%
@@ -691,8 +690,8 @@ app_server <- function( input, output, session ) {
     } # END  if (input$predictor == cluster_ID_str)
     
     ## Perform modeling ----------------------------------------------------------------------------------
-    fitted_linear_model  <- fit_linear_model(input$response, input$predictor, use_mineral_nodes)
-    plotted_linear_model <- plot_linear_model(input$response, input$predictor, use_mineral_nodes, input$logx, input$logy, input$point_color, input$bestfit, input$bestfit_color, chemistry_network()$cluster_colors)
+    fitted_linear_model  <- fit_linear_model(input$response, input$predictor, chemistry_network()$mineral_nodes)
+    plotted_linear_model <- plot_linear_model(input$response, input$predictor, chemistry_network()$mineral_nodes, input$logx, input$logy, input$point_color, input$point_size, input$bestfit, input$bestfit_color, chemistry_network()$cluster_colors)
     if (fitted_linear_model$tukey_ok_variance == FALSE) 
     {
       shinyalert::shinyalert( "Caution!", ## Enjoyable random error
@@ -709,30 +708,32 @@ app_server <- function( input, output, session ) {
   }) ## END linear_model_output reactive
     
     
+  ## Renderings for linear model tab ------------------------------------------------------------------------------
     
   ## Render table with fitted model parameters and statistics, for any constructed model -----------------------
-  output$fitted_model <- DT::renderDataTable( rownames= FALSE, server=FALSE, extensions = 'Buttons', options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
+  output$fitted_model <- DT::renderDataTable( rownames= FALSE, extensions = 'Buttons', options = list(dom = 'Bp', buttons = c('copy', 'csv', 'excel')), { 
     linear_model_output()$fitted_linear_model$model_fit
   })
         
   ## Render table specifically for Tukey tests -----------------------------------------------------------------
-  output$fitted_tukey <- DT::renderDataTable( rownames= FALSE, server=FALSE, extensions = 'Buttons', options = list(dom = 'Bt', buttons = c('copy', 'csv', 'excel')), { 
+  output$fitted_tukey <- DT::renderDataTable( rownames= FALSE, extensions = 'Buttons', options = list(dom = 'Bp', buttons = c('copy', 'csv', 'excel')), { 
     linear_model_output()$fitted_linear_model$tukey_fit
   })
+
       
 
   ## Render plot of fitted model -------------------------------------------------------
   output$fitted_model_plot <- renderPlot({
-    print(linear_model_output()$plotted_linear_model) ## TODO: if null is this blank or throws error?
+    linear_model_output()$plotted_linear_model
   })      
   
-  ## FYI text for cluster analysis
+  ## FYI text for cluster analysis -----------------------------------------------------
   output$cluster_fyi <- renderText({
     "Note: Community clusters with fewer than three minerals are excluded from analysis.\n\n"
   })
 
       
-  ## Render the download button for model plot
+  ## Render the download button for model plot ------------------------------------------
   output$download_model_plot <- downloadHandler(
     filename = function() {
       paste("dragon_model_plot-", Sys.Date(), ".pdf", sep="")
