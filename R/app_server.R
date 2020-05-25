@@ -24,35 +24,40 @@ app_server <- function( input, output, session ) {
     
     if (length(elements_of_interest) == length(all_elements)) 
     {
-      shinyBS::createAlert(session, "alert", "all_elements_warning", title = "Warning", 
-                  content = '<p style="color:black;">Networks with all elements, especially at more recent time frames, may be very slow - please be patient.</p>')
+      shinyalert::shinyalert( "Warning!", 
+                              "Networks with all elements, especially at more recent time frames, may be very slow - please be patient.",
+                              type = "warning"
+                            )
     }
     
     elements_only <- initialize_data(elements_of_interest, force_all_elements)
-    if (nrow(elements_only) <= 0)
+    if (nrow(elements_only) == 0)
     {
-      shinyBS::createAlert(session, "alert", "bad_elements", title = '<h4 style="color:black;">Error</h4>', style = "warning",
-                  content = '<p style="color:black;">There is no network for selected element(s) as specified. Please specify new element(s).</p>')
-      
+      shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
+                              "There is no network for selected element(s) as specified.",
+                              type = "error"
+                            )        
       shiny::validate( shiny::need(nrow(elements_only) > 0, ""))
     }
 
     initialized <- initialize_data_age(elements_only, age_limit, max_age_type)
-    elements_only_age <- initialized$elements_only_age
-    # NOTE: initialized$locality_info is directly returned below, no need to define 
-    
+    elements_only_age <- initialized$elements_only_age    
     if (nrow(elements_only_age) == 0)
     {
-      shinyBS::createAlert(session, "alert", "bad_age", title = '<h4 style="color:black;">Error</h4>', style = "warning",
-                  content = '<p style="color:black;">There is no network for selected element(s) at the age specified. Please adjust input settings.</p>')
+       shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
+                              "There is no network for selected element(s) at the age range specified.",
+                              type = "error"
+                            )    
       shiny::validate( shiny::need(nrow(elements_only_age) > 0, ""))
     }
 
     network <- construct_network(elements_only_age, elements_by_redox)
     if (length(network) != 3 | nrow(network$nodes) == 0  | nrow(network$edges) == 0)
     {
-      shinyBS::createAlert(session, "alert", "bad_network", title = '<h4 style="color:black;">Error</h4>', style = "warning", 
-                           content = '<p style="color:black;">Network could not be constructed. Please adjust input settings.</p>')
+       shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
+                              "Network could not be constructed. Please adjust input settings.",
+                              type = "error"
+                            )  
       shiny::validate( shiny::need(length(network) ==3, "") )
     }
     nodes <- network$nodes 
@@ -294,8 +299,10 @@ app_server <- function( input, output, session ) {
       
       if(output_layout == "physics")
       {
-        shinyBS::createAlert(session, "alert", "pdf_layout", title = '<h4 style="color:black;">Error</h4>', style = "warning", 
-                             content = '<p style="color:black;">WARNING: Dynamic physics layout cannot be exported to PDF. Preparing export with Fruchterman-Reingold layout.</p>')
+        shinyalert::shinyalert("Warning!", ## Enjoyable random error
+                               "Dynamic physics layout cannot be exported to PDF. Preparing export with Fruchterman-Reingold layout.",
+                               type = "warning"
+                              ) 
         output_layout <- "layout_with_fr"
       }
       calculate_output_node_positions(node_styler()$styled_nodes, 
@@ -627,7 +634,6 @@ app_server <- function( input, output, session ) {
   
   linear_model_output <- reactive({
     
-    ## TODO: shinyBS STILL BORKED IN GOLEM... 
     ## Perform sanity checking on linear modeling options -------------------------------------
     
     ## Ensure different predictor/reponse variables -------------------------------------------
@@ -747,8 +753,10 @@ app_server <- function( input, output, session ) {
         na.omit -> element_validate
         if (nrow(element_validate) <= 0)
         {
-          shinyBS::createAlert(session, "alert", "bad_element_color_by", title = '<h4 style="color:black;">Error</h4>', style = "warning",
-                                content = '<p style="color:black;">The specified color scheme cannot be applied to elements due to insufficient node information in the MED database. Please select a different element color scheme.</p>')
+          shinyalert::shinyalert(sample(error_choices)[[1]], ## Enjoyable random error
+                                 "The specified color scheme cannot be applied to elements due to insufficient node information in the MED database. Please select a different element color scheme.",
+                                 type = "error"
+                                ) 
           shiny::validate( shiny::need(nrow(element_validate) > 0, ""))
         }
     }
@@ -761,8 +769,10 @@ app_server <- function( input, output, session ) {
         na.omit -> mineral_validate
       if (nrow(mineral_validate) <= 0)
       {
-        shinyBS::createAlert(session, "alert", "bad_mineral_color_by", title = '<h4 style="color:black;">Error</h4>', style = "warning",
-                             content = '<p style="color:black;">The specified color scheme cannot be applied to minerals due to insufficient node information in the MED database. Please select a different mineral color scheme.</p>')
+        shinyalert::shinyalert(sample(error_choices)[[1]], ## Enjoyable random error
+                               "The specified color scheme cannot be applied to minerals due to insufficient node information in the MED database. Please select a different mineral color scheme.",
+                               type = "error"
+                              ) 
         shiny::validate( shiny::need(nrow(mineral_validate) > 0, ""))
       }
     }
@@ -774,8 +784,10 @@ app_server <- function( input, output, session ) {
         na.omit -> edges_validate
       if (nrow(edges_validate) <= 0)
       {
-        shinyBS::createAlert(session, "alert", "bad_edge_color_by", title = '<h4 style="color:black;">Error</h4>', style = "warning",
-                             content = '<p style="color:black;">The specified color scheme cannot be applied to minerals due to insufficient node information in the MED database. Please select a different mineral color scheme.</p>')
+        shinyalert::shinyalert(sample(error_choices)[[1]], ## Enjoyable random error
+                               "The specified color scheme cannot be applied to edges due to insufficient node information in the MED database. Please select a different edge color scheme.",
+                               type = "error"
+                              ) 
         shiny::validate( shiny::need(nrow(edges_validate) > 0, ""))
       }
     }

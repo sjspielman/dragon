@@ -116,7 +116,8 @@ ordinal_color_variables <- c("element_hsab",  "TablePeriod", "TableGroup")
 
 #############################################################
 
-
+# mwahahahaha
+error_choices <- c("Oh no!", "Sorry, that's not gonna work.", "Try again!", "Womp womp :(", "No dice!", "Uh oh!", "Woopsies!")
 
 
 model_response_choices <- c(max_age_str,

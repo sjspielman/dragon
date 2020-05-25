@@ -5,11 +5,6 @@
 #' @import shiny
 #' @import shinydashboard
 #' @import shinyWidgets
-#' @import colourpicker
-#' @import shinyBS
-#' @import visNetwork
-#' @import DT
-#' @import shinyWidgets
 #' @noRd
 app_ui <- function(request) {
   tagList(
@@ -40,26 +35,27 @@ app_ui <- function(request) {
                         multiple = TRUE
             ), ## END pickerInput
             
-            tipify( 
+            ## shinyBS does not work with golem. 
+            #shinyBS::tipify( 
               sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = total_max_age, step = 0.1, value = c(0,total_max_age)), 
-              title = "Based on mineral discovery dates as recorded in MED"
-            ), ## END tipify
-            tipify(
+            #  title = "Based on mineral discovery dates as recorded in MED"
+            #), ## END tipify
+            #shinyBS::tipify(
               prettyRadioButtons("max_age_type", "Use maximum or minimum age of minerals", inline = TRUE, choices = c("Maximum", "Minimum"), selected="Maximum", status="danger"),
-              title = "Determines which recorded date (maximum or minimum) is considered for including minerals in the network."
-            ), ## END tipify
-            tipify(
+            #  title = "Determines which recorded date (maximum or minimum) is considered for including minerals in the network."
+            #), ## END tipify
+            #shinyBS::tipify(
               prettySwitch("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger"),
-              title = "Separate element nodes into one per redox state, e.g. rather than one node for Iron (Fe) there may be several nodes such as Fe3+ and Fe2+, etc."
-            ), ## END tipify        
-            tipify(
+            #  title = "Separate element nodes into one per redox state, e.g. rather than one node for Iron (Fe) there may be several nodes such as Fe3+ and Fe2+, etc."
+            #), ## END tipify        
+            #shinyBS::tipify(
               prettySwitch("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
-              title = "When multiple elements are selected, this option ensures that only minerals containing all elements appear in the network."
-            ), ## END tipify
-            tipify(
+            #  title = "When multiple elements are selected, this option ensures that only minerals containing all elements appear in the network."
+            #), ## END tipify
+            #shinyBS::tipify(
               prettySwitch("build_only","Build network without display",value = FALSE, status="danger"),
-              title = "When checked, you will be able to build export the specified network but it will not be displayed. Useful for extremely large networks."
-            ), ## END tipify
+            #  title = "When checked, you will be able to build export the specified network but it will not be displayed. Useful for extremely large networks."
+            #), ## END tipify
             
             
             
@@ -67,7 +63,7 @@ app_ui <- function(request) {
             menuItem("Network layout and clustering options",
               fluidRow(
                 column(8,
-                  tipify(
+                  #shinyBS::tipify(
                     pickerInput("network_layout", tags$span(style="font-weight:400", "Network layout:"),
                       choices = list(
                         `Force-directed` = c("Fruchterman Reingold" = "layout_with_fr",
@@ -78,15 +74,15 @@ app_ui <- function(request) {
                                   "Layout in sphere"            = "layout_on_sphere")
                         
                       )
-                    ),
-                    title = "Algorithm for rendering the initial state of the interactive network"
-                  ) ## END tipify
+                    ) #, # RESTORE COMMA IF RESTORING TIPIFY
+                  #  title = "Algorithm for rendering the initial state of the interactive network"
+                 # ) ## END tipify
                 ), ## END column
                 column(4,
-                  tipify(
-                    numericInput("network_layout_seed", tags$span(style="font-weight:400", "Seed:"), min = 0, max = Inf, value = 1),
-                    title = "Set the random seed for stochastic (force-directed and dynamic) network layouts here."
-                  ) ## END tipify            
+                  #shinyBS::tipify(
+                    numericInput("network_layout_seed", tags$span(style="font-weight:400", "Seed:"), min = 0, max = Inf, value = 1) #,# RESTORE COMMA IF RESTORING TIPIFY
+                  #  title = "Set the random seed for stochastic (force-directed and dynamic) network layouts here."
+                 # ) ## END tipify            
                 )  ## END column
               ), ## END fluidRow
               conditionalPanel('input.network_layout == "physics"', {
@@ -129,7 +125,7 @@ app_ui <- function(request) {
                        ), ## END column
                        column(5, 
                               conditionalPanel(condition = "input.color_element_by == 'singlecolor'",   
-                                               {colourInput("element_color", "Color:", value = "skyblue")}
+                                               {colourpicker::colourInput("element_color", "Color:", value = "skyblue")}
                               ), ## END conditionalPanel         
                               conditionalPanel(condition = "input.color_element_by != 'singlecolor'",
                                                {pickerInput("element_palette", label = "Palette:",
@@ -156,7 +152,7 @@ app_ui <- function(request) {
                        ), ## END column
                        column(5,
                               conditionalPanel(condition = "input.color_mineral_by == 'singlecolor'",   
-                                               {colourInput("mineral_color", "Color:", value = "firebrick3")}
+                                               {colourpicker::colourInput("mineral_color", "Color:", value = "firebrick3")}
                               ), ## END conditionalPanel   
                               conditionalPanel(condition = "input.color_mineral_by != 'singlecolor'",   
                                                {pickerInput("mineral_palette", label = "Palette:",
@@ -195,7 +191,7 @@ app_ui <- function(request) {
                               prettySwitch("highlight_element","Highlight focal element(s)", value = FALSE,  status = "danger")
                        ), ## END column
                        column(5, 
-                              colourInput("highlight_color", "Color:", value = "lightgoldenrod1")
+                              colourpicker::colourInput("highlight_color", "Color:", value = "lightgoldenrod1")
                        ) ## END column
                      ), ## END fluidRow
                      fluidRow(
@@ -203,7 +199,7 @@ app_ui <- function(request) {
                               uiOutput("choose_custom_elements_color")
                        ), ## END column                
                        column(5, 
-                              colourInput("custom_selection_color", "Color:", value = "chartreuse3")
+                              colourpicker::colourInput("custom_selection_color", "Color:", value = "chartreuse3")
                        ) ## END column   
                      ) ## END fluidRow
             ), ## END "Color individual elements" menuItem
@@ -254,10 +250,10 @@ app_ui <- function(request) {
             
             menuItem(text = "Node Labels and Font", 
                      fluidRow(
-                       column(6, colourInput("element_label_color","Element font color",value = "#000000"))
+                       column(6, colourpicker::colourInput("element_label_color","Element font color",value = "#000000"))
                      ),  ## END fluidRow
                      fluidRow( 
-                       column(6, colourInput("mineral_label_color","Mineral font color",value = "#000000")),
+                       column(6, colourpicker::colourInput("mineral_label_color","Mineral font color",value = "#000000")),
                        column(6, sliderInput("mineral_label_size","Mineral font size",value=0,min=0,max=50))
                      ) ## END fluidRow
             ), ## END "Node Labels and Font" menuItem
@@ -298,7 +294,7 @@ app_ui <- function(request) {
                        ), ## END column
                        column(6,
                           conditionalPanel(condition = "input.color_edge_by == 'singlecolor'", {  
-                            colourInput("edge_color", "Color:", value = "#5E5E5E")
+                            colourpicker::colourInput("edge_color", "Color:", value = "#5E5E5E")
                           }),
                          conditionalPanel(condition = "input.color_edge_by != 'singlecolor'", { 
                            pickerInput("edge_palette", label = "Palette:",
@@ -338,7 +334,6 @@ app_ui <- function(request) {
             tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
           ),
           fluidRow(
-            shinyBS::bsAlert("alert"),  
             div(style = "margin-right:1%; margin-left:1%;", ## div0                  
                 
               ## MAIN TOP TABBOX ---------------------------------------------------------------------------------------------
@@ -363,7 +358,7 @@ app_ui <- function(request) {
                       )
                     }), ## END `true` conditionalPanel
                     
-                    visNetworkOutput("networkplot", height = "90%") #NOTE: this cannot be in a conditionalPanel; div1 gets ignored
+                    visNetwork::visNetworkOutput("networkplot", height = "90%") #NOTE: this cannot be in a conditionalPanel; div1 gets ignored
                   ), ## END div1
                    
                   conditionalPanel('input.build_only == false', {
@@ -395,7 +390,6 @@ app_ui <- function(request) {
                 ## ANALYZE NETWORK PANEL ---------------------------------------------------------------------------------------------                   
                 shiny::tabPanel("Analyze Network Minerals",
                   helpText("In this tab, you can construct a linear regression model to analyze properties of minerals in the specified network."),
-                  bsAlert("lm_alert"),
                   
                   fluidRow(
                     column(4, 
@@ -433,8 +427,8 @@ app_ui <- function(request) {
                       prettySwitch("logy", "Use log scale on Y-axis", value = FALSE, status="danger",),
                       prettySwitch("bestfit", "Show regression line (with 95% confidence interval).", value = FALSE, status="danger"),
                       fluidRow(
-                        column(6, colourInput("point_color", "Color for points", value = "black")),
-                        column(6, colourInput("bestfit_color", "Color for regression line", value = "blue"))
+                        column(6, colourpicker::colourInput("point_color", "Color for points", value = "black")),
+                        column(6, colourpicker::colourInput("bestfit_color", "Color for regression line", value = "blue"))
                       ),
                       div(style="display:inline-block; float:right;",
                           downloadBttn("download_model_plot", "Download Plot", size = "sm", style = "minimal", color = "danger")
@@ -593,7 +587,7 @@ golem_add_external_resources <- function(){
   tags$head(
     golem::favicon(),
     golem::activate_js(),
-    #shinyalert::useShinyalert(),# CAN THIS WORK?
+    shinyalert::useShinyalert(),# CAN THIS WORK?
     bundle_resources(
       path = app_sys('app/www'),
       app_title = 'dragon'
