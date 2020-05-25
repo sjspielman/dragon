@@ -639,8 +639,12 @@ app_server <- function( input, output, session ) {
     ## Ensure different predictor/reponse variables -------------------------------------------
     if (input$predictor == input$response)
     {
-      createAlert(session, "lm_alert", "same_pred_resp", title = '<h4 style="color:black;">Error</h4>', style = "warning",
-                  content = '<p style="color:black;">You have selected the same predictor and response variable. Please select new variable(s).</p>')
+    
+    
+      shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
+                              "You have selected the same predictor and response variable. Please select new variable(s)",
+                              type = "error"
+                            )  
       shiny::validate( shiny::need(input$predictor != input$response, ""))
     }
     use_mineral_nodes <- chemistry_network()$nodes %>%
@@ -658,8 +662,10 @@ app_server <- function( input, output, session ) {
     
     ## Ensure there are sufficient numbers of minerals to analyze (>= 3) -------------------------------
     if (nrow(use_mineral_nodes) < 3) {
-      createAlert(session, "lm_alert", "not_enough_minerals", title = '<h4 style="color:black;">Error</h4>', style = "warning",
-                  content = '<p style="color:black;">There are fewer than three minerals in your network. To perform statistics, you need at least three data points. Please construct a differet network.</p>')
+      shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
+                              "There are fewer than three minerals in your network. To perform statistics, you need at least three data points. Please construct a differet network.",
+                              type = "error"
+                            )  
       shiny::validate( shiny::need(nrow(use_mineral_nodes) >= 3, ""))
       fitted_linear_model <- NULL
       plotted_linear_model <- NULL
@@ -675,14 +681,13 @@ app_server <- function( input, output, session ) {
         nrow() -> n_clusters ## Need at least two to compare, see the if below.
       
       if ( n_clusters < 2  )
-      {                       
-        createAlert(session, "lm_alert", "not_enough_clusters", title = '<h4 style="color:black;">Error</h4>', style = "warning",
-                    content = '<p style="color:black;">There is insufficient data to analyze community clusters. Please select a different predictor variable.</p>')
+      {    
+      shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
+                              "There is insufficient data to analyze community clusters. Please select a different predictor variable.",
+                              type = "error"
+                            )
         shiny::validate( shiny::need(n_clusters >= 2, ""))
-        cluster_fyi_text <- ""
-      } else {            
-        cluster_fyi_text <- "Note: Only those community clusters with at least three minerals are considered for this analysis.\n\n"
-      }
+      } 
     } # END  if (input$predictor == cluster_ID_str)
     
     ## Perform modeling ----------------------------------------------------------------------------------
@@ -690,8 +695,10 @@ app_server <- function( input, output, session ) {
     plotted_linear_model <- plot_linear_model(input$response, input$predictor, use_mineral_nodes, input$logx, input$logy, input$point_color, input$bestfit, input$bestfit_color, chemistry_network()$cluster_colors)
     if (fitted_linear_model$tukey_ok_variance == FALSE) 
     {
-      createAlert(session, "lm_alert", "bad_clusters", title = '<h4 style="color:black;">Warning</h4>', style = "warning",
-                  content = '<p style="color:black;">Caution: Community clusters have unequal variances and modeling results may not be precise.</p>')
+      shinyalert::shinyalert( "Caution!", ## Enjoyable random error
+                              "Community clusters have unequal variances and modeling results may not be precise.",
+                              type = "warning"
+                            )
     }
     
     
@@ -718,7 +725,11 @@ app_server <- function( input, output, session ) {
   output$fitted_model_plot <- renderPlot({
     print(linear_model_output()$plotted_linear_model) ## TODO: if null is this blank or throws error?
   })      
-      
+  
+  ## FYI text for cluster analysis
+  output$cluster_fyi <- renderText({
+    "Note: Community clusters with fewer than three minerals are excluded from analysis.\n\n"
+  })
 
       
   ## Render the download button for model plot
