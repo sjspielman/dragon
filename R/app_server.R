@@ -267,7 +267,6 @@ app_server <- function( input, output, session ) {
     ## NOTE: *must* remain within observeEvent(input$go, 
     ## NOTE: input$store_position is the "Click to prepare network for export to PDF." button
     observeEvent(input$store_position, {
-      print("observe store position")
       # TODO does this need a build_only == F?
       #if (build_only == FALSE) visNetworkProxy("networkplot") %>% visGetPositions()
       visNetworkProxy("networkplot") %>% visGetPositions()
@@ -434,7 +433,9 @@ app_server <- function( input, output, session ) {
                          input$columns_selectednode_element, 
                          input$columns_selectednode_netinfo, 
                          input$columns_selectednode_locality)
-      final_node_table <- build_node_table(chemistry_network$nodes, 
+      final_node_table <- build_node_table(chemistry_network()$nodes, 
+                                           chemistry_network()$edges, 
+                                           chemistry_network()$locality_info, 
                                            input$networkplot_selected,
                                            input$networkplot_selectedBy,
                                            selected_vars)
@@ -444,21 +445,23 @@ app_server <- function( input, output, session ) {
   
 
   
-  
-  output$nodeTable <- DT::renderDataTable( rownames= FALSE, escape = FALSE, ### escape=FALSE for HTML rendering, i.e. the IMA formula
+
+  output$nodeTable <- DT::renderDataTable( rownames= FALSE, escape = FALSE,  ### escape=FALSE for HTML rendering, i.e. the IMA formula
                                 node_table(), 
-                                extensions = c('ColReorder', 'Responsive'),
+                                extensions = c('ColReorder', 'Responsive', 'Buttons'),
                                 options = list(
                                   dom = 'Bfrtip',
-                                  colReorder = TRUE)
+                                  buttons = c('copy', 'csv', 'excel'),
+                                  colReorder = TRUE
+                                )
   )
   
-  output$download_nodeTable <- downloadHandler(
-    filename <- function() { paste0('dragon_selected_node_information_', Sys.Date(), '.csv') },
-    content <- function(file) 
-    {
-      write_csv(node_table(), file)
-    })
+  #output$download_nodeTable <- downloadHandler(
+  #  filename <- function() { paste0('dragon_selected_node_information_', Sys.Date(), '.csv') },
+  #  content <- function(file) 
+  #  {
+  #    readr::write_csv(node_table(), file)
+  #  })
   
   output$show_nodeTable <- renderUI({
     box(width=12,status = "primary", 
