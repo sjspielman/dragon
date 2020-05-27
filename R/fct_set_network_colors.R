@@ -99,3 +99,15 @@ obtain_node_sizes <- function(dat, size_variable, lowsize, highsize, size_scale 
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+

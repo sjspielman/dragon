@@ -115,7 +115,27 @@ app_server <- function( input, output, session ) {
     )
   })
   
-  
+ 
+
+  output$choose_nodes <- renderUI({
+    chemistry_network()$nodes %>%
+      dplyr::select(id, group) %>%
+      dplyr::arrange(desc(group)) %>%
+      dplyr::pull(id) -> ordered_ids
+    
+    ordered_ids <- c("All elements", "All minerals", ordered_ids)
+    
+    
+    shinyWidgets::pickerInput("selected_nodes_custom", 
+                              "Which nodes to select?",             
+                              choices = unique(ordered_ids),
+                              options = list(`actions-box` = TRUE, size = 6), 
+                              multiple = TRUE,
+                              selected = input$elements_of_interest,
+                              width = "200px"
+    )
+  })
+   
   
   
   
@@ -251,7 +271,7 @@ app_server <- function( input, output, session ) {
                       ) %>%
             visEdges(color = input$edge_color,
                      width = input$edge_weight,
-                     smooth = FALSE)  ## smooth=FALSE has no visual effect that I can perceive, and improves speed. Cool.
+                     smooth = FALSE) ## smooth=FALSE has no visual effect that I can perceive, and improves speed. Cool.
         } ## END if(build_only == FALSE)
       })  ## END isolate()        
     }) ## END renderVisNetwork({})
@@ -295,15 +315,14 @@ app_server <- function( input, output, session ) {
                       nodesIdSelection = list(enabled = TRUE, main  = "Select an individual node."))
       }
     }) ## END observe
-    
-    
-    
-    ## Build the final legend image ---------------------------------------------------------------------
-    final_legend <- reactive({
-      build_legend(edge_styler(), node_styler())
-    })  ## END final_legend reactive
-    
-    
+
+  }) ## END observeEvent(input$go,
+  
+  
+
+  
+  ## DOWNLOAD LINKS ------------------------------------------------------------------------
+
     ## Prepare the nodes for download based on current positions -------------------------------------------
     styled_nodes_with_positions <- reactive({
       output_layout <- isolate(input$network_layout)
@@ -326,15 +345,12 @@ app_server <- function( input, output, session ) {
     
     
     
-  }) ## END observeEvent(input$go,
-  
-  
-  
-  
-
-  
-  ## DOWNLOAD LINKS ------------------------------------------------------------------------
-  
+  ## Build the final legend image ---------------------------------------------------------------------
+  final_legend <- reactive({
+    build_legend(edge_styler(), node_styler())
+  })  ## END final_legend reactive
+    
+    
   ## Download the network as PDF image -----------------------------------------------------
   output$downloadNetwork_pdf <- downloadHandler(
     filename <- function() { paste0('dragon_network_', Sys.Date(), '.pdf') },
@@ -343,6 +359,9 @@ app_server <- function( input, output, session ) {
       ## NOTE: `visnetwork_to_igraph()` function is in fct_network_export.R
       igraph_version <- visnetwork_to_igraph(styled_nodes_with_positions(), 
                                              edge_styler()$styled_edges, 
+                                             input$baseline_output_element_size,
+                                             input$baseline_output_element_label_size,
+                                             input$baseline_output_mineral_size,
                                              input$output_pdf_node_frame)      
       
       grDevices::pdf(outfile, 
@@ -395,14 +414,15 @@ app_server <- function( input, output, session ) {
   ## Define the DT to display network_table() reactive ---------------------------------------------
   output$networkTable <- DT::renderDataTable(rownames= FALSE,   
                                              network_table(),
-                                             extensions = c('ColReorder', 'Responsive'),
+                                             extensions = c('ColReorder', 'Responsive', 'Buttons'),
                                              options = list(
                                                dom = 'Bfrtip',
+                                               buttons = c('copy', 'csv', 'excel'),
                                                colReorder = TRUE
                                              )
   ) 
   
-  
+
   
   ## Define the download button for network_table() reactive ---------------------------------------------
   output$download_networkTable <- downloadHandler(
@@ -412,38 +432,49 @@ app_server <- function( input, output, session ) {
       readr::write_csv(network_table(), file)
     })
   
-  
-  
+  # OH SHIT SEGFAULT. seriously why the fuck does this segf
+  raw_node_table <- reactive({
+    prepare_selected_node_table(chemistry_network()$nodes, chemistry_network()$edges, chemistry_network()$locality_info)
+  })
   
   ## RENDER THE "Selected Node Information" BOX --------------------------------------------------------------------------------
   node_table <- reactive({
-    # hello plz react to us thank you.
-    list(input$networkplot_selectedBy, 
-         input$networkplot_selected, 
-         input$columns_selectednode_mineral, 
+    selected_nodes <- input$selected_nodes_custom
+    list(input$columns_selectednode_mineral, 
          input$columns_selectednode_element, 
-         input$columns_selectednode_netinfo, 
-         input$columns_selectednode_locality)
-                
-    if ( input$networkplot_selected == "" & input$networkplot_selectedBy == "" )
+         #input$columns_selectednode_netinfo, 
+         input$columns_selectednode_locality) -> columns_to_display
+    if (!is.null(selected_nodes))
     {
-      final_node_table <- NULL
-    } else {
-      selected_vars <- c(input$columns_selectednode_mineral, 
-                         input$columns_selectednode_element, 
-                         input$columns_selectednode_netinfo, 
-                         input$columns_selectednode_locality)
-      final_node_table <- build_node_table(chemistry_network()$nodes, 
-                                           chemistry_network()$edges, 
-                                           chemistry_network()$locality_info, 
-                                           input$networkplot_selected,
-                                           input$networkplot_selectedBy,
-                                           selected_vars)
+      minerals <- chemistry_network()$nodes$id[chemistry_network()$nodes$group == "mineral"]
+      elements <- chemistry_network()$nodes$id[chemistry_network()$nodes$group == "element"]
+    
+      ## Replace all with actual ids
+      if ("All minerals" %in% selected_nodes){
+        selected_nodes <- selected_nodes[selected_nodes!= "All minerals"]
+        selected_nodes <- c(selected_nodes, minerals)
+      }
+      if ("All elements" %in% selected_nodes){
+        selected_nodes <- selected_nodes[selected_nodes!= "All elements"]
+        selected_nodes <- c(selected_nodes, elements)
+      } 
+      
+      ## Reveal table unless it is false
+      if(raw_node_table() == FALSE){
+        shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
+                              "Error rendering node table. Please file an issue at https://github.com/spielmanlab/dragon/issues",
+                              type = "error"
+                            )        
+        shiny::validate( shiny::need(raw_node_table() != FALSE, ""))
+      }
+      ## TODO waiting on usability feedback here
+      raw_node_table()
+      #build_node_table( raw_node_table(), columns_to_display )
+    }  else {
+      tibble::tibble()
     } 
-    final_node_table 
-  })
-  
 
+  })
   
 
   output$nodeTable <- DT::renderDataTable( rownames= FALSE, escape = FALSE,  ### escape=FALSE for HTML rendering, i.e. the IMA formula
@@ -456,16 +487,12 @@ app_server <- function( input, output, session ) {
                                 )
   )
   
-  #output$download_nodeTable <- downloadHandler(
-  #  filename <- function() { paste0('dragon_selected_node_information_', Sys.Date(), '.csv') },
-  #  content <- function(file) 
-  #  {
-  #    readr::write_csv(node_table(), file)
-  #  })
   
   output$show_nodeTable <- renderUI({
     box(width=12,status = "primary", 
         title = "Selected Node Information", collapsible = TRUE,
+        uiOutput("choose_nodes"),
+        br(),
         tags$b("Choose which variables to include in table."),
         br(),
         #div(style="display:inline-block;vertical-align:top;",
@@ -486,21 +513,22 @@ app_server <- function( input, output, session ) {
               label = tags$span(style="font-weight:700", "Element variables:"), 
               choices = selected_node_table_column_choices_element
             )),
-        div(style="display:inline-block;vertical-align:top;",
-            prettyCheckboxGroup(
-              inputId = "columns_selectednode_netinfo",
-              label = tags$span(style="font-weight:700", "Network variables:"), 
-              choices = selected_node_table_column_choices_netinfo
-            )),
+        #div(style="display:inline-block;vertical-align:top;",
+        #    prettyCheckboxGroup(
+        #      inputId = "columns_selectednode_netinfo",
+        #      label = tags$span(style="font-weight:700", "Network variables:"), 
+        #      choices = selected_node_table_column_choices_netinfo
+        #    )),
         div(style="display:inline-block;vertical-align:top;",
             prettyCheckboxGroup(
               inputId = "columns_selectednode_locality",
               label = tags$span(style="font-weight:700", "Locality variables:"), 
               choices = selected_node_table_column_choices_locality
             )),
-        div(style="font-size:85%;", DT::dataTableOutput("nodeTable")),
-        br(),
-        div(style = "float:right;", downloadBttn("download_nodeTable", "Download selected node information", size = "xs", style = "bordered", color = "danger"))
+        div(style="font-size:85%;", 
+          DT::dataTableOutput("nodeTable")
+        ),
+        br()
     )
   })   
   observeEvent(input$include_all_selectednodes, {
@@ -512,10 +540,10 @@ app_server <- function( input, output, session ) {
                               inputId="columns_selectednode_element", 
                               choices = selected_node_table_column_choices_element, 
                               selected = selected_node_table_column_choices_element)
-    updatePrettyCheckboxGroup(session=session, 
-                              inputId="columns_selectednode_netinfo", 
-                              choices = selected_node_table_column_choices_netinfo, 
-                              selected = selected_node_table_column_choices_netinfo)
+    #updatePrettyCheckboxGroup(session=session, 
+    #                          inputId="columns_selectednode_netinfo", 
+    #                          choices = selected_node_table_column_choices_netinfo, 
+    #                          selected = selected_node_table_column_choices_netinfo)
     updatePrettyCheckboxGroup(session=session, 
                               inputId="columns_selectednode_locality", 
                               choices = selected_node_table_column_choices_locality, 
@@ -531,10 +559,10 @@ app_server <- function( input, output, session ) {
                               inputId="columns_selectednode_element", 
                               choices = selected_node_table_column_choices_element, 
                               selected = NULL)
-    updatePrettyCheckboxGroup(session=session, 
-                              inputId="columns_selectednode_netinfo", 
-                              choices = selected_node_table_column_choices_netinfo, 
-                              selected = NULL)
+    #updatePrettyCheckboxGroup(session=session, 
+    #                          inputId="columns_selectednode_netinfo", 
+    #                          choices = selected_node_table_column_choices_netinfo, 
+    #                          selected = NULL)
     updatePrettyCheckboxGroup(session=session, 
                               inputId="columns_selectednode_locality", 
                               choices = selected_node_table_column_choices_locality, 

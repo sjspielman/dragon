@@ -377,13 +377,7 @@ app_ui <- function(request) {
                         DT::dataTableOutput("networkTable")
                       )
                     ) ## END column
-                  ), ## END fluidRow
-                  br(),
-                  fluidRow(
-                    column(width = 2, offset = 10,
-                      downloadBttn("download_networkTable", "Download network information", size = "xs", style = "bordered", color = "danger")
-                    )
-                  )  ## END fluidRow
+                  ) ## END fluidRow
                 ), ## END "Network Information" tabPanel
                  
                  
@@ -457,10 +451,12 @@ app_ui <- function(request) {
                              "Click to prepare network for export to PDF.", 
                              color = "danger", 
                              style = "fill", 
-                             block = TRUE), 
-                    
+                             block = TRUE),            
                   div(style = "float:left;margin-top:20px;",
                     dropdownButton(circle =FALSE, up=TRUE, label  = "PDF options", icon = icon("cogs", lib = "font-awesome"), status = "info", width = "250px", size = "default",
+                      numericInput("baseline_output_element_size", "Scale element node size", value = 1, max=5, step = 0.5),
+                      numericInput("baseline_output_element_label_size", "Scale element node label size", value = 1, max=5, step = 0.5),
+                      numericInput("baseline_output_mineral_size", "Scale mineral node size",  value = 1, max=5, step = 0.5),
                       numericInput("output_pdf_width", "Width of network PDF", min=1, max=20, 10),
                       numericInput("output_pdf_height", "Height of network PDF", min=1, max=20, 6),
                       prettySwitch("output_pdf_node_frame","Show node outlines in PDF?",value = FALSE, status="danger")

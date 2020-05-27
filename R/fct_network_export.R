@@ -1,6 +1,6 @@
 ##########################################################################################################################
 ######################## Convert visNetwork to suitable igraph version for exporting the image ###########################
-visnetwork_to_igraph <- function(nodes, edges, show_node_frame)
+visnetwork_to_igraph <- function(nodes, edges, input_element_size_scale, input_element_label_scale, input_mineral_size_scale, show_node_frame)
 {
   
   ####################### BASELINES ###########################
@@ -93,19 +93,30 @@ visnetwork_to_igraph <- function(nodes, edges, show_node_frame)
   
   dplyr::bind_rows(minerals, elements) %>% ## elements on top so bottom of df
     dplyr::group_by(group) %>%
-    dplyr::mutate(rescale_cex = max(label.cex) > max_cex_limit,
-           rescale_size = max(size) > max_size_limit) %>%               
+    dplyr::mutate(rescale_cex  = max(label.cex) > max_cex_limit,
+                  rescale_size = max(size) > max_size_limit) %>%               
     ## Cap max sizes
     dplyr::mutate(label.cex = ifelse(rescale_cex,
                               (label.cex / max(label.cex)) * max_cex_limit,
                               label.cex),
-           size      = ifelse(rescale_size,
-                              (size / max(size)) * max_size_limit,
-                              size)) %>%
+                  size      = ifelse(rescale_size,
+                                    (size / max(size)) * max_size_limit,
+                                    size)) %>%
     ### ungroup ungroup ungroup!!!!! for coords
     dplyr::ungroup() -> nodes_igraph
   
-  
+  ## Input size scaling
+  nodes_igraph %<>%
+    dplyr::mutate(label.cex = ifelse(group == "element", 
+                                     label.cex * input_element_label_scale,
+                                     label.cex
+                                    ),
+                  size = ifelse(group == "element", 
+                                     size * input_element_size_scale,
+                                     size * input_mineral_size_scale
+                                )
+                  )
+   
   nodes_igraph %>%
     dplyr::select(x, y) %>% ## Select order can flip 180, FYI
     ## igraph plots upside down from visNetwork, because sure why not, so flip the sign.
@@ -119,7 +130,6 @@ visnetwork_to_igraph <- function(nodes, edges, show_node_frame)
   
   return (list("igraph_network" = inet, "coords" = as.matrix(coords), "vis_aspect_ratio" = vis_aspect_ratio))
 }
-
 
 
 
