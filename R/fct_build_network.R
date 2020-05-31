@@ -22,7 +22,7 @@ rruff_separated <- element_redox_states %>% dplyr::select(-element_redox_mineral
 #' @param max_age_type         A string indicating how mineral ages should be assessed. If "Maximum" (default), filters minerals using maximum known ages at localities. If "Minimum", filters minerals using minimum known ages at localities. 
 #' @param cluster_algorithm    A string giving community clustering algorithm, one of "Louvain" (default) or "Leading eigenvector". 
 #' 
-#' @returns Named list containing an igraph-formatted network ('network'), a tibble of nodes and associated metadata ('nodes'), and a tibble of edges and associated metadata  ('edges')
+#' @returns Named list containing an igraph-formatted network ('network'), an igraph-formatted list of cluster memberships ('clustering'), a tibble of nodes and associated metadata ('nodes'), and a tibble of edges and associated metadata  ('edges')
 #' 
 #' @examples
 #' # Include all Iron minerals whose maximum known age is between 1-2 Gya, and apply Louvain clustering
@@ -61,7 +61,8 @@ initialize_network <- function(elements_of_interest,
   clustered   <- specify_community_detect_network(network_raw$graph, network_raw$nodes, "Louvain")
   return(list("network" = network_raw$graph,
                "nodes"  =  clustered$nodes,
-               "edges"  =  network_raw$edges
+               "edges"  =  network_raw$edges,
+               "clustering" = clustered$clustered
               )
         )
 }

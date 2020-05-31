@@ -218,7 +218,7 @@ test_that("fct_build_network::initialize_network() works", {
                      age_range         = c(0, 5),
                      max_age_type      = "Maximum",
                      cluster_algorithm = "Louvain")
-  expect_equal(sort(names(output)), sort(c("edges", "nodes", "network")))
+  expect_equal(sort(names(output)), sort(c("edges", "nodes", "network", "clustering")))
 
   ## Crack full network
   output_all <- initialize_network("all", 
@@ -227,6 +227,6 @@ test_that("fct_build_network::initialize_network() works", {
                      age_range         = c(0, 5),
                      max_age_type      = "Maximum",
                      cluster_algorithm = "Louvain")
-  expect_equal(sort(names(output_all)), sort(c("edges", "nodes", "network")))
+  expect_equal(sort(names(output_all)), sort(c("edges", "nodes", "network", "clustering")))
 })
 
