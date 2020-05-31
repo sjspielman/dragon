@@ -60,7 +60,7 @@ initialize_network <- function(elements_of_interest,
 
   clustered   <- specify_community_detect_network(network_raw$graph, network_raw$nodes, "Louvain")
   return(list("network" = network_raw$graph,
-               "nodes"  =  network_raw$nodes,
+               "nodes"  =  clustered$nodes,
                "edges"  =  network_raw$edges
               )
         )
@@ -262,10 +262,11 @@ construct_network   <- function(elements_only_age, elements_by_redox)
 #' @param cluster_algorithm    A string giving community clustering algorithm, one of "Louvain" (default) or "Leading eigenvector". 
 specify_community_detect_network <- function(network, nodes, cluster_algorithm)
 {
-  if (!(cluster_algorithm %in% allowed_cluter_algorithms)) stop("Cluster algorithm must be one of either 'Louvain' or 'Leading eigenvector'.")
+  if (!(cluster_algorithm %in% allowed_cluster_algorithms)) stop("Cluster algorithm must be one of either 'Louvain' or 'Leading eigenvector'.")
   
-  if (cluster_algorithm == "Louvain")             clustered_net <- igraph::cluster_louvain(network)
-  if (cluster_algorithm == "Leading eigenvector") clustered_net <- igraph::cluster_leading_eigen(network)
+  
+  if (cluster_algorithm == cluster_alg_louvain_str) clustered_net <- igraph::cluster_louvain(network)
+  if (cluster_algorithm == cluster_alg_eig_str)     clustered_net <- igraph::cluster_leading_eigen(network)
 
   ## Update nodes ----------------------------
   tibble::tibble( "id"                = clustered_net$names, 

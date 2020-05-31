@@ -111,7 +111,9 @@ variable_to_title <-  c("element_redox_mineral" = element_redox_mineral_str,
 element_hsab_levels  <- c("Hard acid", "Int. acid", "Soft acid", "Soft base", "Int. base", "Hard base")
 
 
-allowed_cluster_algorithms <- c("Louvain", "")
+cluster_alg_louvain_str <- "Louvain"
+cluster_alg_eig_str <- "Leading eigenvector"
+allowed_cluster_algorithms <- c(cluster_alg_louvain_str, cluster_alg_eig_str)
 
 
 # TODO THIS IS WRONG NOW

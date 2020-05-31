@@ -1,6 +1,5 @@
 initialized <- initialize_network("B", age_range = c(0,5))
-clustered   <- specify_community_detect_network(initialized$graph, initialized$nodes)
-clustered$nodes %>%
+initialized$nodes %>%
   dplyr::filter(group == "mineral") %>%
   dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% #sd_pauling
   dplyr::mutate(cluster_ID = factor(cluster_ID)) %>%
@@ -13,7 +12,7 @@ clustered$nodes %>%
 point_color <- "red" 
 point_size <- 2.33 
 bestfit_color <- "orange"
-n_clusters <- length(unique(clustered$nodes$cluster_ID))
+n_clusters <- length(unique(initialized$nodes$cluster_ID))
 
 
 test_that("fct_run_linear_models::fit_linear_model() with numeric predictor", {
@@ -72,7 +71,7 @@ test_that("fct_run_linear_models::plot_linear_model() with numeric predictor", {
 test_that("fct_run_linear_models::plot_linear_model() with cluster predictor", {
   predictor <- variable_to_title[["cluster_ID"]]
   response <- variable_to_title[["num_localities"]]
-  cluster_colors <- clustered$cluster_colors
+  cluster_colors <- set_cluster_colors("Set2", n_clusters)
   test_plotted <- plot_linear_model(response, predictor, mineral_nodes, FALSE, FALSE, point_color, point_size, TRUE, bestfit_color, cluster_colors)
   
   plot_data_geom_point <- ggplot2::ggplot_build(test_plotted)$data[[1]]

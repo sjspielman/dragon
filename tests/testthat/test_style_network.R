@@ -11,43 +11,47 @@ focal <- "B"
 custom_selection_element <- c("P", "O")
 size_scale <- 17
 label_size <- 10
-initialized <- initialize_network(focal, age_range = c(0,5))
-nodes       <- add_shiny_node_titles(initialized$nodes, FALSE)
-clustered   <- specify_community_detect_network(initialized$graph, initialized$nodes)
-full_nodes <- clustered$nodes
-edges <- initialized$edges
+network <- initialize_network(focal, 
+                             force_all_elements = FALSE, 
+                             elements_by_redox = TRUE, 
+                             age_range         = c(0, 5),
+                             max_age_type      = "Maximum",
+                             cluster_algorithm = "Louvain")
+full_nodes <- add_shiny_node_titles(network$nodes, FALSE)
+cluster_colors <- set_cluster_colors("Set2", length(unique(full_nodes$cluster_ID)))
+edges <- network$edges
 
 style_options_test <- list("color_by_cluster"  = FALSE,
-                      "cluster_colors"       = cluster_colors,
-                      "color_mineral_by"    = "singlecolor", ## num_localities
-                      "mineral_color"       = red,
-                      "color_element_by"    = "singlecolor", ## element_redox_network, element_hsab
-                      "element_color"       = blue,
-                      "mineral_palette"     = "Blues",
-                      "element_palette"     = "Reds",
-                      "mineral_label_color" = purple,
-                      "element_label_color" = black,
-                      "mineral_shape"       = "square", 
-                      "element_shape"       = "circle", 
-                      ## Single element colors, etc.
-                      "elements_of_interest"     = focal,
-                      "elements_by_redox"        = FALSE,
-                      "highlight_element"        = FALSE,
-                      "highlight_color"          = yellow,
-                      "custom_selection_element" = NA,
-                      "custom_selection_color"   = purple,
-                      ## Sizes
-                      "element_size_type"  = "singlesize", ## num_localities 
-                      "element_label_size" = label_size,
-                      "element_size_scale" = size_scale,  ### used if element_label_size != singlesize eg num_localities
-                      "mineral_size_type"  = "singlesize", ## num_localities 
-                      "mineral_size_scale" = size_scale,  ### used if mineral_size_type != singlesize eg num_localities
-                      "mineral_label_size" = label_size,
-                      "mineral_size"       = size_scale,
-                      ## Edges
-                      "color_edge_by" = "singlecolor", # mean_pauling
-                      "edge_color"    = purple,
-                      "edge_palette"  = "Greens"
+                          "cluster_colors"       = cluster_colors,
+                          "color_mineral_by"    = "singlecolor", ## num_localities
+                          "mineral_color"       = red,
+                          "color_element_by"    = "singlecolor", ## element_redox_network, element_hsab
+                          "element_color"       = blue,
+                          "mineral_palette"     = "Blues",
+                          "element_palette"     = "Reds",
+                          "mineral_label_color" = purple,
+                          "element_label_color" = black,
+                          "mineral_shape"       = "square", 
+                          "element_shape"       = "circle", 
+                          ## Single element colors, etc.
+                          "elements_of_interest"     = focal,
+                          "elements_by_redox"        = FALSE,
+                          "highlight_element"        = FALSE,
+                          "highlight_color"          = yellow,
+                          "custom_selection_element" = NA,
+                          "custom_selection_color"   = purple,
+                          ## Sizes
+                          "element_size_type"  = "singlesize", ## num_localities 
+                          "element_label_size" = label_size,
+                          "element_size_scale" = size_scale,  ### used if element_label_size != singlesize eg num_localities
+                          "mineral_size_type"  = "singlesize", ## num_localities 
+                          "mineral_size_scale" = size_scale,  ### used if mineral_size_type != singlesize eg num_localities
+                          "mineral_label_size" = label_size,
+                          "mineral_size"       = size_scale,
+                          ## Edges
+                          "color_edge_by" = "singlecolor", # mean_pauling
+                          "edge_color"    = purple,
+                          "edge_palette"  = "Greens"
                      )
 
 

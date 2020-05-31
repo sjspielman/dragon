@@ -8,8 +8,6 @@
 app_server <- function( input, output, session ) {
 
   ################################# Build network ####################################
-  
-  
   ## Construct the network from user input ------------------------------------------
   chemistry_network <- reactive({
     
@@ -21,6 +19,10 @@ app_server <- function( input, output, session ) {
     max_age_type         <- input$max_age_type
     elements_by_redox    <- input$elements_by_redox
     build_only           <- input$build_only
+    
+    ## We want to trigger a re-build if layout changes as well:
+    input$network_layout
+    input$network_layout_seed
     
     if (length(elements_of_interest) == length(all_elements)) 
     {
@@ -159,7 +161,25 @@ app_server <- function( input, output, session ) {
     )
   })
    
-  
+
+  ## Calculate network quantities reactively
+  network_quantities <- reactive({
+    
+    num_nodes_edges <- calculate_number_nodes_edges(chemistry_network()$nodes, 
+                                                    chemistry_network()$edges,
+                                                    input$elements_by_redox)  
+    
+    modularity      <- calculate_modularity(chemistry_network()$clustering)
+    connectivity    <- calculate_connectivity(chemistry_network()$graph)
+
+    list("n_mineral_nodes" = num_nodes_edges$n_mineral_nodes,
+         "n_element_nodes" = num_nodes_edges$n_element_nodes,
+         "n_base_elements" = num_nodes_edges$n_base_elements,
+         "n_edges" = num_nodes_edges$n_edges,
+         "modularity" = modularity,
+         "connectivity" = connectivity
+         )
+  })
   
   
   ## Render the "Visualize Network" tabPanel -----------------------------------------------------------------------
@@ -168,20 +188,19 @@ app_server <- function( input, output, session ) {
     ## Isolate: are we just building (TRUE) or are we also displaying (FALSE)---------------------------------------
     build_only <- isolate(input$build_only)
     
-    ## Text output associated with network display (or non-display) ------------------------------------------------
+
     
+    ## Text output associated with network display (or non-display) ------------------------------------------------
     output$no_network_display <- renderText({
       "Your network has been built and is available for export below and/or analysis in other tabs."
       })
 
     output$modularity <- renderText({
-      membership <- chemistry_network()$clustering
-      paste0("Network modularity: ", round( membership$modularity[[1]], 4))    
+      paste0("Network modularity: ", network_quantities()$modularity)    
     })    
     
     output$connectivity <- renderText({
-      conn <- igraph::vertex_connectivity(chemistry_network()$graph)
-      if (conn == 0){
+      if (network_quantities()$connectivity == 0){
         paste0("WARNING: This network is disconnected. Interpret network metrics with caution.")
       }
       else {
@@ -190,39 +209,23 @@ app_server <- function( input, output, session ) {
     })  
     
     output$n_element_nodes <- renderText({
-      chemistry_network()$nodes %>% 
-        dplyr::filter(group == "element") %>%
-        dplyr::distinct() %>%
-        nrow() -> n_element_nodes
-      
       if (input$elements_by_redox)
       {
-        chemistry_network()$nodes %>% 
-          dplyr::filter(group == "element") %>%
-          tidyr::separate(id, c("base_element", "jazz"), sep = "[\\s\\+\\-]") %>%
-          dplyr::select(base_element) %>%
-          dplyr::distinct() %>%
-          nrow() -> n_base_elements
-        element_phrase <- paste0("Number of elements: ", n_base_elements, ". Number of element nodes: ", n_element_nodes)    
+        element_phrase <- paste0("Number of elements: ", network_quantities()$n_base_elements, ". Number of element nodes: ", num_nodes$n_element_nodes)    
       } else
       {
-        element_phrase <- paste0("Number of element nodes: ", n_element_nodes)    
+        element_phrase <- paste0("Number of element nodes: ", network_quantities()$n_element_nodes)    
       }
       
       paste0(element_phrase)    
     })  
     
     output$n_mineral_nodes <- renderText({
-      chemistry_network()$nodes %>% 
-        dplyr::filter(group == "mineral") %>%
-        dplyr::distinct() %>%
-        nrow() -> n_mineral_nodes
-      paste0("Number of mineral nodes: ", n_mineral_nodes)  
+      paste0("Number of mineral nodes: ", network_quantities()$n_mineral_nodes)  
     })  
 
     output$n_edges <- renderText({
-      n_edges <- nrow(unique(chemistry_network()$edges))
-      paste0("Number of edges: ", n_edges)
+      paste0("Number of edges: ", network_quantities()$n_edges)
     })  
  
     
@@ -260,16 +263,16 @@ app_server <- function( input, output, session ) {
           }
           ## Plot it up with visNetwork options
           base_network %>%
-           visOptions(highlightNearest = list(enabled = TRUE, degree = input$selected_degree),
-                      nodesIdSelection = list(enabled = TRUE,
-                                              values  = c( sort(nodes$id[nodes$group == "element"]),
-                                                          sort(nodes$id[nodes$group == "mineral"]) ),
-                                              style   = css_string_selectedNode,
-                                              main    = "Select an individual node"),
-                      selectedBy = list(variable = "type",
-                                        style    = css_string_selectedNode
-
-                      )
+           visOptions(highlightNearest = list(enabled = TRUE, degree = input$selected_degree) #,
+                   #   nodesIdSelection = list(enabled = TRUE,
+                   #                           values  = c( sort(nodes$id[nodes$group == "element"]),
+                   #                                       sort(nodes$id[nodes$group == "mineral"]) ),
+                   #                           style   = css_string_selectedNode,
+                   #                           main    = "Select an individual node"),
+                   #   selectedBy = list(variable = "type",
+                   #                     style    = css_string_selectedNode
+                  #
+                  #    )
             )%>% ## END visOptions
             visInteraction(dragView  = TRUE,
                            dragNodes         = TRUE,
@@ -325,17 +328,17 @@ app_server <- function( input, output, session ) {
         visNetworkProxy("networkplot") %>%
           visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
           visUpdateEdges(edges = edge_styler()$styled_edges) %>%
-           visEdges(width = input$edge_weight) %>%
-           visGetSelectedNodes() %>%
-           visInteraction(dragView             = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
-                          hover                = input$hover,
-                          selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
-                          zoomView             = input$zoom_view,
-                          multiselect          = TRUE,
-                          hideEdgesOnDrag      = input$hide_edges_on_drag,
-                          navigationButtons    = input$nav_buttons) %>%
-           visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree),
-                      nodesIdSelection = list(enabled = TRUE, main  = "Select an individual node."))
+          visEdges(width = input$edge_weight) %>%
+          visGetSelectedNodes() %>%
+          visInteraction(dragView             = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
+                         hover                = input$hover,
+                         selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
+                         zoomView             = input$zoom_view,
+                         multiselect          = TRUE,
+                         hideEdgesOnDrag      = input$hide_edges_on_drag,
+                         navigationButtons    = input$nav_buttons) %>%
+          visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree)) #,
+                     #nodesIdSelection = list(enabled = TRUE, main  = "Select an individual node."))
       }
     }) ## END observe
 
