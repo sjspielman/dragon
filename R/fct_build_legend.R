@@ -1,3 +1,8 @@
+#' Build legend of network color attributes for display
+#' 
+#' @param edge_styler A list of edge stylings as created by dragon::style_edges()
+#' @param node_styler A list of node stylings as created by dragon::style_nodes()
+#' @return A legend grob created with cowplot::plot_grid()
 build_legend <- function(edge_styler, node_styler)
 {
 

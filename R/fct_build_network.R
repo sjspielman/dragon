@@ -1,10 +1,79 @@
-load("R/sysdata.rda") ## TODO devtools:check() fails without explicit load. how fix? can i do library(dragon)? probably not?
+#load("R/sysdata.rda") ## TODO devtools:check() fails without explicit load. how fix? can i do library(dragon)? probably not?
 
 
+#' Maximum age possible for mineral selection
+#'
+#' @export
 total_max_age   <- round( max(rruff$max_age) + 0.1, 1)
-rruff_separated <-  element_redox_states %>% dplyr::select(-element_redox_mineral)
 
-initialize_data <- function(elements_of_interest, force_all_elements)
+
+#' Tibble of MED minerals and associated elements, in tidy format
+#'
+#' @export
+rruff_separated <- element_redox_states %>% dplyr::select(-element_redox_mineral)
+
+
+#' Initialize a mineral-chemistry network as stand-alone network rather than for embedding into the Shiny App.
+#' 
+#' @param elements_of_interest A array of specified elements whose minerals should be included in the network. For all elements, specify "all".
+#' @param force_all_elements   A logical. If FALSE (default), minerals containing any of `elements_of_interest` will be included in network. If TRUE, only minerals with full intersection of all specified elements will be included in network.
+#' @param elements_by_redox    A logical. If FALSE (default), element nodes will be constructed regardless of redox state. If TRUE, creates separate node for each element's redox state, e.g. Fe2+ and Fe3+ would be separate nodes.
+#' @param age_range            A array of two numbers giving inclusive range of mineral ages in Ga to include in network. 
+#' @param max_age_type         A string indicating how mineral ages should be assessed. If "Maximum" (default), filters minerals using maximum known ages at localities. If "Minimum", filters minerals using minimum known ages at localities. 
+#' @param cluster_algorithm    A string giving community clustering algorithm, one of "Louvain" (default) or "Leading eigenvector". 
+#' 
+#' @returns Named list containing an igraph-formatted network ('network'), a tibble of nodes and associated metadata ('nodes'), and a tibble of edges and associated metadata  ('edges')
+#' 
+#' @examples
+#' # Include all Iron minerals whose maximum known age is between 1-2 Gya, and apply Louvain clustering
+#' initialize_network("Fe", age_range = c(1,2))
+#'
+#' # Include all minerals containing \emph{either} Iron and Oxygen whose maximum known age is between 1-2 Gya, and apply Louvain clustering
+#' initialize_network(c("Fe", "O"), age_range = c(1,2))
+#'
+#' # Include all minerals containing \emph{both} Iron and Oxygen whose maximum known age is between 1-2 Gya, and apply Louvain clustering
+#' initialize_network(c("Fe", "O"), force_all_elements = TRUE, age_range = c(1,2))
+#'
+#' # Build the full mineral network
+#' initialize_network("all")
+initialize_network <- function(elements_of_interest, 
+                               force_all_elements = FALSE, 
+                               elements_by_redox = FALSE, 
+                               age_range         = c(0, total_max_age),
+                               max_age_type      = "Maximum",
+                               cluster_algorithm = "Louvain")
+{
+  if(stringr::str_to_lower(elements_of_interest) == "all"){
+    elements_of_interest <- all_elements
+  }
+  age_range <- sort(age_range)
+  
+  subset_rruff <- initialize_data(elements_of_interest, force_all_elements)
+  if (nrow(subset_rruff) == 0) stop("Network cannot be constructed with provided elements.")
+  
+  age_data    <- initialize_data_age(subset_rruff, age_range, max_age_type)
+  if (nrow(age_data$elements_only_age) == 0) stop("Network cannot be constructed at specified age range.")
+
+  network_raw <- construct_network(age_data$elements_only_age, elements_by_redox)
+  if (nrow(network_raw$nodes) == 0) stop("Network could not be constructed. Please adjust input settings.")
+  if (nrow(network_raw$edges) == 0) stop("Network could not be constructed. Please adjust input settings.")
+
+  clustered   <- specify_community_detect_network(network_raw$graph, network_raw$nodes, "Louvain")
+  return(list("network" = network_raw$graph,
+               "nodes"  =  network_raw$nodes,
+               "edges"  =  network_raw$edges
+              )
+        )
+}
+    
+
+
+#' Subset MED data to contain only elements of interest for network construction
+#' 
+#' @param elements_of_interest A array of specified elements whose minerals should be included in the network. For all elements, specify "all".
+#' @param force_all_elements   A logical. If FALSE (default), minerals containing any of `elements_of_interest` will be included in network. If TRUE, only minerals with full intersection of all specified elements will be included in network.
+#' @param max_age_type         A string indicating how mineral ages should be assessed. If "Maximum" (default), filters minerals using maximum known ages at localities. If "Minimum", filters minerals using minimum known ages at localities. 
+initialize_data <- function(elements_of_interest, force_all_elements = FALSE)
 { 
 
   ## Must have all elements
@@ -28,10 +97,14 @@ initialize_data <- function(elements_of_interest, force_all_elements)
   elements_only
 }
 
-initialize_data_age <- function(elements_only, age_limit, max_age_type)
+#' Subset element-filtered data to contain only minerals in specified age range
+#' 
+#' @param elements_only A tibble containing all minerals and associated information which contain specified elements
+#' @param age_range            A array of two numbers giving inclusive range of mineral ages in Ga to include in network. 
+initialize_data_age <- function(elements_only, age_range, max_age_type)
 {
-  lb <- age_limit[1]
-  ub <- age_limit[2]
+  lb <- age_range[1]
+  ub <- age_range[2]
   
   if (max_age_type == "Minimum") elements_only %<>% dplyr::mutate(age_check = min_age) 
   if (max_age_type == "Maximum") elements_only %<>% dplyr::mutate(age_check = max_age) 
@@ -68,6 +141,11 @@ initialize_data_age <- function(elements_only, age_limit, max_age_type)
 }
 
 
+
+#' Construct network and apply metadata to mineral, element nodes
+#' 
+#' @param elements_only_age A tibble containing all minerals and associated information which contain specified elements at the specified age range
+#' @param elements_by_redox A logical. If FALSE, element nodes will be constructed regardless of redox state. If TRUE, creates separate node for each element's redox state, e.g. Fe2+ and Fe3+ would be separate nodes.
 construct_network   <- function(elements_only_age, elements_by_redox)
 {
   
@@ -177,8 +255,14 @@ construct_network   <- function(elements_only_age, elements_by_redox)
 
 
 
-specify_community_detect_network <- function(network, nodes, cluster_algorithm, cluster_palette)
+#' Perform community clustering according to specified algorithm
+#' 
+#' @param network A network in igraph format
+#' @param nodes   A tibble containing all node information and metadata
+#' @param cluster_algorithm    A string giving community clustering algorithm, one of "Louvain" (default) or "Leading eigenvector". 
+specify_community_detect_network <- function(network, nodes, cluster_algorithm)
 {
+  if (!(cluster_algorithm %in% allowed_cluter_algorithms)) stop("Cluster algorithm must be one of either 'Louvain' or 'Leading eigenvector'.")
   
   if (cluster_algorithm == "Louvain")             clustered_net <- igraph::cluster_louvain(network)
   if (cluster_algorithm == "Leading eigenvector") clustered_net <- igraph::cluster_leading_eigen(network)
@@ -189,29 +273,18 @@ specify_community_detect_network <- function(network, nodes, cluster_algorithm, 
                   "cluster_algorithm" = cluster_algorithm) %>%
     right_join(nodes, by = "id") -> nodes 
 
-  ### Set cluster colors forever ------------------------------- 
-  n_clusters <- length(unique(nodes$cluster_ID))
-  tibble::tibble(x=1:n_clusters, y = factor(1:n_clusters)) %>% 
-    ggplot2::ggplot() + 
-    ggplot2::aes(x = x, y = y, color = y) + 
-    ggplot2::geom_point() + 
-    ggplot2::scale_color_brewer(palette = cluster_palette) -> cluster_colors_gghack
-  
-  ggplot2::ggplot_build(cluster_colors_gghack)$data[[1]] %>% 
-    tibble::as_tibble() %>% 
-    dplyr::pull(colour) -> cluster_colors
-  
   return( 
     list("nodes"          = nodes, 
-         "clustered_net"  = clustered_net, 
-         "cluster_colors" = cluster_colors
+         "clustered_net"  = clustered_net 
          ) 
     )
   
 }
 
-
-
+#' Format labels and titles to nodes for display in Shiny App
+#' 
+#' @param nodes   A tibble containing all node information and metadata
+#' @param elements_by_redox  A logical. If FALSE (default), element nodes have been constructed regardless of redox state. If TRUE, separate nodes have been created for each element's redox state, e.g. Fe2+ and Fe3+ would be separate nodes.
 add_shiny_node_titles <- function(nodes, elements_by_redox)
 {
   charadd <- 0
@@ -251,7 +324,7 @@ add_shiny_node_titles <- function(nodes, elements_by_redox)
                                                                                                             paste0("Electronegativity: ", pauling)), "</p>")
                                           ), ## END title case_when                     
                  ) %>% ## END mutate
-    dplyr::distinct()  %>%
+    dplyr::distinct()  %>% ## TODO: I THINK BELOW CAN BE RM'D??
     # Add type column for grouped node selection dropdown menu
     dplyr::mutate(type = dplyr::if_else(group == "element", 
                                         "All elements", 

@@ -7,6 +7,20 @@ ggplot2::theme_set(cowplot::theme_cowplot() +
                                     legend.title          = ggplot2::element_text(size=13),
                                     legend.box.background = ggplot2::element_rect(color = "white")))                                  
 
+  
+set_cluster_colors <- function(cluster_palette, n_clusters)
+{
+  
+  full_palette <- RColorBrewer::brewer.pal(8, cluster_palette)
+  if(n_clusters <= 8){    
+    cluster_colors <- full_palette[1:n_clusters]
+  } else {
+    cluster_colors <- grDevices::colorRampPalette(full_palette)(n_clusters)
+  }
+  
+  return(cluster_colors)
+  
+}
 
 
 obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, discrete_colors = NA)

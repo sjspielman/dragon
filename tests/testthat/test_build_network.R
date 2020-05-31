@@ -67,9 +67,9 @@ test_that("fct_build_network::initialize_data() with multiple forced elements", 
 ## Test initialize_data_age(), using Maximum age ----------------------------------------
 test_that("fct_build_network::initialize_data_age() using maximum known age", {
   elements_of_interest <- c("Cd")
-  age_limit <- c(1, 2.5)
+  age_range <- c(1, 2.5)
   test_input <- initialize_data(elements_of_interest, FALSE)
-  test_output <- initialize_data_age(test_input, age_limit, "Maximum")
+  test_output <- initialize_data_age(test_input, age_range, "Maximum")
   
   ## Should return two df's
   expect_equal(sort(names(test_output)), c("elements_only_age", "locality_info"))
@@ -79,14 +79,14 @@ test_that("fct_build_network::initialize_data_age() using maximum known age", {
   expected_names_one <- c("mineral_name", "mineral_id", "max_age", "num_localities_mineral", "ima_chemistry", "rruff_chemistry", "chemistry_elements")
   expect_equal(sort(names(elements_only_age_output)), sort(expected_names_one))  
   output_age_range <- range(elements_only_age_output$max_age)
-  expect_true(output_age_range[1] >= age_limit[1] & output_age_range[2] <= age_limit[2])
+  expect_true(output_age_range[1] >= age_range[1] & output_age_range[2] <= age_range[2])
   
   ## Test locality info is correct, assuming MAXIMUM!!
   locality_output <- test_output$locality_info 
   expected_names_two <- c("mineral_name", "mineral_id", "max_age_locality", "min_age_locality", "mindat_id", "locality_longname", "age_type")
   expect_equal(sort(names(locality_output)), sort(expected_names_two))  
   locality_max_age_range <- range(locality_output$max_age_locality)
-  expect_true(locality_max_age_range[1] >= age_limit[1] & locality_max_age_range[2] <= age_limit[2])
+  expect_true(locality_max_age_range[1] >= age_range[1] & locality_max_age_range[2] <= age_range[2])
 
 })
 
@@ -95,9 +95,9 @@ test_that("fct_build_network::initialize_data_age() using maximum known age", {
 ## Test initialize_data_age(), using Minimum age ----------------------------------------
 test_that("fct_build_network::initialize_data_age() using minimum known age", {
   elements_of_interest <- c("Cd")
-  age_limit <- c(1, 2.5)
+  age_range <- c(1, 2.5)
   test_input <- initialize_data(elements_of_interest, FALSE)
-  test_output <- initialize_data_age(test_input, age_limit, "Minimum")
+  test_output <- initialize_data_age(test_input, age_range, "Minimum")
   
   ## Should return two df's
   expect_equal(sort(names(test_output)), c("elements_only_age", "locality_info"))
@@ -107,14 +107,14 @@ test_that("fct_build_network::initialize_data_age() using minimum known age", {
   expected_names_one <- c("mineral_name", "mineral_id", "max_age", "num_localities_mineral", "ima_chemistry", "rruff_chemistry", "chemistry_elements")
   expect_equal(sort(names(elements_only_age_output)), sort(expected_names_one))  
   output_age_range <- range(elements_only_age_output$max_age)
-  expect_true(output_age_range[1] >= age_limit[1] & output_age_range[2] <= age_limit[2])
+  expect_true(output_age_range[1] >= age_range[1] & output_age_range[2] <= age_range[2])
   
   ## Test locality info is correct, assuming MINIMUM!!
   locality_output <- test_output$locality_info 
   expected_names_two <- c("mineral_name", "mineral_id", "max_age_locality", "min_age_locality", "mindat_id", "locality_longname", "age_type")
   expect_equal(sort(names(locality_output)), sort(expected_names_two))  
   locality_min_age_range <- range(locality_output$min_age_locality)
-  expect_true(locality_min_age_range[1] >= age_limit[1] & locality_min_age_range[2] <= age_limit[2])
+  expect_true(locality_min_age_range[1] >= age_range[1] & locality_min_age_range[2] <= age_range[2])
   
 })
 
@@ -123,8 +123,8 @@ test_that("fct_build_network::initialize_data_age() using minimum known age", {
 ## Test construct_network(), using elements_by_redox = FALSE --------------------------------
 test_that("fct_build_network::construct_network() with elements_by_redox = F", {
   elements_of_interest <- c("Cd")
-  age_limit <- c(1, 2.5)
-  age_data <- initialize_data_age(initialize_data(elements_of_interest, FALSE), age_limit, "Maximum")
+  age_range <- c(1, 2.5)
+  age_data <- initialize_data_age(initialize_data(elements_of_interest, FALSE), age_range, "Maximum")
   test_output <- construct_network(age_data$elements_only_age, FALSE)
   
   ## Length of 3 with correct names
@@ -157,8 +157,8 @@ test_that("fct_build_network::construct_network() with elements_by_redox = F", {
 ## Test construct_network(), using elements_by_redox = TRUE --------------------------------
 test_that("fct_build_network::construct_network() with elements_by_redox = T", {
   elements_of_interest <- c("Fe") ## Cd is disconnected
-  age_limit <- c(3, 4)
-  age_data <- initialize_data_age(initialize_data(elements_of_interest, FALSE), age_limit, "Maximum")
+  age_range <- c(3, 4)
+  age_data <- initialize_data_age(initialize_data(elements_of_interest, FALSE), age_range, "Maximum")
   test_output <- construct_network(age_data$elements_only_age, TRUE)
   
   ## Length of 3 with correct names
@@ -193,10 +193,10 @@ test_that("fct_build_network::construct_network() with elements_by_redox = T", {
 test_that("fct_build_network::specify_community_detect_network() with Louvain community clustering", {
   age_data <- initialize_data_age(initialize_data("Fe", FALSE), c(3, 4), "Maximum")
   network_raw <- construct_network(age_data$elements_only_age, TRUE)
-  test_cluster <- specify_community_detect_network(network_raw$graph, network_raw$nodes, "Louvain", "Set2")
+  test_cluster <- specify_community_detect_network(network_raw$graph, network_raw$nodes, "Louvain")
   
   ## Length of 3 with correct names
-  expected_names_one <- c("nodes", "clustered_net", "cluster_colors")
+  expected_names_one <- c("nodes", "clustered_net")
   expect_equal(sort(names(test_cluster)), sort(expected_names_one)) 
   
   ## Check that node nodes contains the added cluster columns
@@ -205,10 +205,28 @@ test_that("fct_build_network::specify_community_detect_network() with Louvain co
   
   
   ## Same lengths all around
-  expect_true( length(test_cluster$clustered_net) == length(unique(test_cluster$nodes$cluster_ID)) &
-                 length(test_cluster$clustered_net) == length(test_cluster$cluster_colors) )
+  expect_true( length(test_cluster$clustered_net) == length(unique(test_cluster$nodes$cluster_ID)) )
   
 })
 
 
+## Test that initialize_network() works -----------------------------------------------
+test_that("fct_build_network::initialize_network() works", {
+  output <- initialize_network("Fe", 
+                     force_all_elements = FALSE, 
+                     elements_by_redox = FALSE, 
+                     age_range         = c(0, 5),
+                     max_age_type      = "Maximum",
+                     cluster_algorithm = "Louvain")
+  expect_equal(sort(names(output)), sort(c("edges", "nodes", "network")))
+
+  ## Crack full network
+  output_all <- initialize_network("all", 
+                     force_all_elements = FALSE, 
+                     elements_by_redox = TRUE, 
+                     age_range         = c(0, 5),
+                     max_age_type      = "Maximum",
+                     cluster_algorithm = "Louvain")
+  expect_equal(sort(names(output_all)), sort(c("edges", "nodes", "network")))
+})
 

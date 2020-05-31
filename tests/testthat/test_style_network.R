@@ -11,13 +11,11 @@ focal <- "B"
 custom_selection_element <- c("P", "O")
 size_scale <- 17
 label_size <- 10
-age_data    <- initialize_data_age(initialize_data(focal, FALSE), c(0, 5), "Maximum")
-network_raw <- construct_network(age_data$elements_only_age, TRUE)
-nodes       <- add_shiny_node_titles(network_raw$nodes, FALSE)
-clustered   <- specify_community_detect_network(network_raw$graph, nodes, "Louvain", "Dark2")
-cluster_colors <- clustered$cluster_colors
+initialized <- initialize_network(focal, age_range = c(0,5))
+nodes       <- add_shiny_node_titles(initialized$nodes, FALSE)
+clustered   <- specify_community_detect_network(initialized$graph, initialized$nodes)
 full_nodes <- clustered$nodes
-edges <- network_raw$edges
+edges <- initialized$edges
 
 style_options_test <- list("color_by_cluster"  = FALSE,
                       "cluster_colors"       = cluster_colors,
@@ -51,7 +49,6 @@ style_options_test <- list("color_by_cluster"  = FALSE,
                       "edge_color"    = purple,
                       "edge_palette"  = "Greens"
                      )
-
 
 
 

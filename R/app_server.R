@@ -17,7 +17,7 @@ app_server <- function( input, output, session ) {
     
     elements_of_interest <- input$elements_of_interest
     force_all_elements   <- input$force_all_elements
-    age_limit            <- input$age_limit
+    age_range            <- input$age_range
     max_age_type         <- input$max_age_type
     elements_by_redox    <- input$elements_by_redox
     build_only           <- input$build_only
@@ -40,7 +40,7 @@ app_server <- function( input, output, session ) {
       shiny::validate( shiny::need(nrow(elements_only) > 0, ""))
     }
 
-    initialized <- initialize_data_age(elements_only, age_limit, max_age_type)
+    initialized <- initialize_data_age(elements_only, age_range, max_age_type)
     elements_only_age <- initialized$elements_only_age    
     if (nrow(elements_only_age) == 0)
     {
@@ -68,9 +68,31 @@ app_server <- function( input, output, session ) {
       nodes <- add_shiny_node_titles(nodes, elements_by_redox)
     }
     ## Perform community clustering, which also updates nodes ----------------------------
-    clustered <- specify_community_detect_network(graph, nodes, input$cluster_algorithm, input$cluster_palette)
+    clustered <- specify_community_detect_network(graph, nodes, input$cluster_algorithm)
 
-    ## Subset mineral nodes, used in modeling (this allows for testing) ------------------
+    n_clusters <- length(unique(clustered$nodes$cluster_ID))
+    if (n_clusters < 1)
+    {
+       shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
+                              "Clustering could not be performed.",
+                              type = "error"
+                            )    
+      shiny::validate( shiny::need(n_clusters >= 1, ""))
+    }
+    
+    ## Set cluster colors ----------------------------------------------------------------
+    cluster_colors <- set_cluster_colors(input$cluster_palette, n_clusters)
+    if (length(cluster_colors) != n_clusters)
+    {
+       shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
+                              "Clustering styling could not be applied.",
+                              type = "error"
+                            )    
+      shiny::validate( shiny::need(length(cluster_colors) == n_clusters, ""))
+    }
+
+    
+    ## Subset mineral nodes, used in modeling --------------------------------------------
     clustered$nodes %>%
       dplyr::filter(group == "mineral") %>%
       dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% #sd_pauling
@@ -81,17 +103,18 @@ app_server <- function( input, output, session ) {
                     !! variable_to_title[["cov_pauling"]] := cov_pauling,
                     !! variable_to_title[["num_localities"]] := num_localities,
                     !! variable_to_title[["max_age"]] := max_age) -> mineral_nodes
+             
                     
     return (list("nodes" = clustered$nodes, 
                  "edges" = network$edges, 
                  "graph" = graph, 
                  "elements_of_interest" = elements_of_interest,
-                 "age_lb" = age_limit[1],
-                 "age_ub" = age_limit[2],
+                 "age_lb" = age_range[1],
+                 "age_ub" = age_range[2],
                  "mineral_nodes" = mineral_nodes,
                  "locality_info" = initialized$locality_info,
                  "clustering"     = clustered$clustered_net, 
-                 "cluster_colors" = clustered$cluster_colors))
+                 "cluster_colors" = cluster_colors))
     
   })
   

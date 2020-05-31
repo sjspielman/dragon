@@ -1,11 +1,14 @@
 
+
+original_options <- options(scipen=0, htmlwidgets.TOJSON_ARGS = NULL)
+options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Setting for DT to show NA cells as NA rather than blank
+options(scipen=3)                                      ## Sci when more than 3 digits
+on.exit(options(original_options), add=TRUE)
+
+
 ## Explicit pipe definitions
 `%>%`  <- magrittr::`%>%`
 `%<>%` <- magrittr::`%>%`
-
-options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Setting for DT to show NA cells as NA rather than blank
-options(scipen=3)                                      ## Sci when more than 3 digits
-
 
 
 css_string_selectedNode <- "float:right; width: 200px; font-size: 14px; color: #000; background-color: #F1F1F1; border-radius: 0px; border: solid 1px #DCDCDC; height: 34px; margin: -1.4em 0.5em 0em 0em;"
@@ -108,7 +111,7 @@ variable_to_title <-  c("element_redox_mineral" = element_redox_mineral_str,
 element_hsab_levels  <- c("Hard acid", "Int. acid", "Soft acid", "Soft base", "Int. base", "Hard base")
 
 
-
+allowed_cluster_algorithms <- c("Louvain", "")
 
 
 # TODO THIS IS WRONG NOW
@@ -148,6 +151,7 @@ selected_node_table_column_choices_element   <- c(element_name_str,
 ## Elements --------------------------------------------------------------------------
 all_elements <- c("Ag", "Al", "As", "Au", "B", "Ba", "Be", "Bi", "Br", "C", "Ca", "Cd", "Ce", "Cl", "Co", "Cr", "Cs", "Cu", "Dy", "Er", "F", "Fe", "Ga", "Gd", "Ge", "H", "Hf", "Hg", "I", "In", "Ir", "K", "La", "Li", "Mg", "Mn", "Mo", "N", "Na", "Nb", "Nd", "Ni", "O", "Os", "P", "Pb", "Pd", "Pt", "Rb", "Re", "REE", "Rh", "Ru", "S", "Sb", "Sc", "Se", "Si", "Sm", "Sn", "Sr", "Ta", "Te", "Th", "Ti", "Tl", "U", "V", "W", "Y", "Yb", "Zn", "Zr")
 
+allowed_cluter_algorithms <- c("Louvain", "Leading eigenvector")
 
 ## THESE SHOULD BE ORDERED
 ordinal_color_variables <- c("element_hsab",  "TablePeriod", "TableGroup") # WE HAVE TURNED OFF TABLEPERIOD AND GROUP FOR COLORING SINCE TOO MANY COLORS. Keep this for now, can't hurt.

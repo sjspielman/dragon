@@ -1,7 +1,5 @@
-age_data    <- initialize_data_age(initialize_data("B", FALSE), c(0, 5), "Maximum")
-network_raw <- construct_network(age_data$elements_only_age, TRUE)
-nodes       <- add_shiny_node_titles(network_raw$nodes, FALSE)
-clustered   <- specify_community_detect_network(network_raw$graph, nodes, "Louvain", "Dark2")
+initialized <- initialize_network("B", age_range = c(0,5))
+clustered   <- specify_community_detect_network(initialized$graph, initialized$nodes)
 clustered$nodes %>%
   dplyr::filter(group == "mineral") %>%
   dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% #sd_pauling
@@ -15,6 +13,8 @@ clustered$nodes %>%
 point_color <- "red" 
 point_size <- 2.33 
 bestfit_color <- "orange"
+n_clusters <- length(unique(clustered$nodes$cluster_ID))
+
 
 test_that("fct_run_linear_models::fit_linear_model() with numeric predictor", {
   predictor <- variable_to_title[["mean_pauling"]]

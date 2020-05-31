@@ -37,7 +37,7 @@ app_ui <- function(request) {
             
             ## shinyBS does not work with golem. 
             #shinyBS::tipify( 
-              sliderInput("age_limit", "Age (Ga) for the youngest minerals:", min = 0, max = total_max_age, step = 0.1, value = c(0,total_max_age)), 
+              sliderInput("age_range", "Age (Ga) for the youngest minerals:", min = 0, max = total_max_age, step = 0.1, value = c(0,total_max_age)), 
             #  title = "Based on mineral discovery dates as recorded in MED"
             #), ## END tipify
             #shinyBS::tipify(
@@ -94,9 +94,8 @@ app_ui <- function(request) {
                 )
               }), ## END conditionalPanel           
               pickerInput("cluster_algorithm", tags$span(style="font-weight:400", "Network community detection (clustering) algorithm:"),
-                          choices = c("Louvain",
-                                      "Leading eigenvector"), selected = "Louvain"
-              ) ## END pickerInput
+                          choices = allowed_cluster_algorithms, selected = "Louvain"
+                         ) ## END pickerInput
             ), ## END menuitem
             
             
