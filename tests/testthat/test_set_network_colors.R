@@ -1,4 +1,4 @@
-test_that("fct_set_style_network_colors::set_cluster_colors() assigns appropriately", {
+test_that("fct_set_network_colors::set_cluster_colors() assigns appropriately", {
 
 
   cluster_colors2 <- set_cluster_colors("Set2", 2)
