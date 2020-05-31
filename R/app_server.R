@@ -141,7 +141,8 @@ app_server <- function( input, output, session ) {
   })
   
  
-
+  ## UI component for choosing nodes whole information should be displayed --------------------------
+  # NOTE: In server since this relies on knowing which elements are actually present in the network
   output$choose_nodes <- renderUI({
     chemistry_network()$nodes %>%
       dplyr::select(id, group) %>%
@@ -152,7 +153,7 @@ app_server <- function( input, output, session ) {
     
     
     shinyWidgets::pickerInput("selected_nodes_custom", 
-                              "Which nodes to select?",             
+                              "Which additional nodes to select?",             
                               choices = unique(ordered_ids),
                               options = list(`actions-box` = TRUE, size = 6), 
                               multiple = TRUE,
@@ -465,7 +466,8 @@ app_server <- function( input, output, session ) {
   
   ## RENDER THE "Selected Node Information" BOX --------------------------------------------------------------------------------
   node_table <- reactive({
-    selected_nodes <- input$selected_nodes_custom
+    ## Include dropdown selected nodes AND any node the user clicked
+    selected_nodes <- c(input$selected_nodes_custom, input$networkplot_selected)
     list(input$columns_selectednode_mineral, 
          input$columns_selectednode_element, 
          #input$columns_selectednode_netinfo, 
@@ -608,13 +610,11 @@ app_server <- function( input, output, session ) {
   ## Render the "Analyze Network Minerals" tabPanel --------------------------------------------------------------
   linear_model_output <- reactive({
     
-    ## Perform sanity checking on linear modeling options -------------------------------------
+    ## Perform sanity checking on linear modeling options --------------------------------------------------------
     
-    ## Ensure different predictor/reponse variables -------------------------------------------
+    ## Ensure different predictor/response variables -------------------------------------------
     if (input$predictor == input$response)
     {
-    
-    
       shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
                               "You have selected the same predictor and response variable. Please select new variable(s)",
                               type = "error"
@@ -651,6 +651,9 @@ app_server <- function( input, output, session ) {
         shiny::validate( shiny::need(n_clusters >= 2, ""))
       } 
     } # END  if (input$predictor == cluster_ID_str)
+    ####-------------------------------------SANITY CHECKING COMPLETED-----------------------------------------------####
+    
+    
     
     ## Perform modeling ----------------------------------------------------------------------------------
     fitted_linear_model  <- fit_linear_model(input$response, input$predictor, chemistry_network()$mineral_nodes)
@@ -718,8 +721,8 @@ app_server <- function( input, output, session ) {
   #################################################################################################################
 
   network_style_options <- reactive({
-    ## VALIDATION ---------------------------------------------
-    ## Element color
+    ## Sanity checking for input style choices -----------------------------------------------------------------------
+    ## Element color sanity
     element_color_variable  <- as.symbol(input$color_element_by)
     if(element_color_variable != "singlecolor"){
       chemistry_network()$nodes %>%
@@ -735,7 +738,7 @@ app_server <- function( input, output, session ) {
           shiny::validate( shiny::need(nrow(element_validate) > 0, ""))
         }
     }
-    ## Mineral color
+    ## Mineral color sanity
     mineral_color_variable  <- as.symbol(input$color_mineral_by)
     if(mineral_color_variable != "singlecolor"){
       chemistry_network()$nodes %>%
@@ -751,7 +754,7 @@ app_server <- function( input, output, session ) {
         shiny::validate( shiny::need(nrow(mineral_validate) > 0, ""))
       }
     }
-    ## Edge color
+    ## Edge color sanity
     edge_color_variable  <- as.symbol(input$color_edge_by)
     if(edge_color_variable != "singlecolor"){
       chemistry_network()$edges %>%
