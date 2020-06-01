@@ -1,13 +1,13 @@
 style_edges <- function(edges, edge_options){
   
   colorlegend_edge <- NA
-  if (edge_options$color_edge_by == "singlecolor") 
+  if (edge_options$edge_color_by == "singlecolor") 
   {
     edge_colors <- edges %>% 
       mutate(color = edge_options$edge_color)             
   } else {
     out <- obtain_colors_legend(edges, 
-                                edge_options$color_edge_by, 
+                                edge_options$edge_color_by, 
                                 "c", 
                                 edge_options$edge_palette)
     
@@ -99,7 +99,7 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
     element_nodes <- full_nodes %>% filter(group == "element")
     mineral_nodes <- full_nodes %>% filter(group == "mineral")
     ## Color minerals  -----------------------------------------------------------
-    if (style_options$color_mineral_by == "singlecolor")
+    if (style_options$mineral_color_by == "singlecolor")
     {
       out <- obtain_colors_legend_single("Mineral", 
                                          vis_to_gg_shape[style_options$mineral_shape], 
@@ -113,7 +113,7 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
     } else
     {  
       out <- obtain_colors_legend(mineral_nodes, 
-                                  style_options$color_mineral_by, 
+                                  style_options$mineral_color_by, 
                                   "c", 
                                   style_options$mineral_palette)
       out$leg -> legend_list[["mineral_legend"]]
@@ -123,7 +123,7 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
     } 
     
     ## Color elements  ------------------------------------------------------------
-    if (style_options$color_element_by == "singlecolor")
+    if (style_options$element_color_by == "singlecolor")
     {
       if (style_options$element_shape == "text") { 
         this_color <- style_options$element_label_color
@@ -138,10 +138,10 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
         filter(group == "element") %>% 
         select(label, id) %>%
         mutate(color.background = style_options$element_color) -> element_colors
-    } else if (style_options$color_element_by == "element_redox_network" & style_options$elements_by_redox == TRUE)
+    } else if (style_options$element_color_by == "element_redox_network" & style_options$elements_by_redox == TRUE)
     {  
       obtain_colors_legend(full_nodes %>% dplyr::select(element, element_redox_network), 
-                           style_options$color_element_by, 
+                           style_options$element_color_by, 
                            "c", 
                            style_options$element_palette) -> out_legend
       out_legend$leg -> legend_list[["element_legend"]]
@@ -156,8 +156,8 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
     } else
     {
       obtain_colors_legend(element_nodes,
-                           style_options$color_element_by, 
-                           ifelse(style_options$color_element_by %in% ordinal_color_variables, "d", "c"),
+                           style_options$element_color_by, 
+                           ifelse(style_options$element_color_by %in% ordinal_color_variables, "d", "c"),
                            style_options$element_palette) -> out_legend 
       out_legend$leg -> legend_list[["element_legend"]]
       out_legend$cols %>% 
@@ -181,10 +181,10 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
 style_nodes_sizes <- function(full_nodes, style_options)
 {
   ## ELEMENT SIZES -----------------------------------------------------------
-  if (style_options$element_size_type != "singlesize") 
+  if (style_options$element_size_by != "singlesize") 
   {
     obtain_node_sizes(full_nodes %>% dplyr::filter(group == "element"), 
-                                              style_options$element_size_type, element_size_min, element_size_max, size_scale = style_options$element_size_scale / element_size_scale_divisor) %>%
+                                              style_options$element_size_by, element_size_min, element_size_max, size_scale = style_options$element_size_scale / element_size_scale_divisor) %>%
       dplyr::select(label, id, size) %>%
       dplyr::mutate(group = "element") -> elsizes
     
@@ -198,9 +198,9 @@ style_nodes_sizes <- function(full_nodes, style_options)
   }                     
   
   ## MINERAL SIZES -----------------------------------------------------------
-  if (style_options$mineral_size_type != "singlesize") {
+  if (style_options$mineral_size_by != "singlesize") {
     obtain_node_sizes(full_nodes %>% dplyr::filter(group == "mineral"), 
-                      style_options$mineral_size_type, mineral_size_min, mineral_size_max, size_scale = style_options$mineral_size_scale / mineral_size_scale_divisor) %>%
+                      style_options$mineral_size_by, mineral_size_min, mineral_size_max, size_scale = style_options$mineral_size_scale / mineral_size_scale_divisor) %>%
       dplyr::select(label, id, size) %>%
       dplyr::mutate(group = "mineral") -> minsizes
     

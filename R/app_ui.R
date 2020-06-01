@@ -103,214 +103,110 @@ app_ui <- function(request) {
             ## NETWORK VISUAL STYLE MENUS ---------------------------------------------------------------------------------------------
             menuItem(text = "Node Colors",
                      
-                     fluidRow(
-                       column(7, 
-                              pickerInput("color_element_by", "Color elements based on:",
-                                          c("Single color"            = "singlecolor",  
-                                            "Degree centrality" = "network_degree_norm",
-                                            # "Color by closeness centrality" = "closeness",  ## causes all kinds of problems for disconnected graphs
-                                            "Redox state in network"  = "element_redox_network",
-                                            "HSAB theory" = "element_hsab",
-                                            "Electronegativity" = "pauling", 
-                                            "Number of localities (based on mineral discovery)" = "num_localities",
-                                            "Atomic mass" = "AtomicMass",
-                                           # "Number of protons" = "NumberofProtons", # NOT FUNDAMENTALLY DIFF FROM ATOMIC MASS
-                                          #  "Periodic Table Group"       = "TableGroup", # TOO MANY FOR PALETTE
-                                          #  "Periodic Table Period"       = "TablePeriod", # TOO MANY FOR PALETTE
-                                            # "Metal type"    = "MetalType", ## legend is a disaster. unless someone requests this feature, it's out
-                                            "Density"       = "Density",
-                                            "Specific Heat"  = "SpecificHeat")
-                              ) ## END pickerInput   
-                       ), ## END column
-                       column(5, 
-                              conditionalPanel(condition = "input.color_element_by == 'singlecolor'",   
-                                               {colourpicker::colourInput("element_color", "Color:", value = "skyblue")}
-                              ), ## END conditionalPanel         
-                              conditionalPanel(condition = "input.color_element_by != 'singlecolor'",
-                                               {pickerInput("element_palette", label = "Palette:",
-                                                            choices = palette_sd[["palette_names"]], selected = "Blues", width = "90%",
-                                                            choicesOpt = list(
-                                                              content = sprintf(
-                                                                "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-                                                                unname(palette_sd[["linear_gradient"]]), palette_sd[["label_colors"]], names(palette_sd[["linear_gradient"]])
-                                                              )
-                                                            )
-                                               )}
-                              ) ## END conditionalPanel   
-                       ) ## END column
-                     ), ## END fluidRow
-                     fluidRow(
-                       column(7,
-                              pickerInput("color_mineral_by", "Color minerals based on:",
-                                          c("Single color"    = "singlecolor",  
-                                            "Maximum known age"           = "max_age",      
-                                            "Number of known localities"  = "num_localities",
-                                            "Mean electronegativity" = "mean_pauling", 
-                                            "COV electronegativity" = "cov_pauling")
-                              ) ## END pickerInput   
-                       ), ## END column
-                       column(5,
-                              conditionalPanel(condition = "input.color_mineral_by == 'singlecolor'",   
-                                               {colourpicker::colourInput("mineral_color", "Color:", value = "firebrick3")}
-                              ), ## END conditionalPanel   
-                              conditionalPanel(condition = "input.color_mineral_by != 'singlecolor'",   
-                                               {pickerInput("mineral_palette", label = "Palette:",
-                                                            choices = palette_sd[["palette_names"]], selected = "Reds", width = "90%",
-                                                            choicesOpt = list(
-                                                              content = sprintf(
-                                                                "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-                                                                unname(palette_sd[["linear_gradient"]]), palette_sd[["label_colors"]], names(palette_sd[["linear_gradient"]])
-                                                              )
-                                                            )
-                                               )}        
-                              ) ## END conditionalPanel   
-                       ) ## END column
-                     ), ## END fluidRow
+              fluidRow(
+                column(7, mod_ui_choose_style_by(id = "mod_element_color_by", element_color_by_choices, "singlecolor", "Color elements based on:")),
+                column(5, 
+                  conditionalPanel(condition = "input.color_element_by == 'singlecolor'", {
+                    mod_ui_choose_single_color(id = "mod_element_color", default_element_color)
+                  }), ## END conditionalPanel         
+                  conditionalPanel(condition = "input.color_element_by != 'singlecolor'",{
+                    mod_ui_choose_sd_palette(id = "mod_element_palette", default_element_palette)
+                  }) ## END conditionalPanel   
+                ) ## END column
+              ), ## END fluidRow
+              fluidRow(
+                column(7, mod_ui_choose_style_by(id = "mod_mineral_color_by", mineral_color_by_choices, "singlecolor", "Color minerals based on:")),
+                column(5,
+                  conditionalPanel(condition = "input.color_mineral_by == 'singlecolor'", {
+                    mod_ui_choose_single_color(id = "mod_mineral_color", default_mineral_color)
+                  }), ## END conditionalPanel         
+                  conditionalPanel(condition = "input.color_mineral_by != 'singlecolor'",{
+                    mod_ui_choose_sd_palette(id = "mod_mineral_palette", default_mineral_palette)
+                  }) ## END conditionalPanel    
+                ) ## END column
+              ), ## END fluidRow
                      
-                     prettySwitch("color_by_cluster",
-                                  "Color all nodes by community cluster", 
-                                  value = FALSE, 
-                                  status = "danger"), ## END prettySwitch
-                     
-                     conditionalPanel(condition = "input.color_by_cluster == true",{
-                       pickerInput("cluster_palette", label = "Community cluster palette:",
-                                   choices = palette_q[["palette_names"]], selected = "Dark2", width = "100%",
-                                   choicesOpt = list(
-                                     content = sprintf(
-                                       "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-                                       unname(palette_q[["linear_gradient"]]), palette_q[["label_colors"]], names(palette_q[["linear_gradient"]])
-                                     )
-                                   )
-                       )
-                     }) ## END conditionalPanel   
+              prettySwitch("color_by_cluster", "Color all nodes by community cluster", value = FALSE, status = "danger"), 
+              conditionalPanel(condition = "input.color_by_cluster == true",{
+                mod_ui_choose_q_palette(id = "mod_cluster_palette", default_cluster_palette)
+              }) ## END conditionalPanel 
             ), ## END "Node Colors" menuItem
+            
+            
             menuItem(text = "Color individual elements",
-                     fluidRow(
-                       column(7,
-                              prettySwitch("highlight_element","Highlight focal element(s)", value = FALSE,  status = "danger")
-                       ), ## END column
-                       column(5, 
-                              colourpicker::colourInput("highlight_color", "Color:", value = "lightgoldenrod1")
-                       ) ## END column
-                     ), ## END fluidRow
-                     fluidRow(
-                       column(7,
-                              uiOutput("choose_custom_elements_color")
-                       ), ## END column                
-                       column(5, 
-                              colourpicker::colourInput("custom_selection_color", "Color:", value = "chartreuse3")
-                       ) ## END column   
-                     ) ## END fluidRow
+              fluidRow(
+                column(7, prettySwitch("highlight_element","Highlight focal element(s)", value = FALSE,  status = "danger")),
+                column(5, mod_ui_choose_single_color(id = "mod_highlight_color", default_highlight_color))
+              ), ## END fluidRow
+              fluidRow(
+                column(7, uiOutput("choose_custom_elements_color")),
+                column(5, mod_ui_choose_single_color(id = "mod_selection_color", default_selection_color))
+              ) ## END fluidRow
             ), ## END "Color individual elements" menuItem
             
             menuItem(text = "Node Sizes",
-                     fluidRow(
-                       column(6, 
-                              pickerInput("element_size_type", "Size element nodes based on:", 
-                                          c("Single size" = "singlesize",
-                                            "Degree centrality" = "network_degree_norm", 
-                                            "Number of localities (based on mineral discovery)" = "num_localities",
-                                            "Atomic mass" = "AtomicMass",
-                                            "Number of protons" = "NumberofProtons",
-                                            "Density"       = "Density",
-                                            "Specific Heat"  = "SpecificHeat"), selected = "singlesize")
-                       ), ## END column   
-                       column(6, 
-                              conditionalPanel(condition = "input.element_size_type == 'singlesize'", {
-                                sliderInput("element_label_size","Element size",value=50,min=10,max=100, step=10) #### !!!!!!! label size - this is how visnetwork does <shrug>!!!!!!!
-                              })
-                       ), ## END column   
-                       column(6, 
-                              conditionalPanel(condition = "input.element_size_type != 'singlesize'", {
-                                sliderInput("element_size_scale","Scale element size",value=20,min=10,max=100,step=10)
-                              }) 
-                       ) ## END column   
-                     ), ## END fluidRow                    
+              fluidRow(
+                column(6, mod_ui_choose_style_by(id = "mod_element_size_by", element_size_by_choices, "singlesize", "Size elements based on:")),
+                column(6, 
+                  conditionalPanel(condition = "input.element_size_by == 'singlesize'", {
+                    sliderInput("element_label_size","Element size",value=50,min=10,max=100, step=10) #### !!!!!!! label size - this is how visnetwork does <shrug>!!!!!!!
+                  })
+                ), ## END column   
+                column(6, 
+                  conditionalPanel(condition = "input.element_size_by != 'singlesize'", {
+                    sliderInput("element_size_scale","Scale element size",value=20,min=10,max=100,step=10)
+                  }) 
+                ) ## END column   
+              ), ## END fluidRow                    
                      
-                     fluidRow(
-                       column(6, 
-                              pickerInput("mineral_size_type", "Size mineral nodes based on:", 
-                                          c("Single size" = "singlesize",
-                                            "Maximum known age"           = "max_age",      
-                                            "Number of known localities"  = "num_localities"), selected = "singlesize")
-                       ), ## END column   
-                       column(6,       
-                              conditionalPanel(condition = "input.mineral_size_type == 'singlesize'",{ 
-                                sliderInput("mineral_size","Mineral size",value=10,min=0,max=50, step = 5)
-                              })
-                       ), ## END column   
-                       column(6, 
-                              conditionalPanel(condition = "input.mineral_size_type != 'singlesize'", {
-                                sliderInput("mineral_size_scale","Scale mineral size",value=10,min=1,max=25,step=1)
-                              }) 
-                       ) ## END column   
-                     ) ## END fluidRow
+              fluidRow(
+                column(6, mod_ui_choose_style_by(id = "mod_mineral_size_by", mineral_size_by_choices, "singlesize", "Size minerals based on:")),
+                column(6,       
+                  conditionalPanel(condition = "input.mineral_size_by == 'singlesize'",{ 
+                    sliderInput("mineral_size","Mineral size",value=10,min=0,max=50, step = 5)
+                  })
+                ), ## END column   
+                column(6, 
+                  conditionalPanel(condition = "input.mineral_size_by != 'singlesize'", {
+                    sliderInput("mineral_size_scale","Scale mineral size",value=10,min=1,max=25,step=1)
+                  }) 
+                ) ## END column   
+              ) ## END fluidRow
             ), ## END "Node Sizes" menuItem
             
             menuItem(text = "Node Labels and Font", 
-                     fluidRow(
-                       column(6, colourpicker::colourInput("element_label_color","Element font color",value = "#000000"))
-                     ),  ## END fluidRow
-                     fluidRow( 
-                       column(6, colourpicker::colourInput("mineral_label_color","Mineral font color",value = "#000000")),
-                       column(6, sliderInput("mineral_label_size","Mineral font size",value=0,min=0,max=50))
-                     ) ## END fluidRow
+              fluidRow(
+                column(6, mod_ui_choose_single_color(id = "mod_element_label_color", default_element_label_color, label = "Element font color:"))
+              ),  ## END fluidRow
+              fluidRow( 
+                column(6, mod_ui_choose_single_color(id = "mod_mineral_label_color", default_mineral_label_color, label = "Mineral font color:")),
+                column(6, sliderInput("mineral_label_size","Mineral font size",value=0,min=0,max=50))
+              ) ## END fluidRow
             ), ## END "Node Labels and Font" menuItem
             
-            
             menuItem(text = "Node Shapes", 
-                     fluidRow(
-                       column(6,
-                              pickerInput("element_shape", "Element shape", ## shapes that scale with font. NOTE: removing those incompatible with igraph
-                                          c("Circle"     = "circle",
-                                            "Square"        = "box", 
-                                            "Text only (no shape)"  = "text"), selected = "Circle" 
-                              ) 
-                       ), ## END column
-                       column(6, 
-                              pickerInput("mineral_shape", "Mineral shape",  ## shapes that DO NOT scale with font. NOTE: removing those incompatible with igraph
-                                          c("Circle"   = "dot", #### !!!!!!
-                                            "Square"   = "square"), selected = "Circle"    
-                              )
-                       ) ## END column
-                     ) ## END fluidRow
+              fluidRow(
+                column(6, mod_ui_choose_shape(id = "mod_element_shape", element_shape_choices, default_element_shape, label = "Element node shape:")),
+                column(6, mod_ui_choose_shape(id = "mod_mineral_shape", mineral_shape_choices, default_mineral_shape, label = "Mineral node shape:"))
+              ) ## END fluidRow
             ), ## END "Node Shapes" menuItem
             
             
             menuItem(text = "Edge Attributes", 
-                     fluidRow(
-                       column(6,
-                              pickerInput("color_edge_by", "Color network edges by:",
-                                          c("Single color" = "singlecolor",  
-                                            "Element redox state in network" = "element_redox_network",
-                                            "Element redox state in mineral" = "element_redox_mineral",
-                                            "Number of known mineral localities" = "num_localities_mineral",
-                                            ## TODO I ADDED THESE JUST NOW IS IT A NEW BUG?
-                                            "Mean mineral electronegativity"     = "mean_pauling",
-                                            "COV mineral electronegativity"     = "cov_pauling",
-                                            "Maximum known age of mineral"      = "max_age")
-                                          ) ## END pickerInput
-                       ), ## END column
-                       column(6,
-                          conditionalPanel(condition = "input.color_edge_by == 'singlecolor'", {  
-                            colourpicker::colourInput("edge_color", "Color:", value = "#5E5E5E")
-                          }),
-                         conditionalPanel(condition = "input.color_edge_by != 'singlecolor'", { 
-                           pickerInput("edge_palette", label = "Palette:",
-                                       choices = palette_sd[["palette_names"]], selected = "BrBG", width = "90%",
-                                       choicesOpt = list(
-                                         content = sprintf(
-                                           "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-                                           unname(palette_sd[["linear_gradient"]]), palette_sd[["label_colors"]], names(palette_sd[["linear_gradient"]])
-                                         )
-                                       )
-                           )
-                        })## END conditionalPanel  
-                       ) ## END column
-                     ), ## END fluidRow 
-                     fluidRow(
-                       column(12, sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10))
-                     ) ## END fluidRow 
+              fluidRow(
+                column(6, mod_ui_choose_style_by(id = "mod_edge_color_by", edge_color_by_choices, "singlecolor", "Color edges based on:")),
+                column(6,
+                   conditionalPanel(condition = "input.color_edge_by == 'singlecolor'", {  
+                     mod_ui_choose_single_color(id = "mod_edge_color", default_edge_color)
+                   }),
+                  conditionalPanel(condition = "input.color_edge_by != 'singlecolor'", { 
+                    mod_ui_choose_sd_palette(id = "mod_edge_palette", default_edge_palette)
+                 })## END conditionalPanel  
+                ) ## END column
+              ), ## END fluidRow 
+              fluidRow(
+                column(12, sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10))
+              ) ## END fluidRow 
             ),  ## END "Edge Attributes" menuItem
             
             menuItem("Network interaction options",

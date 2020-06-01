@@ -1,5 +1,5 @@
-#load("R/sysdata.rda") ## TODO devtools:check() fails without explicit load. how fix? can i do library(dragon)? probably not?
-
+load("R/sysdata.rda") ## TODO devtools:check() fails without explicit load. how fix? can i do library(dragon)? probably not?
+# from stackoverflow?: If your package name is somepackage and the object saved was nhanes_files with devtools::use_data(nhanes_files, internal = TRUE) then you can access this in your functions by calling somepackage:::nhanes_files.
 
 #' Maximum age possible for mineral selection
 #'

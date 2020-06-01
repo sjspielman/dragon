@@ -10,7 +10,7 @@ app_server <- function( input, output, session ) {
   ################################# Build network ####################################
   ## Construct the network from user input ------------------------------------------
   chemistry_network <- reactive({
-    
+
     req(input$elements_of_interest)
     
     elements_of_interest <- input$elements_of_interest
@@ -83,7 +83,7 @@ app_server <- function( input, output, session ) {
     }
     
     ## Set cluster colors ----------------------------------------------------------------
-    cluster_colors <- set_cluster_colors(input$cluster_palette, n_clusters)
+    cluster_colors <- set_cluster_colors("Set2", n_clusters)   #network_colors[["cluster_palette"]], n_clusters)
     if (length(cluster_colors) != n_clusters)
     {
        shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
@@ -242,7 +242,6 @@ app_server <- function( input, output, session ) {
         starting_edges <- edge_styler()$styled_edges
         
         
-        
         ## MUST be here!
         if (build_only == FALSE) 
         {
@@ -284,19 +283,19 @@ app_server <- function( input, output, session ) {
                            multiselect       = TRUE,
                            navigationButtons = FALSE) %>%
             visGroups(groupname = "element",
-                      color = input$element_color,
-                      shape = input$element_shape,
+                      color = network_style_options()[["element_color"]], 
+                      shape = network_style_options()[["element_shape"]], 
                       font  = list(size = input$element_label_size)
                       ) %>%
             visGroups(groupname = "mineral",
-                      color = input$mineral_color,
-                      shape = input$mineral_shape,
+                      color = network_style_options()[["mineral_color"]], 
+                      shape = network_style_options()[["mineral_shape"]],
                       size  = input$mineral_size,
                       font  = list(size = ifelse(input$mineral_label_size == 0,
                                                  "NA",
                                                  input$mineral_label_size))
                       ) %>%
-            visEdges(color = input$edge_color,
+            visEdges(color = network_style_options()[["edge_color"]],
                      width = input$edge_weight,
                      smooth = FALSE) ## smooth=FALSE has no visual effect that I can perceive, and improves speed. Cool.
         } ## END if(build_only == FALSE)
@@ -721,9 +720,50 @@ app_server <- function( input, output, session ) {
   #################################################################################################################
 
   network_style_options <- reactive({
+    list(element_color       = callModule(mod_server_choose_single_color, id = "mod_element_color")(),
+                   mineral_color       = callModule(mod_server_choose_single_color, id = "mod_mineral_color")(),
+                   edge_color          = callModule(mod_server_choose_single_color, id = "mod_edge_color")(),
+                   element_palette     = callModule(mod_server_choose_sd_palette,   id = "mod_element_palette")(),
+                   mineral_palette     = callModule(mod_server_choose_sd_palette,   id = "mod_mineral_palette")(),
+                   cluster_palette     = callModule(mod_server_choose_q_palette,    id = "mod_cluster_palette")(), ## QUALITATIVE
+                   edge_palette        = callModule(mod_server_choose_sd_palette,   id = "mod_edge_palette")(),
+                   highlight_color     = callModule(mod_server_choose_single_color, id = "mod_highlight_color")(),
+                   selection_color     = callModule(mod_server_choose_single_color, id = "mod_selection_color")(),
+                   element_label_color = callModule(mod_server_choose_single_color, id = "mod_element_label_color")(),
+                   mineral_label_color = callModule(mod_server_choose_single_color, id = "mod_mineral_label_color")(),
+                   element_shape       = callModule(mod_server_choose_shape,        id = "mod_element_shape")(),
+                   mineral_shape       = callModule(mod_server_choose_shape,        id = "mod_mineral_shape")(),
+                   element_color_by    = callModule(mod_server_choose_style_by,     id = "mod_element_color_by")(),
+                   mineral_color_by    = callModule(mod_server_choose_style_by,     id = "mod_mineral_color_by")(),  
+                   element_size_by     = callModule(mod_server_choose_style_by,     id = "mod_element_size_by")(),
+                   mineral_size_by     = callModule(mod_server_choose_style_by,     id = "mod_mineral_size_by")(),    
+                   edge_color_by       = callModule(mod_server_choose_style_by,     id = "mod_edge_color_by")(),
+                   ##### Non modules
+                   color_by_cluster         = input$color_by_cluster,
+                   mineral_size_scale       = input$mineral_size_scale,
+                   mineral_label_size       = input$mineral_label_size,
+                   mineral_size             = input$mineral_size,
+                   element_size_scale       = input$element_size_scale,
+                   element_label_size       = input$element_label_size,
+                   elements_of_interest     = input$elements_of_interest,
+                   elements_by_redox        = input$elements_by_redox,
+                   highlight_element        = input$highlight_element,
+                   custom_selection_element = input$custom_selection_element, 
+                   cluster_colors           = chemistry_network()$cluster_colors
+    ) # end of list definition
+  }) 
+    
+    
+    
+    #print("THIS SHOULD BE CALLED")
+    ## Network style modules ------------------------------------------------------------------------
+  
+  
+  sanity_style <- reactive({
+  
     ## Sanity checking for input style choices -----------------------------------------------------------------------
     ## Element color sanity
-    element_color_variable  <- as.symbol(input$color_element_by)
+    element_color_variable  <- as.symbol(network_style_options()[["element_color_by"]])
     if(element_color_variable != "singlecolor"){
       chemistry_network()$nodes %>%
         dplyr::filter(group == "element") %>%
@@ -739,7 +779,7 @@ app_server <- function( input, output, session ) {
         }
     }
     ## Mineral color sanity
-    mineral_color_variable  <- as.symbol(input$color_mineral_by)
+    mineral_color_variable  <- as.symbol(network_style_options()[["mineral_color_by"]])
     if(mineral_color_variable != "singlecolor"){
       chemistry_network()$nodes %>%
         dplyr::filter(group == "mineral") %>%
@@ -755,7 +795,7 @@ app_server <- function( input, output, session ) {
       }
     }
     ## Edge color sanity
-    edge_color_variable  <- as.symbol(input$color_edge_by)
+    edge_color_variable  <- as.symbol(network_style_options()[["edge_color_by"]])
     if(edge_color_variable != "singlecolor"){
       chemistry_network()$edges %>%
         dplyr::select( edge_color_variable ) %>%
@@ -769,53 +809,20 @@ app_server <- function( input, output, session ) {
         shiny::validate( shiny::need(nrow(edges_validate) > 0, ""))
       }
     }
-    
-    ## Define, return the styles ----------------------------------------------    
-    ## Colors shapes first
-    list("color_by_cluster"    = input$color_by_cluster,
-         "cluster_colors"      = chemistry_network()$cluster_colors,
-         "color_mineral_by"    = input$color_mineral_by,
-         "mineral_palette"     = input$mineral_palette,
-         "mineral_color"       = input$mineral_color,
-         "mineral_label_color" = input$mineral_label_color,
-         "color_element_by"    = input$color_element_by,
-         "element_palette"     = input$element_palette,
-         "element_color"       = input$element_color,
-         "element_label_color" = input$element_label_color,
-         "mineral_shape"       = input$mineral_shape,
-         "element_shape"       = input$element_shape,
-         ## Sizes
-         "mineral_size_type"  = input$mineral_size_type,
-         "mineral_size_scale" = input$mineral_size_scale,
-         "mineral_label_size" = input$mineral_label_size,
-         "mineral_size"       = input$mineral_size,
-         "element_size_type"  = input$element_size_type,
-         "element_size_scale" = input$element_size_scale,
-         "element_label_size" = input$element_label_size,
-         ## Single element colors, etc.
-         "elements_of_interest"     = chemistry_network()$elements_of_interest,
-         "elements_by_redox"        = input$elements_by_redox,
-         "highlight_element"        = input$highlight_element,
-         "highlight_color"          = input$highlight_color,
-         "custom_selection_element" = input$custom_selection_element, 
-         "custom_selection_color"   = input$custom_selection_color,
-         ## Edges
-         "color_edge_by" = input$color_edge_by,
-         "edge_color"    = input$edge_color, 
-         "edge_palette"  = input$edge_palette)
-    
-    
+  
   })
   
   
   ## Reactive to style nodes by user input ---------------------------------------------------------------------------
   node_styler <- reactive({
+    sanity_style()
     style_nodes(chemistry_network()$nodes, network_style_options())
   })   
   
   
   ## Reactive to style edges by user input ---------------------------------------------------------------------------
   edge_styler <- reactive({
+    sanity_style()
     style_edges(chemistry_network()$edges, network_style_options())
   })
   #################################################################################################################

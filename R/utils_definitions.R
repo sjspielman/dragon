@@ -6,6 +6,69 @@ options(scipen=3)                                      ## Sci when more than 3 d
 on.exit(options(original_options), add=TRUE)
 
 
+default_element_color    <- "skyblue"
+default_mineral_color    <- "firebrick3"
+default_edge_color       <- "grey30"
+default_element_palette  <- "Blues"
+default_mineral_palette  <- "Reds"
+default_cluster_palette  <- "Dark2"
+default_edge_palette     <- "BrBG"
+default_edge_color       <- "#5E5E5E"
+default_highlight_color  <- "lightgoldenrod1"
+default_selection_color  <- "chartreuse3"
+default_element_label_color <- "black"
+default_mineral_label_color <- "black"
+default_element_shape       <- "circle"
+default_mineral_shape       <- "dot"
+element_color_by_choices =  c("Single color"            = "singlecolor",  
+                              "Degree centrality"       = "network_degree_norm",
+                              "Redox state in network"  = "element_redox_network",
+                              "HSAB theory"             = "element_hsab",
+                              "Electronegativity"       = "pauling", 
+                              "Number of localities (based on mineral discovery)" = "num_localities",
+                              "Atomic mass"             = "AtomicMass",
+                              #"Number of protons" = "NumberofProtons", # NOT FUNDAMENTALLY DIFF FROM ATOMIC MASS
+                              #"Periodic Table Group"       = "TableGroup", # TOO MANY FOR PALETTE
+                              #"Periodic Table Period"       = "TablePeriod", # TOO MANY FOR PALETTE
+                              #"Metal type"    = "MetalType", ## legend is a disaster. unless someone requests this feature, it's out
+                              "Density"                = "Density",
+                              "Specific Heat"          = "SpecificHeat")
+
+mineral_color_by_choices = c("Single color"                = "singlecolor",  
+                             "Maximum known age"           = "max_age",      
+                             "Number of known localities"  = "num_localities",
+                             "Mean electronegativity"      = "mean_pauling", 
+                             "COV electronegativity"       = "cov_pauling")
+
+element_size_by_choices =  c("Single size" = "singlesize",
+                              "Degree centrality" = "network_degree_norm", 
+                              "Number of localities (based on mineral discovery)" = "num_localities",
+                              "Atomic mass" = "AtomicMass",
+                              "Number of protons" = "NumberofProtons",
+                              "Density"       = "Density",
+                              "Specific Heat"  = "SpecificHeat")
+mineral_size_by_choices = c("Single size" = "singlesize",
+                            "Maximum known age"           = "max_age",      
+                            "Number of known localities"  = "num_localities")
+
+
+edge_color_by_choices   = c("Single color" = "singlecolor",  
+                            "Element redox state in network" = "element_redox_network",
+                            "Element redox state in mineral" = "element_redox_mineral",
+                            "Number of known mineral localities" = "num_localities_mineral",
+                            ## TODO I ADDED THESE JUST NOW IS IT A NEW BUG?
+                            "Mean mineral electronegativity"     = "mean_pauling",
+                            "COV mineral electronegativity"     = "cov_pauling",
+                            "Maximum known age of mineral"      = "max_age")
+
+element_shape_choices <- c("Circle"                = "circle",
+                           "Square"                = "box", 
+                           "Text only (no shape)"  = "text")
+
+mineral_shape_choices <-  c("Circle"   = "dot", #### !!!!!!
+                            "Square"   = "square")
+
+
 ## Explicit pipe definitions
 `%>%`  <- magrittr::`%>%`
 `%<>%` <- magrittr::`%>%`

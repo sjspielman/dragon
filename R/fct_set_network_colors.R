@@ -1,3 +1,6 @@
+
+#' Gray color used for NA values
+#' 
 na.gray <- "#DCDCDC"
 geom.point.size <- 8
 ggplot2::theme_set(cowplot::theme_cowplot() + 
