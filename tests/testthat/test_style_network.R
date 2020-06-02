@@ -41,11 +41,11 @@ style_options_test <- list("color_by_cluster"  = FALSE,
                           "custom_selection_element" = NA,
                           "custom_selection_color"   = purple,
                           ## Sizes
-                          "element_size_type"  = "singlesize", ## num_localities 
+                          "element_size_by"  = "singlesize", ## num_localities 
                           "element_label_size" = label_size,
                           "element_size_scale" = size_scale,  ### used if element_label_size != singlesize eg num_localities
-                          "mineral_size_type"  = "singlesize", ## num_localities 
-                          "mineral_size_scale" = size_scale,  ### used if mineral_size_type != singlesize eg num_localities
+                          "mineral_size_by"  = "singlesize", ## num_localities 
+                          "mineral_size_scale" = size_scale,  ### used if mineral_size_by != singlesize eg num_localities
                           "mineral_label_size" = label_size,
                           "mineral_size"       = size_scale,
                           ## Edges
@@ -167,8 +167,8 @@ test_that("fct_style_network::style_nodes() node shapes, *single* sizes, font co
 test_that("fct_style_network::style_nodes() node dynamic sizes", {
   
   style_options_here <- style_options_test
-  style_options_here[["mineral_size_type"]] <- "num_localities"
-  style_options_here[["element_size_type"]] <- "num_localities"
+  style_options_here[["mineral_size_by"]] <- "num_localities"
+  style_options_here[["element_size_by"]] <- "num_localities"
   
   styled_test <- style_nodes(full_nodes, style_options_here)
   styled_nodes <- styled_test$styled_nodes
