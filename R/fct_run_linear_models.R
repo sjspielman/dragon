@@ -1,3 +1,11 @@
+
+#' Fit linear regression given a user-specified response and predictor variable on mineral data in network
+#' 
+#' @param response   Variable to be used as regression response
+#' @param predictor  Variable to be used as regression predictor
+#' @param mineral_nodes  Tibble containing data to be modeled
+#'
+#' @returns Named list containing a tidied fitted model tibble ('model_fit'), a tidied fitted Tukey test tibble if performed ('tukey_fit'), a logical indicating if equal or unequal variance across groups associated with Tukey ('tukey_ok_variance')
 fit_linear_model <- function(response, predictor, mineral_nodes)
 {
 
@@ -66,33 +74,102 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
 }
 
 
-
-plot_linear_model <- function(response, predictor, mineral_nodes, logx, logy, point_color, point_size, bestfit, bestfit_color, cluster_colors)
+#' Plot results from linear regression, specifically where community cluster is the predictor variable
+#' 
+#' @param response   Variable used as regression response
+#' @param mineral_nodes  Tibble containing data to visualize
+#' @param cluster_colors  Array of pre-specified colors to use across categories in plot
+#' @param plot_type  String indicating which type of plot to make, one of 'strip', 'sina', 'violin', or 'boxplot'
+#' @param flip_coord Logical indicating if plot coordinates should be flipped. Coordinates are flipped if TRUE, otherwise predictor variable is on the x-axis
+#' @param show_mean_se  Logical indicating if mean and standard error per group should be displayed in the plot. Displayed if TRUE.
+#' @param point_size  Numeric used as point size for either strip or sina plots. Argument is ignored for boxplot and violin plot.
+#'
+#' @returns ggplot object to be displayed
+plot_linear_model_cluster <- function(response, mineral_nodes, cluster_colors, plot_type, flip_coord, show_mean_se, point_size)
 {
-  if(predictor == cluster_ID_str)
-  {
-    ## Build the strip plot output for models with cluster as predictor ------------------------------------
-    ggplot2::ggplot(mineral_nodes) + 
+
+  ## Build the baseline plot output for models with cluster as predictor ------------------------------------
+  ggplot2::ggplot(mineral_nodes) + 
       ggplot2::aes(x = cluster_ID, 
-                   y = !!sym(response), 
-                   color = cluster_ID) + 
+                   y = !!sym(response)) + 
       ggplot2::xlab(cluster_ID_str) + 
       ggplot2::ylab(response) +
-      ggplot2::geom_jitter(size=point_size, width=0.1) + 
-      ggplot2::scale_color_manual(values = cluster_colors, name = predictor) +
-      ggplot2::stat_summary(geom="errorbar", width=0, color = "black", size=1)+
-      ggplot2::stat_summary(geom="point", color = "black", size=3.5) + 
       ggplot2::theme(legend.text  = ggplot2::element_text(size=12), 
                      legend.title = ggplot2::element_text(size=13)) -> fitted_model_plot
-  } else {
-    ## Build the scatterplot for models that do NOT HAVE cluster as predictor ------------------------------------
-    ggplot2::ggplot(mineral_nodes) + 
-      ggplot2::aes(x = !!sym(predictor), 
-                   y = !!sym(response)) +
-      ggplot2::xlab(predictor) + 
-      ggplot2::ylab(response) + 
-      ggplot2::geom_point(size = point_size, color = point_color) -> fitted_model_plot
+  
+  ## Add geom and color/fill ------------------------------------------------------------------------------
+  if (plot_type == "strip")
+  {
+    fitted_model_plot <- fitted_model_plot + 
+                  ggplot2::aes(color = cluster_ID) + 
+                  ggplot2::geom_jitter(size=point_size, width=0.1) + 
+                  ggplot2::scale_color_manual(values = cluster_colors, name = cluster_ID_str)
   }
+  if (plot_type == "sina")
+  {
+    fitted_model_plot <- fitted_model_plot + 
+                  ggplot2::aes(color = cluster_ID) + 
+                  ggforce::geom_sina(size=point_size) +  
+                  ggplot2::scale_color_manual(values = cluster_colors, name = cluster_ID_str)
+  }
+  if (plot_type == "violin")
+  {
+    fitted_model_plot <- fitted_model_plot + 
+                  ggplot2::aes(fill = cluster_ID) + 
+                  ggplot2::geom_violin() +  
+                  ggplot2::scale_fill_manual(values = cluster_colors, name = cluster_ID_str)
+  }
+  if (plot_type == "boxplot")
+  {
+    fitted_model_plot <- fitted_model_plot + 
+                  ggplot2::aes(fill = cluster_ID) + 
+                  ggplot2::geom_boxplot() +  
+                  ggplot2::scale_fill_manual(values = cluster_colors, name = cluster_ID_str)
+  }
+
+
+  ## Add mean and se -----------------------------------------------------------------------
+  if (show_mean_se) 
+  {
+    fitted_model_plot <- fitted_model_plot + 
+                  ggplot2::stat_summary(geom="errorbar", width=0, color = "black", size=1)+
+                  ggplot2::stat_summary(geom="point", color = "black", size=3.5)
+  }
+
+
+  ## Flip coordinates -----------------------------------------------------------------------
+  if (flip_coord)  fitted_model_plot <- fitted_model_plot + ggplot2::coord_flip()
+
+  
+  return( fitted_model_plot )
+}
+
+
+
+
+#' Plot results from linear regression as a scatterplot
+#' 
+#' @param response   Variable used as regression response
+#' @param response   Variable used as regression predictor
+#' @param mineral_nodes  Tibble containing data to visualize
+#' @param logx Logical indicating if x-axis should be displayed on log10-scale 
+#' @param logy Logical indicating if y-axis should be displayed on log10-scale 
+#' @param point_color String indicating what color should be used for points in the scatterplot
+#' @param point_size Numeric indicating the point size in the scatterplot
+#' @param bestfit Logical indicating if regression line should be displayed with 95% confidence interval
+#' @param bestfit_color String indicating what color should be used for the regression line. Ignored if bestfit = FALSE.
+#'
+#' @returns ggplot object to be displayed
+plot_linear_model_scatter <- function(response, predictor, mineral_nodes, logx, logy, point_color, point_size, bestfit, bestfit_color)
+{
+  ## Build the scatterplot for models that do NOT HAVE cluster as predictor ------------------------------------
+  ggplot2::ggplot(mineral_nodes) + 
+    ggplot2::aes(x = !!sym(predictor), 
+                 y = !!sym(response)) +
+    ggplot2::xlab(predictor) + 
+    ggplot2::ylab(response) + 
+    ggplot2::geom_point(size = point_size, color = point_color) -> fitted_model_plot
+
   if (logx) fitted_model_plot <- fitted_model_plot + ggplot2::scale_x_log10()
   if (logy) fitted_model_plot <- fitted_model_plot + ggplot2::scale_y_log10()
   if (bestfit) fitted_model_plot <- fitted_model_plot + ggplot2::geom_smooth(method = "lm", color = bestfit_color)

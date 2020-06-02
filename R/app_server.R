@@ -6,11 +6,19 @@
 #' @import dplyr
 #' @noRd
 app_server <- function( input, output, session ) {
+    
+  ## Call styling modules
+  element_node_color <- callModule(mod_server_choose_color_sd_palette, id = "mod_element_colors")
+  mineral_node_color <- callModule(mod_server_choose_color_sd_palette, id = "mod_mineral_colors")
+  edge_color         <- callModule(mod_server_choose_color_sd_palette, id = "mod_edge_colors")
+  cluster_palette    <- callModule(mod_server_choose_q_palette, id = "mod_cluster_palette")
+
+
 
   ################################# Build network ####################################
   ## Construct the network from user input ------------------------------------------
   chemistry_network <- reactive({
-
+  
     req(input$elements_of_interest)
     
     elements_of_interest <- input$elements_of_interest
@@ -83,7 +91,7 @@ app_server <- function( input, output, session ) {
     }
     
     ## Set cluster colors ----------------------------------------------------------------
-    cluster_colors <- set_cluster_colors("Set2", n_clusters)   #network_colors[["cluster_palette"]], n_clusters)
+    cluster_colors <- set_cluster_colors(cluster_palette(), n_clusters)  
     if (length(cluster_colors) != n_clusters)
     {
        shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
@@ -157,7 +165,7 @@ app_server <- function( input, output, session ) {
                               choices = unique(ordered_ids),
                               options = list(`actions-box` = TRUE, size = 6), 
                               multiple = TRUE,
-                              selected = input$elements_of_interest,
+                              selected = sort(input$elements_of_interest),
                               width = "200px"
     )
   })
@@ -600,7 +608,28 @@ app_server <- function( input, output, session ) {
   #################################################################################################################
   #################################################################################################################
   
-  
+  output$model_plot_options <- renderUI({
+    if (input$predictor == cluster_ID_str) predictor <- "cluster"
+    if (input$predictor != cluster_ID_str) predictor <- "other"
+    switch(predictor,
+      "cluster" = list(shinyWidgets::pickerInput("plot_type", "Plot type:", cluster_plot_choices, selected = "strip"),
+                       shinyWidgets::prettySwitch("show_mean_se", "Show mean and standard error", value = FALSE, status="danger"),
+                       shinyWidgets::prettySwitch("flip_coord", "Flip coordinates", value = FALSE, status="danger"),
+                       shiny::numericInput("point_size", "Point size for sina or strip chart", 2, min = 0.5, max = 4)
+                      ),   
+      "other"   =  list(shinyWidgets::prettySwitch("logx", "Use log scale on X-axis", value = FALSE, status="danger"),
+                        shinyWidgets::prettySwitch("logy", "Use log scale on Y-axis", value = FALSE, status="danger",),
+                        shinyWidgets::prettySwitch("bestfit", "Show regression line (with 95% confidence interval).", value = FALSE, status="danger"),
+                        fluidRow(
+                          column(4, colourpicker::colourInput("point_color", "Point color", value = "black")),
+                          column(4, shiny::numericInput("point_size",  "Point size", 2, min = 0.5, max = 4)),
+                          column(4, colourpicker::colourInput("bestfit_color", "Regression line color", value = "blue"))
+                        )
+                      )
+    )
+  })
+ 
+ 
   
   
   
@@ -654,9 +683,8 @@ app_server <- function( input, output, session ) {
     
     
     
-    ## Perform modeling ----------------------------------------------------------------------------------
+    ## Perform modeling and create associated plot ----------------------------------------------------------------------------------
     fitted_linear_model  <- fit_linear_model(input$response, input$predictor, chemistry_network()$mineral_nodes)
-    plotted_linear_model <- plot_linear_model(input$response, input$predictor, chemistry_network()$mineral_nodes, input$logx, input$logy, input$point_color, input$point_size, input$bestfit, input$bestfit_color, chemistry_network()$cluster_colors)
     if (fitted_linear_model$tukey_ok_variance == FALSE) 
     {
       shinyalert::shinyalert( "Caution!", ## Enjoyable random error
@@ -664,32 +692,38 @@ app_server <- function( input, output, session ) {
                               type = "warning"
                             )
     }
-    
-    
-    ## RETURNS
-    list("fitted_linear_model" = fitted_linear_model,
-         "plotted_linear_model" = plotted_linear_model
-    )
-  }) ## END linear_model_output reactive
+    fitted_linear_model ## a list itself: $model_fit, $tukey_fit, $tukey_ok_variance (only used above)
+  })  ## END linear_model_output reactive
+  
+  
+  linear_model_plot <- reactive({ 
+    if (input$predictor == cluster_ID_str)
+    {
+      p <- plot_linear_model_cluster(input$response, chemistry_network()$mineral_nodes, chemistry_network()$cluster_colors, input$plot_type, input$flip_coord, input$show_mean_se, input$point_size)
+    } else  {
+      p <- plot_linear_model_scatter(input$response, input$predictor, chemistry_network()$mineral_nodes, input$logx, input$logy, input$point_color, input$point_size, input$bestfit, input$bestfit_color)
+    }    
+    p
+  })  ## END linear_model_plot reactive
     
     
   ## Renderings for linear model tab ------------------------------------------------------------------------------
     
   ## Render table with fitted model parameters and statistics, for any constructed model -----------------------
   output$fitted_model <- DT::renderDataTable( rownames= FALSE, extensions = 'Buttons', options = list(dom = 'Bp', buttons = c('copy', 'csv', 'excel')), { 
-    linear_model_output()$fitted_linear_model$model_fit
+    linear_model_output()$model_fit
   })
         
   ## Render table specifically for Tukey tests -----------------------------------------------------------------
   output$fitted_tukey <- DT::renderDataTable( rownames= FALSE, extensions = 'Buttons', options = list(dom = 'Bp', buttons = c('copy', 'csv', 'excel')), { 
-    linear_model_output()$fitted_linear_model$tukey_fit
+    linear_model_output()$tukey_fit
   })
 
       
 
   ## Render plot of fitted model -------------------------------------------------------
   output$fitted_model_plot <- renderPlot({
-    linear_model_output()$plotted_linear_model
+    linear_model_plot()
   })      
   
   ## FYI text for cluster analysis -----------------------------------------------------
@@ -707,63 +741,16 @@ app_server <- function( input, output, session ) {
       ggplot2::ggsave(file, fitted_model_plot)
   })        
 
-    
-
-
-
-
-
-
 
 
   #################################################################################################################
   #################################################################################################################
 
   network_style_options <- reactive({
-    list(element_color       = callModule(mod_server_choose_single_color, id = "mod_element_color")(),
-                   mineral_color       = callModule(mod_server_choose_single_color, id = "mod_mineral_color")(),
-                   edge_color          = callModule(mod_server_choose_single_color, id = "mod_edge_color")(),
-                   element_palette     = callModule(mod_server_choose_sd_palette,   id = "mod_element_palette")(),
-                   mineral_palette     = callModule(mod_server_choose_sd_palette,   id = "mod_mineral_palette")(),
-                   cluster_palette     = callModule(mod_server_choose_q_palette,    id = "mod_cluster_palette")(), ## QUALITATIVE
-                   edge_palette        = callModule(mod_server_choose_sd_palette,   id = "mod_edge_palette")(),
-                   highlight_color     = callModule(mod_server_choose_single_color, id = "mod_highlight_color")(),
-                   selection_color     = callModule(mod_server_choose_single_color, id = "mod_selection_color")(),
-                   element_label_color = callModule(mod_server_choose_single_color, id = "mod_element_label_color")(),
-                   mineral_label_color = callModule(mod_server_choose_single_color, id = "mod_mineral_label_color")(),
-                   element_shape       = callModule(mod_server_choose_shape,        id = "mod_element_shape")(),
-                   mineral_shape       = callModule(mod_server_choose_shape,        id = "mod_mineral_shape")(),
-                   element_color_by    = callModule(mod_server_choose_style_by,     id = "mod_element_color_by")(),
-                   mineral_color_by    = callModule(mod_server_choose_style_by,     id = "mod_mineral_color_by")(),  
-                   element_size_by     = callModule(mod_server_choose_style_by,     id = "mod_element_size_by")(),
-                   mineral_size_by     = callModule(mod_server_choose_style_by,     id = "mod_mineral_size_by")(),    
-                   edge_color_by       = callModule(mod_server_choose_style_by,     id = "mod_edge_color_by")(),
-                   ##### Non modules
-                   color_by_cluster         = input$color_by_cluster,
-                   mineral_size_scale       = input$mineral_size_scale,
-                   mineral_label_size       = input$mineral_label_size,
-                   mineral_size             = input$mineral_size,
-                   element_size_scale       = input$element_size_scale,
-                   element_label_size       = input$element_label_size,
-                   elements_of_interest     = input$elements_of_interest,
-                   elements_by_redox        = input$elements_by_redox,
-                   highlight_element        = input$highlight_element,
-                   custom_selection_element = input$custom_selection_element, 
-                   cluster_colors           = chemistry_network()$cluster_colors
-    ) # end of list definition
-  }) 
     
-    
-    
-    #print("THIS SHOULD BE CALLED")
-    ## Network style modules ------------------------------------------------------------------------
-  
-  
-  sanity_style <- reactive({
-  
-    ## Sanity checking for input style choices -----------------------------------------------------------------------
-    ## Element color sanity
-    element_color_variable  <- as.symbol(network_style_options()[["element_color_by"]])
+    ## VALIDATION ---------------------------------------------
+    ## Element color
+    element_color_variable  <- as.symbol(element_node_color()$color_by)
     if(element_color_variable != "singlecolor"){
       chemistry_network()$nodes %>%
         dplyr::filter(group == "element") %>%
@@ -778,8 +765,8 @@ app_server <- function( input, output, session ) {
           shiny::validate( shiny::need(nrow(element_validate) > 0, ""))
         }
     }
-    ## Mineral color sanity
-    mineral_color_variable  <- as.symbol(network_style_options()[["mineral_color_by"]])
+    ## Mineral color
+    mineral_color_variable  <- as.symbol(mineral_node_color()$color_by)
     if(mineral_color_variable != "singlecolor"){
       chemistry_network()$nodes %>%
         dplyr::filter(group == "mineral") %>%
@@ -794,8 +781,8 @@ app_server <- function( input, output, session ) {
         shiny::validate( shiny::need(nrow(mineral_validate) > 0, ""))
       }
     }
-    ## Edge color sanity
-    edge_color_variable  <- as.symbol(network_style_options()[["edge_color_by"]])
+    ## Edge color
+    edge_color_variable  <- as.symbol(edge_color()$color_by)
     if(edge_color_variable != "singlecolor"){
       chemistry_network()$edges %>%
         dplyr::select( edge_color_variable ) %>%
@@ -809,20 +796,58 @@ app_server <- function( input, output, session ) {
         shiny::validate( shiny::need(nrow(edges_validate) > 0, ""))
       }
     }
-  
-  })
-  
+    
+    ## Define, return the styles ----------------------------------------------    
+    ## Colors shapes first
+    list("color_by_cluster"    = input$color_by_cluster,
+         "cluster_colors"      = chemistry_network()$cluster_colors,
+         "mineral_color_by"    = mineral_node_color()$color_by,
+         "mineral_palette"     = mineral_node_color()$palette,
+         "mineral_color"       = mineral_node_color()$color,
+         "mineral_label_color" = input$mineral_label_color,
+         "element_color_by"    = element_node_color()$color_by,
+         "element_palette"     = element_node_color()$palette,
+         "element_color"       = element_node_color()$color,
+         "element_label_color" = input$element_label_color,
+         "mineral_shape"       = input$mineral_shape,
+         "element_shape"       = input$element_shape,
+         ## Sizes
+         "mineral_size_by"  = input$mineral_size_by,
+         "mineral_size_scale" = input$mineral_size_scale,
+         "mineral_label_size" = input$mineral_label_size,
+         "mineral_size"       = input$mineral_size,
+         "element_size_by"  = input$element_size_by,
+         "element_size_scale" = input$element_size_scale,
+         "element_label_size" = input$element_label_size,
+         ## Single element colors, etc.
+         "elements_of_interest"     = chemistry_network()$elements_of_interest,
+         "elements_by_redox"        = input$elements_by_redox,
+         "highlight_element"        = input$highlight_element,
+         "highlight_color"          = input$highlight_color,
+         "custom_selection_element" = input$custom_selection_element, 
+         "custom_selection_color"   = input$custom_selection_color,
+         ## Edges
+         "edge_color_by"    = edge_color()$color_by,
+         "edge_palette"     = edge_color()$palette,
+         "edge_color"       = edge_color()$color
+      ) ## END list definition, which is returned
+  })    
+      
+      
+
+
+
+      
   
   ## Reactive to style nodes by user input ---------------------------------------------------------------------------
   node_styler <- reactive({
-    sanity_style()
+    #print(network_style_options())
     style_nodes(chemistry_network()$nodes, network_style_options())
   })   
   
   
   ## Reactive to style edges by user input ---------------------------------------------------------------------------
   edge_styler <- reactive({
-    sanity_style()
     style_edges(chemistry_network()$edges, network_style_options())
   })
   #################################################################################################################

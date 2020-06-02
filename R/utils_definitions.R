@@ -6,6 +6,11 @@ options(scipen=3)                                      ## Sci when more than 3 d
 on.exit(options(original_options), add=TRUE)
 
 
+cluster_plot_choices <- c("Strip chart" = "strip",
+                          "Violin plot" = "violin",
+                          "Sina plot"   = "sina",
+                          "Boxplot"     = "boxplot")
+
 default_element_color    <- "skyblue"
 default_mineral_color    <- "firebrick3"
 default_edge_color       <- "grey30"
