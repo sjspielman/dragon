@@ -65,15 +65,7 @@ app_ui <- function(request) {
                 column(8,
                   #shinyBS::tipify(
                     shinyWidgets::pickerInput("network_layout", tags$span(style="font-weight:400", "Network layout:"),
-                      choices = list(
-                        `Force-directed` = c("Fruchterman Reingold" = "layout_with_fr",
-                                             "GEM force-directed"      = "layout_with_gem"),
-                        Other = c("Dynamic physics layout (WARNING: Do not use if photosensitive)" = "physics",
-                                  "Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
-                                  "Layout in circle"             = "layout_in_circle",
-                                  "Layout in sphere"            = "layout_on_sphere")
-                        
-                      )
+                      choices = network_layout_choices, selected = "layout_with_fr"
                     ) #, # RESTORE COMMA IF RESTORING TIPIFY
                   #  title = "Algorithm for rendering the initial state of the interactive network"
                  # ) ## END tipify
@@ -87,10 +79,7 @@ app_ui <- function(request) {
               ), ## END fluidRow
               conditionalPanel('input.network_layout == "physics"', {
                 shinyWidgets::pickerInput("physics_solver", tags$span(style="font-weight:400", "Solver for physics layout:"),
-                            choices = c("forceAtlas2Based" = "forceAtlas2Based",
-                                        "Barnes-Hut" = "barnesHut",
-                                        "Repulsion"  = "repulsion", 
-                                        "Hierarchical repulsion" = "hierarchicalRepulsion"), selected = "forceAtlas2Based"
+                                            choices = physics_choices, selected = "forceAtlas2Based"
                 )
               }), ## END conditionalPanel           
               shinyWidgets::pickerInput("cluster_algorithm", tags$span(style="font-weight:400", "Network community detection (clustering) algorithm:"),

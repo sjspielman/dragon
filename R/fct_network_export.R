@@ -40,9 +40,6 @@ visnetwork_to_igraph <- function(nodes, edges, input_element_size_scale, input_e
   max_cex_limit         <- max_cex_limit / norm_element
   max_size_limit        <- max_size_limit / norm_element
   
-  vis_shapes_only <- c("diamond", "triangle", "star", "ellipse") # these shapes are not available in igraph, so we may remove them from dragon as well?
-  ## igraph shapes: “circle”, “square”, “csquare”, “rectangle”, “crectangle”, “vrectangle”, “pie” (see vertex.shape.pie), ‘sphere’, and “none” are supported,
-  
   ### Keep only the columns we need from edges and nodes, AND rename columns to their igraph names rather than visNetwork names
   #### remember: for elements, font.size IS size due to how visNetwork handles labeling
   edges %>% 
@@ -55,7 +52,6 @@ visnetwork_to_igraph <- function(nodes, edges, input_element_size_scale, input_e
     dplyr::mutate(shape = dplyr::case_when(
                                     shape %in% c("dot", "circle") ~ "circle",
                                     shape %in% c("square", "box") ~ "square", 
-                                    shape %in% vis_shapes_only    ~ "circle",
                                     shape == "text"               ~ "none"
                           ),
       label        = ifelse(font.size == 0, NA, id),

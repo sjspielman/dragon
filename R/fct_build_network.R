@@ -166,7 +166,7 @@ construct_network   <- function(elements_only_age, elements_by_redox)
     ) %>%
     dplyr::select(-element_redox_mineral_sign) %>%
     dplyr::left_join(element_info, by = "element") %>%
-    ## Factor some of the joined in colunms from element_info
+    ## Factor some of the joined in columns from element_info
     dplyr::mutate(element_hsab = factor(element_hsab, levels = element_hsab_levels),
                   TablePeriod  = factor(TablePeriod),
                   TableGroup   = factor(TableGroup)) %>%
