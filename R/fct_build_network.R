@@ -58,8 +58,8 @@ initialize_network <- function(elements_of_interest,
   if (nrow(network_raw$nodes) == 0) stop("Network could not be constructed. Please adjust input settings.")
   if (nrow(network_raw$edges) == 0) stop("Network could not be constructed. Please adjust input settings.")
 
-  clustered   <- specify_community_detect_network(network_raw$graph, network_raw$nodes, "Louvain")
-  return(list("network" = network_raw$graph,
+  clustered   <- specify_community_detect_network(network_raw$network, network_raw$nodes, "Louvain")
+  return(list("network" = network_raw$network,
                "nodes"  =  clustered$nodes,
                "edges"  =  network_raw$edges,
                "clustering" = clustered$clustered
@@ -251,7 +251,7 @@ construct_network   <- function(elements_only_age, elements_by_redox)
     dplyr::inner_join(edge_metadata) %>%
     dplyr::mutate(mineral_name = from) -> edges
   
-  return (list("nodes" = nodes, "edges" = edges, "graph" = element_network))
+  return (list("nodes" = nodes, "edges" = edges, "network" = element_network))
 }
 
 

@@ -71,7 +71,7 @@ app_server <- function( input, output, session ) {
       shiny::validate( shiny::need(length(network) ==3, "") )
     }
     nodes <- network$nodes 
-    graph <- network$graph
+    graph <- network$network
     ## Add title, font to labels if we are viewing the network
     if(build_only == FALSE)
     {
@@ -271,17 +271,7 @@ app_server <- function( input, output, session ) {
           }
           ## Plot it up with visNetwork options
           base_network %>%
-           visOptions(highlightNearest = list(enabled = TRUE, degree = input$selected_degree) #,
-                   #   nodesIdSelection = list(enabled = TRUE,
-                   #                           values  = c( sort(nodes$id[nodes$group == "element"]),
-                   #                                       sort(nodes$id[nodes$group == "mineral"]) ),
-                   #                           style   = css_string_selectedNode,
-                   #                           main    = "Select an individual node"),
-                   #   selectedBy = list(variable = "type",
-                   #                     style    = css_string_selectedNode
-                  #
-                  #    )
-            )%>% ## END visOptions
+           visOptions(highlightNearest = list(enabled = TRUE, degree = input$selected_degree)) %>%
             visInteraction(dragView  = TRUE,
                            dragNodes         = TRUE,
                            zoomView          = TRUE,
@@ -328,7 +318,7 @@ app_server <- function( input, output, session ) {
     
     ## visNetworkProxy observer to perform *all network updates* ---------------------------------------
     observe({
-      # TODO does this need a build_only == F?
+      # DON'T BE TEMPTED TO GET RID OF THIS IF
       if (build_only ==  FALSE)
       {
         ## visGroups, visNodes, visEdges are global options shared among nodes/edges
@@ -345,8 +335,7 @@ app_server <- function( input, output, session ) {
                          multiselect          = TRUE,
                          hideEdgesOnDrag      = input$hide_edges_on_drag,
                          navigationButtons    = input$nav_buttons) %>%
-          visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree)) #,
-                     #nodesIdSelection = list(enabled = TRUE, main  = "Select an individual node."))
+          visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree)) 
       }
     }) ## END observe
 
@@ -370,6 +359,7 @@ app_server <- function( input, output, session ) {
                               ) 
         output_layout <- "layout_with_fr"
       }
+      print(input$networkplot_positions)
       calculate_output_node_positions(node_styler()$styled_nodes, 
                                       input$networkplot_positions, 
                                       chemistry_network()$graph,
@@ -390,7 +380,6 @@ app_server <- function( input, output, session ) {
     filename <- function() { paste0('dragon_network_', Sys.Date(), '.pdf') },
     content <- function(outfile)
     {
-      ## NOTE: `visnetwork_to_igraph()` function is in fct_network_export.R
       igraph_version <- visnetwork_to_igraph(styled_nodes_with_positions(), 
                                              edge_styler()$styled_edges, 
                                              input$baseline_output_element_size,

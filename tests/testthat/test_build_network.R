@@ -128,7 +128,7 @@ test_that("fct_build_network::construct_network() with elements_by_redox = F", {
   test_output <- construct_network(age_data$elements_only_age, FALSE)
   
   ## Length of 3 with correct names
-  expected_names_one <- c("edges", "nodes", "graph")
+  expected_names_one <- c("edges", "nodes", "network")
   expect_equal(sort(names(test_output)), sort(expected_names_one)) 
   
   ## Edges tests
@@ -162,7 +162,7 @@ test_that("fct_build_network::construct_network() with elements_by_redox = T", {
   test_output <- construct_network(age_data$elements_only_age, TRUE)
   
   ## Length of 3 with correct names
-  expected_names_one <- c("edges", "nodes", "graph")
+  expected_names_one <- c("edges", "nodes", "network")
   expect_equal(sort(names(test_output)), sort(expected_names_one)) 
   
   ## Edges tests
@@ -193,7 +193,7 @@ test_that("fct_build_network::construct_network() with elements_by_redox = T", {
 test_that("fct_build_network::specify_community_detect_network() with Louvain community clustering", {
   age_data <- initialize_data_age(initialize_data("Fe", FALSE), c(3, 4), "Maximum")
   network_raw <- construct_network(age_data$elements_only_age, TRUE)
-  test_cluster <- specify_community_detect_network(network_raw$graph, network_raw$nodes, "Louvain")
+  test_cluster <- specify_community_detect_network(network_raw$network, network_raw$nodes, "Louvain")
   
   ## Length of 3 with correct names
   expected_names_one <- c("nodes", "clustered_net")
