@@ -88,6 +88,7 @@ test_that("fct_export_network::visnetwork_to_igraph() works", {
   
   # check graph itself---------------
   graph <- igraph_version$igraph_network
+  expect_true(class(graph) == "igraph")
   
   # node color
   expect_true(all(igraph::V(graph)$color[igraph::V(graph)$group =="element" & 
