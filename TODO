@@ -1,4 +1,7 @@
+HELPER_ TO TESTS_
 
+CHANGE NAMING FCT_STUFF-.R
+CHANGE NAMING TEST_STUFF-.R
 
 ----------------------------------------------------------------------------------
 Miscellaneous output from `devtools::check()` that needs dealing with:
