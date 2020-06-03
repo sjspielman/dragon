@@ -52,35 +52,65 @@ test_that("fct_run_linear_models::fit_linear_model() with cluster predictor", {
 
 })
 
+test_that("fct_run_linear_models::plot_linear_model_scatter()", {
+  predictor <- variable_to_title[["max_age"]]
+  response <- variable_to_title[["num_localities"]]
 
-## TODO: UPDATE THESE TESTS!!
-# test_that("fct_run_linear_models::plot_linear_model() with numeric predictor", {
-#   predictor <- variable_to_title[["mean_pauling"]]
-#   response <- variable_to_title[["num_localities"]]
-# 
-#   test_plotted <- plot_linear_model(response, predictor, mineral_nodes, FALSE, FALSE, point_color, point_size, TRUE, bestfit_color, NA)
-#   
-#   plot_data_geom_point <- ggplot2::ggplot_build(test_plotted)$data[[1]]
-#   plot_data_geom_smooth <- ggplot2::ggplot_build(test_plotted)$data[[2]]
-#   expect_true(all(plot_data_geom_point$colour == point_color))
-#   expect_true(all(plot_data_geom_point$size == point_size))
-#   expect_true(all(plot_data_geom_smooth$colour == bestfit_color))
-# 
-# })
-# 
-# 
-# test_that("fct_run_linear_models::plot_linear_model() with cluster predictor", {
-#   predictor <- variable_to_title[["cluster_ID"]]
-#   response <- variable_to_title[["num_localities"]]
-#   cluster_colors <- set_cluster_colors("Set2", n_clusters)
-#   test_plotted <- plot_linear_model(response, predictor, mineral_nodes, FALSE, FALSE, point_color, point_size, TRUE, bestfit_color, cluster_colors)
-#   
-#   plot_data_geom_point <- ggplot2::ggplot_build(test_plotted)$data[[1]]
-#   plot_data_geom_smooth <- ggplot2::ggplot_build(test_plotted)$data[[2]]
-#   expect_true(all(plot_data_geom_point$colour %in% cluster_colors))
-#   expect_true(all(plot_data_geom_point$size == point_size))
-# 
-# })
+  test_plotted <- plot_linear_model_scatter(response, 
+                                            predictor, 
+                                            mineral_nodes, 
+                                            FALSE, ## logx
+                                            FALSE, ##logy
+                                            point_color, 
+                                            point_size, 
+                                            TRUE,  ## bestfit
+                                            bestfit_color)
+  
+  plot_data_geom_point <- ggplot2::ggplot_build(test_plotted)$data[[1]]
+  plot_data_geom_smooth <- ggplot2::ggplot_build(test_plotted)$data[[2]]
+  expect_true(all(plot_data_geom_point$colour == point_color))
+  expect_true(all(plot_data_geom_point$size == point_size))
+  expect_true(all(plot_data_geom_smooth$colour == bestfit_color))
+
+})
+
+
+test_that("fct_run_linear_models::plot_linear_model_cluster()", {
+  predictor <- variable_to_title[["cluster_ID"]]
+  response <- variable_to_title[["max_age"]]
+  cluster_colors <- set_cluster_colors("Set2", n_clusters)
+
+  
+  plot_type <- "boxplot"
+  test_box <- plot_linear_model_cluster(response, 
+                                            mineral_nodes, 
+                                            cluster_colors, 
+                                            plot_type, 
+                                            FALSE, ## flip_coord
+                                            FALSE, ## show_mean_se
+                                            FALSE, ## show legend
+                                            point_size)
+  plot_data_box <- ggplot2::ggplot_build(test_box)$data[[1]]
+  expect_true(all(plot_data_box$fill == cluster_colors))
+  box_legend <- cowplot::get_legend(test_box)
+  expect_null(box_legend)
+
+  plot_type <- "strip"
+  test_strip <- plot_linear_model_cluster(response, 
+                                            mineral_nodes, 
+                                            cluster_colors, 
+                                            plot_type, 
+                                            FALSE, ## flip_coord
+                                            FALSE, ## show_mean_se
+                                            TRUE, ## show legend
+                                            point_size)
+  
+  plot_data_strip <- ggplot2::ggplot_build(test_strip)$data[[1]]
+  expect_true(all(plot_data_strip$colour %in% cluster_colors))
+  expect_true(all(plot_data_strip$size == point_size))
+  strip_legend <- cowplot::get_legend(test_strip)
+  expect_true(!is.null(strip_legend))
+})
 
 
 

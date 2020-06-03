@@ -82,10 +82,11 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
 #' @param plot_type  String indicating which type of plot to make, one of 'strip', 'sina', 'violin', or 'boxplot'
 #' @param flip_coord Logical indicating if plot coordinates should be flipped. Coordinates are flipped if TRUE, otherwise predictor variable is on the x-axis
 #' @param show_mean_se  Logical indicating if mean and standard error per group should be displayed in the plot. Displayed if TRUE.
+#' @param show_legend  Logical indicating if the legend should be displayed. Displayed if TRUE. Default: FALSE. 
 #' @param point_size  Numeric used as point size for either strip or sina plots. Argument is ignored for boxplot and violin plot.
 #'
 #' @returns ggplot object to be displayed
-plot_linear_model_cluster <- function(response, mineral_nodes, cluster_colors, plot_type, flip_coord, show_mean_se, point_size)
+plot_linear_model_cluster <- function(response, mineral_nodes, cluster_colors, plot_type, flip_coord, show_mean_se, show_legend, point_size)
 {
 
   ## Build the baseline plot output for models with cluster as predictor ------------------------------------
@@ -140,6 +141,9 @@ plot_linear_model_cluster <- function(response, mineral_nodes, cluster_colors, p
   ## Flip coordinates -----------------------------------------------------------------------
   if (flip_coord)  fitted_model_plot <- fitted_model_plot + ggplot2::coord_flip()
 
+  ## Legend ---------------------------------------------------------------------------------
+  if (!(show_legend))  fitted_model_plot <- fitted_model_plot + ggplot2::theme(legend.position = "none")
+  
   
   return( fitted_model_plot )
 }

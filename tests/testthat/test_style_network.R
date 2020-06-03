@@ -23,9 +23,9 @@ edges <- network$edges
 
 style_options_test <- list("color_by_cluster"  = FALSE,
                           "cluster_colors"       = cluster_colors,
-                          "color_mineral_by"    = "singlecolor", ## num_localities
+                          "mineral_color_by"    = "singlecolor", ## num_localities
                           "mineral_color"       = red,
-                          "color_element_by"    = "singlecolor", ## element_redox_network, element_hsab
+                          "element_color_by"    = "singlecolor", ## element_redox_network, element_hsab
                           "element_color"       = blue,
                           "mineral_palette"     = "Blues",
                           "element_palette"     = "Reds",
@@ -49,10 +49,11 @@ style_options_test <- list("color_by_cluster"  = FALSE,
                           "mineral_label_size" = label_size,
                           "mineral_size"       = size_scale,
                           ## Edges
-                          "color_edge_by" = "singlecolor", # mean_pauling
+                          "edge_color_by" = "singlecolor", # mean_pauling
                           "edge_color"    = purple,
                           "edge_palette"  = "Greens"
                      )
+
 
 
 
@@ -118,8 +119,8 @@ test_that("fct_style_network::style_nodes() cluster node colors", {
 test_that("fct_style_network::style_nodes() node dynamic colors", {
   
   style_options_here <- style_options_test
-  style_options_here[["color_element_by"]] <- "num_localities" # TODO need to also test a categorical
-  style_options_here[["color_mineral_by"]] <- "num_localities"
+  style_options_here[["element_color_by"]] <- "num_localities" # TODO need to also test a categorical
+  style_options_here[["mineral_color_by"]] <- "num_localities"
   
   styled_test <- style_nodes(full_nodes, style_options_here)
   styled_nodes <- styled_test$styled_nodes
@@ -224,10 +225,12 @@ test_that("fct_style_network::style_edges() for single edge color", {
   expect_true(is.null(edge_legend) || is.na(edge_legend))
   expect_true(all(is.na(styled_test$styled_edges[["edge_legend"]]))  | all(is.null(styled_test$styled_edges[["edge_legend"]]))     )
 })
+
+
 test_that("fct_style_network::style_edges() for edge palette", {
 
   style_options_here <- style_options_test
-  style_options_here[["color_edge_by"]] <- "mean_pauling"
+  style_options_here[["edge_color_by"]] <- "max_age"
   styled_test <- style_edges(edges, style_options_here)
   expect_equal(sort(names(styled_test)), sort(c("edge_legend", "styled_edges")))  
   

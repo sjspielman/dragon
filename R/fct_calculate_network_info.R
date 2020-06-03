@@ -40,7 +40,7 @@ calculate_number_nodes_edges <- function(nodes, edges, elements_by_redox)
   {
     nodes %>% 
       dplyr::filter(group == "element") %>%
-      tidyr::separate(id, c("base_element", "jazz"), sep = "[\\s\\+\\-]") %>%
+      tidyr::separate(id, c("base_element", "jazz"), sep = "[\\s\\+\\-]", fill = "right") %>%
       dplyr::select(base_element) %>%
       dplyr::distinct() %>%
       nrow() -> n_base_elements

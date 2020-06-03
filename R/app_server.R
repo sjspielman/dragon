@@ -613,6 +613,7 @@ app_server <- function( input, output, session ) {
     if (input$predictor != cluster_ID_str) predictor <- "other"
     switch(predictor,
       "cluster" = list(shinyWidgets::pickerInput("plot_type", "Plot type:", cluster_plot_choices, selected = "strip"),
+                       shinyWidgets::prettySwitch("show_legend", "Show legend", value = FALSE, status="danger"),
                        shinyWidgets::prettySwitch("show_mean_se", "Show mean and standard error", value = FALSE, status="danger"),
                        shinyWidgets::prettySwitch("flip_coord", "Flip coordinates", value = FALSE, status="danger"),
                        shiny::numericInput("point_size", "Point size for sina or strip chart", 2, min = 0.5, max = 4)

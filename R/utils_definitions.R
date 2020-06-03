@@ -39,25 +39,25 @@ element_color_by_choices =  c("Single color"            = "singlecolor",
                               "Density"                = "Density",
                               "Specific Heat"          = "SpecificHeat")
 
-mineral_color_by_choices = c("Single color"                = "singlecolor",  
+mineral_color_by_choices <- c("Single color"                = "singlecolor",  
                              "Maximum known age"           = "max_age",      
                              "Number of known localities"  = "num_localities",
                              "Mean electronegativity"      = "mean_pauling", 
                              "COV electronegativity"       = "cov_pauling")
 
-element_size_by_choices =  c("Single size" = "singlesize",
+element_size_by_choices <- c("Single size" = "singlesize",
                               "Degree centrality" = "network_degree_norm", 
                               "Number of localities (based on mineral discovery)" = "num_localities",
                               "Atomic mass" = "AtomicMass",
                               "Number of protons" = "NumberofProtons",
                               "Density"       = "Density",
                               "Specific Heat"  = "SpecificHeat")
-mineral_size_by_choices = c("Single size" = "singlesize",
+mineral_size_by_choices <- c("Single size" = "singlesize",
                             "Maximum known age"           = "max_age",      
                             "Number of known localities"  = "num_localities")
 
 
-edge_color_by_choices   = c("Single color" = "singlecolor",  
+edge_color_by_choices   <- c("Single color" = "singlecolor",  
                             "Element redox state in network" = "element_redox_network",
                             "Element redox state in mineral" = "element_redox_mineral",
                             "Number of known mineral localities" = "num_localities_mineral",
