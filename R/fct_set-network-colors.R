@@ -1,9 +1,10 @@
 
-#' Gray color used for NA values
-#' 
-na.gray <- "#DCDCDC"
+
+#' Point size used for legend keys
 geom.point.size <- 8
-ggplot2::theme_set(cowplot::theme_cowplot() + 
+
+#' Theme for legend key items built on top of cowplot
+theme_dragon <- ggplot2::theme_set(cowplot::theme_cowplot() + 
                      ggplot2::theme(legend.position       = "bottom",
                                     legend.text           = ggplot2::element_text(size=11),
                                     legend.key.size       = ggplot2::unit(1, "cm"),
@@ -26,7 +27,7 @@ set_cluster_colors <- function(cluster_palette, n_clusters)
 }
 
 
-obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, discrete_colors = NA)
+obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, na_color, discrete_colors = NA)
 {
   ## variable type:
   ## "d" = discrete, ordinal. THERE ARE NO NOMINAL EXCEPT FOR CLUSTER, WHICH IS HANDLED DIFFERENTLY.
@@ -46,9 +47,9 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
       ggplot2::theme(legend.key.size = ggplot2::unit(0.05, 'lines'), legend.title = ggplot2::element_text(size = ggplot2::rel(0.8)))
     if (color_variable == "cluster_ID") 
     {   ## cluster, colors already given
-      p <- p + ggplot2::scale_color_manual(name = legendtitle, na.value = na.gray, values = discrete_colors)
+      p <- p + ggplot2::scale_color_manual(name = legendtitle, na.value = na_color, values = discrete_colors)
     } else {
-      p <- p + ggplot2::scale_color_brewer(palette = palettename, name = legendtitle, na.value = na.gray)
+      p <- p + ggplot2::scale_color_brewer(palette = palettename, name = legendtitle, na.value = na_color)
     } 
   }
   
@@ -57,14 +58,13 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
     p <- ggplot2::ggplot(dat2) + 
       ggplot2::aes(x = x, y = !!cvar, color = !!cvar) + 
       ggplot2::geom_point(size = geom.point.size) + 
-      ggplot2::scale_color_distiller(name = legendtitle, palette = palettename, direction = -1, na.value = na.gray) + 
+      ## TODO: KEEP OR KILL DIRECTION=-1?
+      ggplot2::scale_color_distiller(name = legendtitle, palette = palettename, direction = -1, na.value = na_color) + 
       ggplot2::guides(colour = ggplot2::guide_colourbar(title.position="top", title.hjust = 0.5, frame.colour = "black", ticks.colour = "black"), 
              size = ggplot2::guide_legend(title.position="top", title.hjust = 0.5)) +
       ggplot2::theme(legend.text = ggplot2::element_text(size = ggplot2::rel(0.8)))
   }
-  
-  
-  
+
   ggplot2::ggplot_build(p)$data[[1]] %>% 
     tibble::as_tibble() %>% 
     dplyr::bind_cols(dat2) %>%
@@ -78,13 +78,13 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
 
 
 
-obtain_colors_legend_single <- function(group, singleshape, singlecolor)
+obtain_colors_legend_single <- function(group, singleshape, singlecolor, na_color)
 {
   p <- tibble::tibble(x = 1, y = 1, type = group) %>% 
     ggplot2::ggplot() + 
       ggplot2::aes(x=x,y=y,color=type) + 
       ggplot2::geom_point(size = geom.point.size, shape = singleshape) + 
-      ggplot2::scale_color_manual(name = "", values=c(singlecolor), na.value=na.gray) + 
+      ggplot2::scale_color_manual(name = "", values=c(singlecolor), na.value=na_color) + 
       ggplot2::theme(legend.text = ggplot2::element_text(size=16))
   data_colors <- ggplot2::ggplot_build(p)$data[[1]]$colour
   data_legend <- cowplot::get_legend(p)

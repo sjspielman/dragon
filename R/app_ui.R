@@ -91,6 +91,17 @@ app_ui <- function(request) {
             
             ## NETWORK VISUAL STYLE MENUS ---------------------------------------------------------------------------------------------
             menuItem(text = "Node Colors",
+                     ##### DO NOT REMOVE THIS TAG #####
+                     tags$head(tags$style("
+                       .palette-style{ 
+                       display: inline;
+                       vertical-align: middle;
+                       color: black;
+                       font-weight: 600;
+                       padding-left: 1px;
+                       }")),
+                     #### SERIOUSLY DONT DO IT ####
+                     
               mod_ui_choose_color_sd_palette("mod_element_colors", 
                                              "Color elements based on:",
                                               element_color_by_choices,
@@ -105,8 +116,13 @@ app_ui <- function(request) {
                                               default_mineral_palette),                     
               shinyWidgets::prettySwitch("color_by_cluster", "Color all nodes by community cluster", value = FALSE, status = "danger"), 
               conditionalPanel(condition = "input.color_by_cluster == true",{
-                mod_ui_choose_q_palette(id = "mod_cluster_palette", default_cluster_palette)
-              }) ## END conditionalPanel 
+                pickerInput("cluster_palette", 
+                            label = "Palette:",
+                            choices = qual_palettes_ui$name,
+                            choicesOpt = list(content = qual_palettes_ui$img)
+                )
+              }), ## END conditionalPanel 
+              colourpicker::colourInput("na_color", "Color to use for missing for unknown values:", value = default_na_color)
             ), ## END "Node Colors" menuItem
             
             
@@ -186,9 +202,13 @@ app_ui <- function(request) {
                                               "singlecolor",
                                               default_edge_color,
                                               default_edge_palette),
-              fluidRow(
-                column(12, sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10))
-              ) ## END fluidRow 
+              tags$div(style = "margin-left:5%",
+                       tags$p("Visit the 'Node Colors' menu tab to select the color", tags$br(), "used for missing or unknown values.")
+              ),
+              
+              #shiny::helpText("Visit the 'Node Colors' menu tab",
+              #                "to select the color used for missing values."),
+              sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10)
             ),  ## END "Edge Attributes" menuItem
             
             menuItem("Network interaction options",
@@ -444,7 +464,7 @@ golem_add_external_resources <- function(){
   tags$head(
     golem::favicon(),
     golem::activate_js(),
-    shinyalert::useShinyalert(),# CAN THIS WORK?
+    shinyalert::useShinyalert(),
     bundle_resources(
       path = app_sys('app/www'),
       app_title = 'dragon'

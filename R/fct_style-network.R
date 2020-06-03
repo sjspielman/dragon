@@ -9,7 +9,8 @@ style_edges <- function(edges, edge_options){
     out <- obtain_colors_legend(edges, 
                                 edge_options$edge_color_by, 
                                 "c", 
-                                edge_options$edge_palette)
+                                edge_options$edge_palette,
+                                edge_options$na_color)
     
     edge_colors <-  dplyr::left_join(edges, out$cols)
     colorlegend_edge <- out$leg
@@ -87,7 +88,8 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
                                 "cluster_ID", 
                                 "d", 
                                 NA, 
-                                discrete_colors = style_options$cluster_colors)
+                                discrete_colors = style_options$cluster_colors, 
+                                style_options$na_color)
     out$leg -> legend_list[["both_legend"]]
     out$cols %>% 
       dplyr::select(label, id, color) %>% 
@@ -103,7 +105,8 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
     {
       out <- obtain_colors_legend_single("Mineral", 
                                          vis_to_gg_shape[style_options$mineral_shape], 
-                                         style_options$mineral_color)
+                                         style_options$mineral_color, 
+                                         style_options$na_color)
       out$leg -> legend_list[["mineral_legend"]] 
       full_nodes %>% 
         filter(group == "mineral") %>% 
@@ -115,7 +118,8 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
       out <- obtain_colors_legend(mineral_nodes, 
                                   style_options$mineral_color_by, 
                                   "c", 
-                                  style_options$mineral_palette)
+                                  style_options$mineral_palette,
+                                  style_options$na_color)
       out$leg -> legend_list[["mineral_legend"]]
       out$cols %>% 
         select(label, id, color) %>% 
@@ -132,7 +136,8 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
       }
       out <- obtain_colors_legend_single("Element", 
                                          vis_to_gg_shape[style_options$element_shape], 
-                                         this_color)
+                                         this_color,
+                                         style_options$na_color)
       out$leg -> legend_list[["element_legend"]]
       full_nodes %>% 
         filter(group == "element") %>% 
@@ -143,7 +148,8 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
       obtain_colors_legend(full_nodes %>% dplyr::select(element, element_redox_network), 
                            style_options$element_color_by, 
                            "c", 
-                           style_options$element_palette) -> out_legend
+                           style_options$element_palette,
+                           style_options$na_color) -> out_legend
       out_legend$leg -> legend_list[["element_legend"]]
       out_legend$cols %>% 
         dplyr::select(element, color) %>% 
@@ -158,7 +164,8 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
       obtain_colors_legend(element_nodes,
                            style_options$element_color_by, 
                            ifelse(style_options$element_color_by %in% ordinal_color_variables, "d", "c"),
-                           style_options$element_palette) -> out_legend 
+                           style_options$element_palette,
+                           style_options$na_color) -> out_legend 
       out_legend$leg -> legend_list[["element_legend"]]
       out_legend$cols %>% 
         dplyr::select(label, id, color) %>% 

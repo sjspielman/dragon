@@ -40,6 +40,7 @@ style_options_test <- list("color_by_cluster"  = FALSE,
                           "highlight_color"          = yellow,
                           "custom_selection_element" = NA,
                           "custom_selection_color"   = purple,
+                          "na_color"                 = "grey90",
                           ## Sizes
                           "element_size_by"  = "singlesize", ## num_localities 
                           "element_label_size" = label_size,

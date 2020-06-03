@@ -1,5 +1,3 @@
-
-
 ## Options ---------------------------------------------------------------------------
 original_options <- options(scipen=0, htmlwidgets.TOJSON_ARGS = NULL)
 options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Setting for DT to show NA cells as NA rather than blank
@@ -128,11 +126,11 @@ default_edge_palette     <- "BrBG"
 default_edge_color       <- "#5E5E5E"
 default_highlight_color  <- "lightgoldenrod1"
 default_selection_color  <- "chartreuse3"
+default_na_color         <- "#DCDCDC"
 default_element_label_color <- "black"
 default_mineral_label_color <- "black"
 default_element_shape       <- "circle"
 default_mineral_shape       <- "dot"
-
 element_size_scale_divisor <- 1
 mineral_size_scale_divisor <- 10
 mineral_size_min <- 5

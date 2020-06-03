@@ -5,8 +5,11 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 library(usethis)
+library(ggplot2)
+library(RColorBrewer)
+library(tibble)
 
-## LAST UPDATED ON 5/18/20 ##
+## LAST UPDATED ON 6/3/20 ##
 
 ## Download MED tables-------------------------------------------
 m1 <- readr::read_tsv("http://rruff.info/mineral_list/MED/exporting/tbl_mineral.csv", guess_max=10000)
@@ -93,8 +96,33 @@ if(nrow(num_zero_redox) != 0) stop("Redox states of 0 recovered.")
 ## WHAT DO?
 element_info  <- readr::read_csv("/Users/spielman/Projects/dragon/inst/extdata/element_information.csv")
                    
+                   
+                   
+                   
+                   
+## Prepare palettes for display in dropdown menus ----------------------------------------
+first_part  <- "<img src='www/palette_png/"
+middle_part  <- ".png' width=110px><div class='palette-style'>"
+last_part <- "</div></img>"
+RColorBrewer::brewer.pal.info %>% 
+  tibble::rownames_to_column("name") %>%
+  dplyr::filter(colorblind == TRUE) %>%
+  dplyr::mutate(img = paste0(first_part, name, middle_part, name, last_part)) %>%
+  dplyr::arrange(desc(category), name)-> palettes_of_interest
+
+palettes_of_interest %>%
+  dplyr::filter(category == "qual") -> qual_palettes_ui
+
+palettes_of_interest %>%
+  dplyr::filter(category != "qual") -> sd_palettes_ui
+
+       
+                   
+                   
 usethis::use_data(rruff,
                   element_redox_states,
                   element_info,
+                  qual_palettes_ui,
+                  sd_palettes_ui,
                   internal = TRUE, overwrite = TRUE, compress = "bzip2")
 

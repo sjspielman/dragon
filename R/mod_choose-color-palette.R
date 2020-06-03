@@ -13,14 +13,11 @@ mod_ui_choose_color_sd_palette <- function(id, by_label, by_choices, by_default_
         }),
         conditionalPanel(condition = "input.color_by != 'singlecolor'", ns = ns, 
         {
-          shinyWidgets::pickerInput(ns("palette"), label = "Palette:",
-                choices = palette_sd[["palette_names"]], selected = palette_default, width = "90%",
-                choicesOpt = list(
-                  content = sprintf(
-                    "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-                    unname(palette_sd[["linear_gradient"]]), palette_sd[["label_colors"]], names(palette_sd[["linear_gradient"]])
-                  )
-                )
+          pickerInput(ns("palette"), 
+                      label = "Palette:",
+                      choices = sd_palettes_ui$name,
+                      options = list( size = 6 ),
+                      choicesOpt = list(content = sd_palettes_ui$img)
           )
         }) 
       ) ## END column 5
@@ -37,29 +34,3 @@ mod_server_choose_color_sd_palette <- function(input, output, session) {
         )
   })
 }
-
-#' Shiny module UI portion to choose a sequential/diverging palette
-mod_ui_choose_q_palette <- function(id, default_selection, label = "Palette:") {
-  ns <- NS(id)
-  tagList(
-    shinyWidgets::pickerInput(ns("palette"), label = label,
-                              choices = palette_q[["palette_names"]], selected = default_selection, width = "90%",
-                              choicesOpt = list(
-                                content = sprintf(
-                                  "<div style='width:100%%;border-radius:4px;background:%s;color:%s;font-weight:400;'>%s</div>",
-                                  unname(palette_q[["linear_gradient"]]), palette_q[["label_colors"]], names(palette_q[["linear_gradient"]])
-                                )
-                              )
-    )  ## END pickerInput
-  ) ## END tagList
-}
-
-#' Shiny module server portion to choose a qualitative palette
-mod_server_choose_q_palette <- function(input, output, session) { 
-  reactive({input$palette})
-}
-
-
-
-
-

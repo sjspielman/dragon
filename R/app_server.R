@@ -11,7 +11,6 @@ app_server <- function( input, output, session ) {
   element_node_color <- callModule(mod_server_choose_color_sd_palette, id = "mod_element_colors")
   mineral_node_color <- callModule(mod_server_choose_color_sd_palette, id = "mod_mineral_colors")
   edge_color         <- callModule(mod_server_choose_color_sd_palette, id = "mod_edge_colors")
-  cluster_palette    <- callModule(mod_server_choose_q_palette, id = "mod_cluster_palette")
 
 
 
@@ -91,7 +90,7 @@ app_server <- function( input, output, session ) {
     }
     
     ## Set cluster colors ----------------------------------------------------------------
-    cluster_colors <- set_cluster_colors(cluster_palette(), n_clusters)  
+    cluster_colors <- set_cluster_colors(input$cluster_palette, n_clusters)  
     if (length(cluster_colors) != n_clusters)
     {
        shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
@@ -799,6 +798,7 @@ app_server <- function( input, output, session ) {
          "element_palette"     = element_node_color()$palette,
          "element_color"       = element_node_color()$color,
          "element_label_color" = input$element_label_color,
+         "na_color"            = input$na_color,
          "mineral_shape"       = input$mineral_shape,
          "element_shape"       = input$element_shape,
          ## Sizes
