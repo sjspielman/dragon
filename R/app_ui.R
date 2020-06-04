@@ -12,7 +12,7 @@ app_ui <- function(request) {
     golem_add_external_resources(),
     # List the first level UI elements here 
     dashboardPage(skin = "red",
-      dashboardHeader(title = "dragon: Deep-time Redox Analysis of the Geobiology Ontology Network", titleWidth = "770px",
+      dashboardHeader(title = "dragon: Deep-time Redox Analysis of the Geobiology Ontology Network", titleWidth = "800px",
         dropdownMenu(type = "notifications", 
                      icon = shiny::icon("question-circle"),
                      badgeStatus = NULL,
@@ -98,7 +98,7 @@ app_ui <- function(request) {
                        vertical-align: middle;
                        color: black;
                        font-weight: 600;
-                       padding-left: 1px;
+                       padding-left: 7px;
                        }")),
                      #### SERIOUSLY DONT DO IT ####
                      
@@ -258,7 +258,7 @@ app_ui <- function(request) {
                    
                   conditionalPanel('input.build_only == false', {
                     div(style = "height:80px;",
-                      shiny::plotOutput("networklegend", height = "80%", width = "100%")
+                      shiny::plotOutput("networklegend", height = "75%", width = "100%")
                     )
                   }) ## END 2nd `false` conditionalPanel
                 ), ## END "Visualize Network" tabPanel

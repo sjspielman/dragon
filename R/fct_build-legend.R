@@ -5,12 +5,15 @@
 #' @return A legend grob created with cowplot::plot_grid()
 build_legend <- function(edge_styler, node_styler)
 {
-
   finallegend <- NULL
-  if (is.na(node_styler$both_legend)) 
-  {   ## Mineral, element
-    if (is.na(edge_styler$edge_legend)) 
+  if (length(node_styler$both_legend) == 1)
+  {   
+    stopifnot(is.na(node_styler$both_legend))
+    
+    ## Mineral, element
+    if (length(edge_styler$edge_legend) == 1) 
     { 
+      stopifnot(is.na(edge_styler$edge_legend))
       finallegend <- cowplot::plot_grid(node_styler$element_legend, node_styler$mineral_legend, nrow=1)
     } else {
       ### mineral, element, edge
@@ -19,8 +22,9 @@ build_legend <- function(edge_styler, node_styler)
   } else ## both_legend is NOT NA
   {
     ## NO EDGES
-    if (is.na(edge_styler$edge_legend)) 
+    if (length(edge_styler$edge_legend) == 1) 
     { 
+      stopifnot(is.na(edge_styler$edge_legend))
       finallegend <- node_styler$both_legend
     } else { ### BOTHNODES, EDGES
       ### both, edge
