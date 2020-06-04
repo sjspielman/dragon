@@ -173,16 +173,14 @@ mineral_color_by_choices <- c("Single color"                = "singlecolor",
                              "Mean electronegativity"      = "mean_pauling", 
                              "COV electronegativity"       = "cov_pauling")
 
+### These are all guaranteed to NOT be NA
 element_size_by_choices <- c("Single size" = "singlesize",
-                              "Degree centrality" = "network_degree_norm", 
-                              "Number of localities (based on mineral discovery)" = "num_localities",
-                              "Atomic mass" = "AtomicMass",
-                              "Number of protons" = "NumberofProtons",
-                              "Density"       = "Density",
-                              "Specific Heat"  = "SpecificHeat")
+                             network_degree_norm_str = "network_degree_norm", 
+                             closeness_str           = "closeness", 
+                             num_localities_str      = "num_localities")
 mineral_size_by_choices <- c("Single size" = "singlesize",
-                            "Maximum known age"           = "max_age",      
-                            "Number of known localities"  = "num_localities")
+                            max_age_str         = "max_age",      
+                            num_localities_str  = "num_localities")
 
 
 edge_color_by_choices   <- c("Single color" = "singlecolor",  

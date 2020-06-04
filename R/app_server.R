@@ -320,6 +320,8 @@ app_server <- function( input, output, session ) {
       # DON'T BE TEMPTED TO GET RID OF THIS IF
       if (build_only ==  FALSE)
       {
+        node_styler()$styled_nodes$size
+        node_styler()$styled_nodes$font.size
         ## visGroups, visNodes, visEdges are global options shared among nodes/edges
         ## Need to use visUpdateNodes and visUpdateEdges for changing individually. This applies to color schemes.
         visNetworkProxy("networkplot") %>%
@@ -604,16 +606,14 @@ app_server <- function( input, output, session ) {
                        shinyWidgets::prettySwitch("show_legend", "Show legend", value = FALSE, status="danger"),
                        shinyWidgets::prettySwitch("show_mean_se", "Show mean and standard error", value = FALSE, status="danger"),
                        shinyWidgets::prettySwitch("flip_coord", "Flip coordinates", value = FALSE, status="danger"),
-                       shiny::numericInput("point_size", "Point size for sina or strip chart", 2, min = 0.5, max = 4)
+                       shiny::numericInput("point_size_cluster", "Point size for sina or strip chart", 2, min = 0.5, max = 4)
                       ),   
       "other"   =  list(shinyWidgets::prettySwitch("logx", "Use log scale on X-axis", value = FALSE, status="danger"),
                         shinyWidgets::prettySwitch("logy", "Use log scale on Y-axis", value = FALSE, status="danger",),
                         shinyWidgets::prettySwitch("bestfit", "Show regression line (with 95% confidence interval).", value = FALSE, status="danger"),
-                        fluidRow(
-                          column(4, colourpicker::colourInput("point_color", "Point color", value = "black")),
-                          column(4, shiny::numericInput("point_size",  "Point size", 2, min = 0.5, max = 4)),
-                          column(4, colourpicker::colourInput("bestfit_color", "Regression line color", value = "blue"))
-                        )
+                        shiny::numericInput("point_size_scatter",  "Point size", 2, min = 0.5, max = 4),
+                        colourpicker::colourInput("point_color", "Point color", value = "black"),
+                        colourpicker::colourInput("bestfit_color", "Regression line color", value = "blue")
                       )
     )
   })
@@ -688,9 +688,9 @@ app_server <- function( input, output, session ) {
   linear_model_plot <- reactive({ 
     if (input$predictor == cluster_ID_str)
     {
-      p <- plot_linear_model_cluster(input$response, chemistry_network()$mineral_nodes, chemistry_network()$cluster_colors, input$plot_type, input$flip_coord, input$show_mean_se, input$point_size)
+      p <- plot_linear_model_cluster(input$response, chemistry_network()$mineral_nodes, chemistry_network()$cluster_colors, input$plot_type, input$flip_coord, input$show_mean_se, input$show_legend, input$point_size_cluster)
     } else  {
-      p <- plot_linear_model_scatter(input$response, input$predictor, chemistry_network()$mineral_nodes, input$logx, input$logy, input$point_color, input$point_size, input$bestfit, input$bestfit_color)
+      p <- plot_linear_model_scatter(input$response, input$predictor, chemistry_network()$mineral_nodes, input$logx, input$logy, input$point_color, input$point_size_scatter, input$bestfit, input$bestfit_color)
     }    
     p
   })  ## END linear_model_plot reactive
@@ -727,7 +727,7 @@ app_server <- function( input, output, session ) {
       paste("dragon_model_plot-", Sys.Date(), ".pdf", sep="")
     },
     content = function(file) {
-      ggplot2::ggsave(file, fitted_model_plot)
+      ggplot2::ggsave(file, linear_model_plot())
   })        
 
 

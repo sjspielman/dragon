@@ -2,18 +2,20 @@
 #' 
 #' @param edge_styler A list of edge stylings as created by dragon::style_edges()
 #' @param node_styler A list of node stylings as created by dragon::style_nodes()
-#' @return A legend grob created with cowplot::plot_grid()
+#' @return A plot list of legends for display created with cowplot::plot_grid()
 build_legend <- function(edge_styler, node_styler)
 {
+  ## If logical, it's FALSE and there is no legend
+  ## If list, there is a legend
+
   finallegend <- NULL
-  if (length(node_styler$both_legend) == 1)
+  if (typeof(node_styler$both_legend) == "logical")
   {   
-    stopifnot(is.na(node_styler$both_legend))
-    
+    stopifnot(node_styler$both_legend == FALSE)
     ## Mineral, element
-    if (length(edge_styler$edge_legend) == 1) 
+    if (typeof(edge_styler$edge_legend) == "logical") 
     { 
-      stopifnot(is.na(edge_styler$edge_legend))
+      stopifnot(edge_styler$edge_legend == FALSE)
       finallegend <- cowplot::plot_grid(node_styler$element_legend, node_styler$mineral_legend, nrow=1)
     } else {
       ### mineral, element, edge
@@ -22,9 +24,9 @@ build_legend <- function(edge_styler, node_styler)
   } else ## both_legend is NOT NA
   {
     ## NO EDGES
-    if (length(edge_styler$edge_legend) == 1) 
+    if (typeof(edge_styler$edge_legend) == "logical") 
     { 
-      stopifnot(is.na(edge_styler$edge_legend))
+      stopifnot(edge_styler$edge_legend == FALSE)
       finallegend <- node_styler$both_legend
     } else { ### BOTHNODES, EDGES
       ### both, edge

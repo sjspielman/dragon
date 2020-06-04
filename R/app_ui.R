@@ -236,16 +236,16 @@ app_ui <- function(request) {
                        
                 ## VISUALIZE NETWORK PANEL ---------------------------------------------------------------------------------------------
                 shiny::tabPanel("Visualize Network",      
-                  div(style = "height:650px; overflow: hidden;",  ## div1
-                    div(style = "float:left;font-weight:bold;", ## div2
-                      div(style = "font-style:italic;",       ## div3
-                       shiny::textOutput("connectivity")
-                      ), ## END div3
-                      shiny::textOutput("modularity"),
-                      shiny::textOutput("n_element_nodes"),
-                      shiny::textOutput("n_mineral_nodes"),
-                      shiny::textOutput("n_edges")
-                    ), ## END div2
+                  div(style = "height:700px; overflow: hidden;",  ## div1
+                    #div(style = "float:left;font-weight:bold;", ## div2
+                      #div(style = "font-style:italic;",       ## div3
+                      # shiny::textOutput("connectivity")
+                      #), ## END div3
+                      #shiny::textOutput("modularity"),
+                      #shiny::textOutput("n_element_nodes"),
+                      #shiny::textOutput("n_mineral_nodes"),
+                      #shiny::textOutput("n_edges")
+                    #), ## END div2
                     conditionalPanel('input.build_only == true', {
                       div(style = "text-align:center; font-weight:bold; color:red; font-size:1.25em;",
                         br(),br(),br(),br(),
@@ -257,8 +257,8 @@ app_ui <- function(request) {
                   ), ## END div1
                    
                   conditionalPanel('input.build_only == false', {
-                    div(style = "height:80px;",
-                      shiny::plotOutput("networklegend", height = "75%", width = "100%")
+                    div(style = "height:70px;",
+                      shiny::plotOutput("networklegend", height = "90%", width = "100%")
                     )
                   }) ## END 2nd `false` conditionalPanel
                 ), ## END "Visualize Network" tabPanel

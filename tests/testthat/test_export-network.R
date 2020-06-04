@@ -107,6 +107,7 @@ test_that("fct_export_network::visnetwork_to_igraph() works", {
   
   # sizes are _awful_, let's make sure they're numbers and element is bigger than mineral
   expect_true(all(is.numeric(igraph::V(graph)$size)))
+  
   expect_true(min(igraph::V(graph)$size[igraph::V(graph)$group =="element"]) > min(igraph::V(graph)$size[igraph::V(graph)$group =="mineral"]))
   
   # font size
