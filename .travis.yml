@@ -4,6 +4,12 @@ cache:
   packages: true
 warnings_are_errors: FALSE
 
+
+r:
+  - oldrel
+#  - release
+  - devel
+  
 r_packages:
  - covr
  - testthat

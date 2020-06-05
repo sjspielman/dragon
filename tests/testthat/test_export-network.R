@@ -1,61 +1,3 @@
-network <- initialize_network("B", 
-                              force_all_elements = FALSE, 
-                              elements_by_redox = FALSE, 
-                              age_range         = c(0, 5),
-                              max_age_type      = "Maximum",
-                              cluster_algorithm = "Louvain")
-full_nodes <- add_shiny_node_titles(network$nodes, FALSE)
-cluster_colors <- set_cluster_colors("Set2", length(unique(full_nodes$cluster_ID)))
-edges <- network$edges
-blue   <- "#0000FF"
-red    <- "#FF0000"
-yellow <- "#FFFF00"
-purple <- "#800080"
-black  <- "#000000"
-focal <- "B"
-custom_selection_element <- c("P", "O")
-size_scale <- 17
-label_size <- 10
-
-style_options_test <- list("color_by_cluster"  = FALSE,
-                           "cluster_colors"       = cluster_colors,
-                           "mineral_color_by"    = "singlecolor", ## num_localities
-                           "mineral_color"       = red,
-                           "element_color_by"    = "singlecolor", ## element_redox_network, element_hsab
-                           "element_color"       = blue,
-                           "mineral_palette"     = "Blues",
-                           "element_palette"     = "Reds",
-                           "mineral_label_color" = purple,
-                           "element_label_color" = black,
-                           "mineral_shape"       = "square", 
-                           "element_shape"       = "circle", 
-                           ## Single element colors, etc.
-                           "elements_of_interest"     = focal,
-                           "elements_by_redox"        = FALSE,
-                           "highlight_element"        = TRUE,
-                           "highlight_color"          = yellow,
-                           "custom_selection_element" = custom_selection_element,
-                           "custom_selection_color"   = purple,
-                           "na_color"                 = "grey90",
-                           ## Sizes
-                           "element_size_by"  = "singlesize", ## num_localities 
-                           "element_label_size" = label_size,
-                           "element_size_scale" = size_scale,  ### used if element_label_size != singlesize eg num_localities
-                           "mineral_size_by"  = "singlesize", ## num_localities 
-                           "mineral_size_scale" = size_scale,  ### used if mineral_size_by != singlesize eg num_localities
-                           "mineral_label_size" = label_size,
-                           "mineral_size"       = size_scale,
-                           ## Edges
-                           "edge_color_by" = "singlecolor", 
-                           "edge_color"    = purple,
-                           "edge_palette"  = "Greens"
-)
-
-styled_nodes <- style_nodes(full_nodes, style_options_test)$styled_nodes
-styled_edges <- style_edges(edges, style_options_test)$styled_edges
-
-
-
 ## Test that calculate_output_node_positions() works -----------------------------------------------
 test_that("fct_export_network::calculate_output_node_positions() works with NULL positions", {
   position_tibble <- calculate_output_node_positions(styled_nodes, NULL, network$network, "layout_with_fr", 1)
@@ -83,8 +25,8 @@ test_that("fct_export_network::visnetwork_to_igraph() works", {
   expect_true(igraph_version$vis_aspect_ratio > 0)
   
   # check coordinates
-  print(class(igraph_version$coords))
-  expect_true(class(igraph_version$coords) == "matrix")
+  # TODO: BELOW TEST CONFLICTING WITH OS AND/OR R VERSION
+  expect_true(class(igraph_version$coords) == "matrix") ## on linux/travis this is [1] "matrix" "array"  ?????
   expect_equal(igraph_version$coords[,1], position_tibble$x)
   expect_equal(igraph_version$coords[,2], -1*position_tibble$y) ## NEGATIVE!!!!
   
