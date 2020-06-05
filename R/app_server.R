@@ -71,11 +71,7 @@ app_server <- function( input, output, session ) {
     }
     nodes <- network$nodes 
     graph <- network$network
-    ## Add title, font to labels if we are viewing the network
-    if(build_only == FALSE)
-    {
-      nodes <- add_shiny_node_titles(nodes, elements_by_redox)
-    }
+
     ## Perform community clustering, which also updates nodes ----------------------------
     clustered <- specify_community_detect_network(graph, nodes, input$cluster_algorithm)
 
@@ -100,11 +96,10 @@ app_server <- function( input, output, session ) {
       shiny::validate( shiny::need(length(cluster_colors) == n_clusters, ""))
     }
 
-    
     ## Subset mineral nodes, used in modeling --------------------------------------------
     clustered$nodes %>%
       dplyr::filter(group == "mineral") %>%
-      dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% #sd_pauling
+      dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% 
       dplyr::mutate(cluster_ID = factor(cluster_ID)) %>%
       dplyr::rename(!! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
                     !! variable_to_title[["closeness"]] := closeness,
@@ -112,12 +107,11 @@ app_server <- function( input, output, session ) {
                     !! variable_to_title[["cov_pauling"]] := cov_pauling,
                     !! variable_to_title[["num_localities"]] := num_localities,
                     !! variable_to_title[["max_age"]] := max_age) -> mineral_nodes
-             
                     
     return (list("nodes" = clustered$nodes, 
                  "edges" = network$edges, 
                  "graph" = graph, 
-                 "elements_of_interest" = elements_of_interest,
+                 "elements_of_interest" = elements_of_interest, 
                  "age_lb" = age_range[1],
                  "age_ub" = age_range[2],
                  "mineral_nodes" = mineral_nodes,

@@ -257,7 +257,7 @@ app_ui <- function(request) {
                   ), ## END div1
                    
                   conditionalPanel('input.build_only == false', {
-                    div(style = "height:70px;",
+                    div(style = "height:90px;",
                       shiny::plotOutput("networklegend", height = "90%", width = "100%")
                     )
                   }) ## END 2nd `false` conditionalPanel

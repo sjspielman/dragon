@@ -15,7 +15,7 @@ calculate_connectivity <- function(graph)
 #' @returns Numeric value of network modularity, rounded to 4 digits
 calculate_modularity <- function(membership)
 {
-  round(membership$modularity[[1]], 4) 
+  round(max(membership$modularity), 4) 
 }
 
 

@@ -1,24 +1,12 @@
-initialized <- initialize_network("B", age_range = c(0,5))
-initialized$nodes %>%
-  dplyr::filter(group == "mineral") %>%
-  dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% #sd_pauling
-  dplyr::mutate(cluster_ID = factor(cluster_ID)) %>%
-  dplyr::rename(!! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
-                !! variable_to_title[["closeness"]] := closeness,
-                !! variable_to_title[["mean_pauling"]] := mean_pauling,
-                !! variable_to_title[["cov_pauling"]] := cov_pauling,
-                !! variable_to_title[["num_localities"]] := num_localities,
-                !! variable_to_title[["max_age"]] := max_age) -> mineral_nodes  
-point_color <- "red" 
-point_size <- 2.33 
-bestfit_color <- "orange"
-n_clusters <- length(unique(initialized$nodes$cluster_ID))
+
+
+true_n_clusters <- length(unique(initialized$nodes$cluster_ID))
 
 
 test_that("fct_run_linear_models::fit_linear_model() with numeric predictor", {
   predictor <- variable_to_title[["mean_pauling"]]
   response <- variable_to_title[["num_localities"]]
-  test_fitted <- fit_linear_model(response, predictor, mineral_nodes)
+  test_fitted <- fit_linear_model(response, predictor, true_mineral_nodes)
 
   expect_equal(sort(names(test_fitted)), sort(c("model_fit", "tukey_fit", "tukey_ok_variance"))  )
   expect_true(test_fitted$tukey_ok_variance)
@@ -34,7 +22,7 @@ test_that("fct_run_linear_models::fit_linear_model() with numeric predictor", {
 test_that("fct_run_linear_models::fit_linear_model() with cluster predictor", {
   predictor <- variable_to_title[["cluster_ID"]]
   response <- variable_to_title[["num_localities"]]
-  test_fitted <- fit_linear_model(response, predictor, mineral_nodes)
+  test_fitted <- fit_linear_model(response, predictor, true_mineral_nodes)
 
   expect_equal(sort(names(test_fitted)), sort(c("model_fit", "tukey_fit", "tukey_ok_variance"))  )
   expect_true(is.logical(test_fitted$tukey_ok_variance))
@@ -42,12 +30,12 @@ test_that("fct_run_linear_models::fit_linear_model() with cluster predictor", {
   
   model_fit_table <- test_fitted$model_fit
   expect_equal(sort(names(model_fit_table)), sort(c("Coefficient", "Coefficient estimate", "Standard error", "t-statistic", "P-value")))
-  expect_true(nrow(model_fit_table) == n_clusters)
+  expect_true(nrow(model_fit_table) == true_n_clusters)
   
   tukey_table <- test_fitted$tukey_fit
   expect_equal(sort(names(tukey_table)), sort(c("Cluster Comparison", "Estimated effect size difference", "95% CI Lower bound", "95% CI Upper bound", "Adjusted P-value")))
-  mineral_nodes %>% dplyr::count(cluster_ID) %>% nrow() -> n_clusters
-  expected_tukey_rows <- (n_clusters * (n_clusters - 1)) / 2
+  true_mineral_nodes %>% dplyr::count(cluster_ID) %>% nrow() -> true_n_clusters
+  expected_tukey_rows <- (true_n_clusters * (true_n_clusters - 1)) / 2
   expect_true(nrow(tukey_table) == expected_tukey_rows)
 
 })
@@ -58,19 +46,20 @@ test_that("fct_run_linear_models::plot_linear_model_scatter()", {
 
   test_plotted <- plot_linear_model_scatter(response, 
                                             predictor, 
-                                            mineral_nodes, 
+                                            true_mineral_nodes, 
                                             FALSE, ## logx
                                             FALSE, ##logy
-                                            point_color, 
-                                            point_size, 
+                                            true_point_color, 
+                                            true_point_size, 
                                             TRUE,  ## bestfit
-                                            bestfit_color)
+                                            true_bestfit_color)
   
+  ## TODO really should compare to an actual plot
   plot_data_geom_point <- ggplot2::ggplot_build(test_plotted)$data[[1]]
   plot_data_geom_smooth <- ggplot2::ggplot_build(test_plotted)$data[[2]]
-  expect_true(all(plot_data_geom_point$colour == point_color))
-  expect_true(all(plot_data_geom_point$size == point_size))
-  expect_true(all(plot_data_geom_smooth$colour == bestfit_color))
+  expect_true(all(plot_data_geom_point$colour == true_point_color))
+  expect_true(all(plot_data_geom_point$size == true_point_size))
+  expect_true(all(plot_data_geom_smooth$colour == true_bestfit_color))
 
 })
 
@@ -78,18 +67,19 @@ test_that("fct_run_linear_models::plot_linear_model_scatter()", {
 test_that("fct_run_linear_models::plot_linear_model_cluster()", {
   predictor <- variable_to_title[["cluster_ID"]]
   response <- variable_to_title[["max_age"]]
-  cluster_colors <- set_cluster_colors("Set2", n_clusters)
+  cluster_colors <- set_cluster_colors("Set2", true_n_clusters)
 
   
   plot_type <- "boxplot"
   test_box <- plot_linear_model_cluster(response, 
-                                            mineral_nodes, 
+                                            true_mineral_nodes, 
                                             cluster_colors, 
                                             plot_type, 
                                             FALSE, ## flip_coord
                                             FALSE, ## show_mean_se
                                             FALSE, ## show legend
-                                            point_size)
+                                            true_point_size)
+  ## TODO really should compare to an actual plot
   plot_data_box <- ggplot2::ggplot_build(test_box)$data[[1]]
   expect_true(all(plot_data_box$fill == cluster_colors))
   box_legend <- cowplot::get_legend(test_box)
@@ -97,17 +87,18 @@ test_that("fct_run_linear_models::plot_linear_model_cluster()", {
 
   plot_type <- "strip"
   test_strip <- plot_linear_model_cluster(response, 
-                                            mineral_nodes, 
+                                            true_mineral_nodes, 
                                             cluster_colors, 
                                             plot_type, 
                                             FALSE, ## flip_coord
                                             FALSE, ## show_mean_se
                                             TRUE, ## show legend
-                                            point_size)
+                                            true_point_size)
   
+  ## TODO really should compare to an actual plot
   plot_data_strip <- ggplot2::ggplot_build(test_strip)$data[[1]]
   expect_true(all(plot_data_strip$colour %in% cluster_colors))
-  expect_true(all(plot_data_strip$size == point_size))
+  expect_true(all(plot_data_strip$size == true_point_size))
   strip_legend <- cowplot::get_legend(test_strip)
   expect_true(!is.null(strip_legend))
 })

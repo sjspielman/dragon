@@ -243,7 +243,8 @@ construct_network   <- function(elements_only_age, elements_by_redox)
                                                   num_localities_mineral,
                                                   num_localities_element)) %>%
     dplyr::select(-num_localities_mineral, -num_localities_element) %>%
-    dplyr::distinct() -> nodes
+    dplyr::distinct() %>%
+    add_shiny_node_titles(elements_by_redox) -> nodes
   
 
   ## Merge edges with associated data ---------------------------------------------
@@ -326,12 +327,7 @@ add_shiny_node_titles <- function(nodes, elements_by_redox)
                                                                                                             paste0("Electronegativity: ", pauling)), "</p>")
                                           ), ## END title case_when                     
                  ) %>% ## END mutate
-    dplyr::distinct()  %>% ## TODO: I THINK BELOW CAN BE RM'D??
-    # Add type column for grouped node selection dropdown menu
-    dplyr::mutate(type = dplyr::if_else(group == "element", 
-                                        "All elements", 
-                                        "All minerals")
-    ) 
+    dplyr::distinct()
   
 }
 

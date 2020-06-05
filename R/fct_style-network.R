@@ -59,18 +59,12 @@ style_nodes <- function(nodes, style_options)
   ## Shape, highlight, and label styles ------------------------------------------------
   node_attr[["styled_nodes"]] <- style_nodes_shape_highlight_label(node_attr[["styled_nodes"]], style_options)
 
-  ## Style nodes for elements_by_redox = TRUE --------------------------------------------------
-  if (style_options$elements_by_redox){
-    node_attr[["styled_nodes"]] <- style_nodes_elements_by_redox(node_attr[["styled_nodes"]], 
-                                                                 style_options)
-  }
-
   ## Lighten and darken colors appropriately
   node_attr[["styled_nodes"]] %<>% 
     dplyr::mutate(color.border           = colorspace::darken(color.background,  lighten_darken_factor),
                   color.highlight        = colorspace::lighten(color.background, lighten_darken_factor),
                   color.hover.border     = colorspace::darken(color.background,  lighten_darken_factor),
-                  color.hover.background = colorspace::lighten(color.background, lighten_darken_factor))%>%
+                  color.hover.background = colorspace::lighten(color.background, lighten_darken_factor)) %>%
     dplyr::arrange(dplyr::desc(group)) ## arranging minerals first is necessary so that element nodes are always on top and not obscured by giant minerally networks; https://github.com/spielmanlab/dragon/issues/5
   
   
@@ -231,7 +225,7 @@ style_nodes_sizes <- function(full_nodes, style_options)
 
 
 
-#' Assign selected or highlighted node colors, font sizes, and shape sizes for display in the Shiny App.
+#' Assign node shapes and colors associated with highlighted and/selected elements for display in the Shiny App.
 #' 
 #' @param node_attr_styled_nodes A tibble containing network nodes
 #' @param style_options   A named list of all network styles to be applied
@@ -239,40 +233,32 @@ style_nodes_sizes <- function(full_nodes, style_options)
 #' @returns Updated tibble of nodes containing new styling
 style_nodes_shape_highlight_label <- function(node_attr_styled_nodes, style_options)
 {
+  custom_selection_as_names <- element_info$element_name[element_info$element %in% style_options$custom_selection_element]
+  focal_element_names       <- element_info$element_name[element_info$element %in% style_options$elements_of_interest]
+
+
   node_attr_styled_nodes %>%
-    dplyr::mutate(color.background = ifelse((id %in% style_options$elements_of_interest & style_options$highlight_element), style_options$highlight_color, color.background), 
-                  color.background = ifelse(id %in% style_options$custom_selection_element, style_options$custom_selection_color, color.background), 
+    dplyr::mutate(shape = ifelse(group == "element", style_options$element_shape, style_options$mineral_shape),
+                  ## Node color for focal elements if highlight is T
+                  color.background = ifelse(element_name %in% focal_element_names & style_options$highlight_element,
+                                            style_options$highlight_color, 
+                                            color.background),
+                  ## Node color for custom selection if specified
+                  color.background = ifelse(element_name %in% custom_selection_as_names, 
+                                            style_options$custom_selection_color, 
+                                            color.background), 
+                  ## Element font color                                                                                       
                   font.color = ifelse(group == "element", style_options$element_label_color, style_options$mineral_label_color),
-                  font.color = ifelse((id %in% style_options$elements_of_interest & style_options$highlight_element & style_options$element_shape == "text"), style_options$highlight_color, font.color),
-                  font.color = ifelse((id %in% style_options$custom_selection_element & style_options$element_shape == "text"), style_options$custom_selection_color, font.color),
-                  shape = ifelse(group == "element", style_options$element_shape, style_options$mineral_shape))
-}
-
-
-
-
-
-
-
-#' Apply styling to nodes when element nodes are separated by redox state for display in the Shiny App.
-#' 
-#' @param node_attr_styled_nodes A tibble containing network nodes
-#' @param style_options   A named list of all network styles to be applied
-#' 
-#' @returns Updated tibble of nodes containing new styling
-style_nodes_elements_by_redox <- function(node_attr_styled_nodes, style_options)
-{
-
-  node_attr_styled_nodes %>%
-    dplyr::filter(group == "element") %>% 
-    dplyr::mutate(id2 = id) %>%
-    tidyr::separate(id2, into=c("base_element", "blah")) %>%
-    dplyr::mutate(color.background = ifelse(base_element %in% style_options$elements_of_interest & style_options$highlight_element, style_options$highlight_color, color.background),
-                  font.color       = ifelse(base_element %in% style_options$elements_of_interest & style_options$element_shape == "text" & style_options$highlight_element, style_options$highlight_color, font.color),
-                  color.background = ifelse(base_element %in% style_options$custom_selection_element, style_options$custom_selection_color, color.background),
-                  font.color       = ifelse(base_element %in% style_options$custom_selection_element & style_options$element_shape == "text", style_options$custom_selection_element, font.color)) %>%
-    dplyr::select(-base_element, -blah) %>%
-    dplyr::bind_rows( node_attr_styled_nodes %>% dplyr::filter(group == "mineral") )
+                  ## Update font color --> background color if text shape
+                  font.color       = ifelse(element_name %in% focal_element_names & 
+                                               style_options$element_shape == "text" & 
+                                               style_options$highlight_element, 
+                                            style_options$highlight_color, 
+                                            font.color),
+                  font.color       = ifelse(element_name %in% custom_selection_as_names & 
+                                                style_options$element_shape == "text", 
+                                            style_options$custom_selection_element, 
+                                            font.color))                           
 }
 
 

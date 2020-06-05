@@ -1,7 +1,7 @@
 ## Test initialize_data(), single element -----------------------------------------------
 test_that("fct_build_network::initialize_data() with a single element", {
   
-elements_of_interest <- "Cd"
+  elements_of_interest <- "Cd"
   test_output <- initialize_data(elements_of_interest, FALSE)
 
   ## The number of rows WITH Cd should be all of them
@@ -142,7 +142,7 @@ test_that("fct_build_network::construct_network() with elements_by_redox = F", {
 
   ## Nodes tests
   test_nodes <- test_output$nodes
-  expected_names_nodes<- c("id", "label", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
+  expected_names_nodes<- c("id", "label", "title", "font.face", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
   expect_equal(sort(names(test_nodes)), sort(expected_names_nodes)) 
   expect_true(length(test_nodes$id) == length(unique(test_nodes$id)) )
   
@@ -176,7 +176,7 @@ test_that("fct_build_network::construct_network() with elements_by_redox = T", {
   
   ## Nodes tests
   test_nodes <- test_output$nodes
-  expected_names_nodes<- c("id", "label", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
+  expected_names_nodes<- c("id", "label", "title", "font.face", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
   expect_equal(sort(names(test_nodes)), sort(expected_names_nodes)) 
   expect_true(length(test_nodes$id) == length(unique(test_nodes$id)) )
 
@@ -200,7 +200,7 @@ test_that("fct_build_network::specify_community_detect_network() with Louvain co
   expect_equal(sort(names(test_cluster)), sort(expected_names_one)) 
   
   ## Check that node nodes contains the added cluster columns
-  expected_names_nodes<- c("id", "cluster_ID", "cluster_algorithm", "label", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
+  expected_names_nodes<- c("id", "cluster_ID", "cluster_algorithm", "title", "font.face", "label", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
   expect_equal(sort(names(test_cluster$nodes)), sort(expected_names_nodes)) 
   
   

@@ -1,17 +1,19 @@
-## Test that calculate_output_node_positions() works -----------------------------------------------
-test_that("fct_export_network::calculate_output_node_positions() works with NULL positions", {
-  position_tibble <- calculate_output_node_positions(styled_nodes, NULL, network$network, "layout_with_fr", 1)
-  true_names <- sort(c(names(styled_nodes), "x", "y"))
-  expect_equal(sort(names(position_tibble)), true_names)
-})
-
-
-## Test that initialize_network() works -----------------------------------------------
-test_that("fct_export_network::visnetwork_to_igraph() works", {
-  position_tibble <- calculate_output_node_positions(styled_nodes, NULL, network$network, "layout_with_fr", 1)
-
+## Test that fct_export_network() works -----------------------------------------------
+test_that("fct_export_network::* works ", {
+  
+  ## Build, test the position tibble
+  position_tibble <- calculate_output_node_positions(true_styled_nodes, 
+                                                     NULL, 
+                                                     true_graph, 
+                                                     "layout_with_fr", 
+                                                     1)
+                                  
+  true_names <- sort(c(names(true_styled_nodes), "x", "y"))
+  expect_equal(sort(names(position_tibble)), true_names)   
+  
+  ## Build, test the exporting     
   igraph_version <- visnetwork_to_igraph(position_tibble, 
-                                         styled_edges, 
+                                         true_styled_edges, 
                                          1, ## baseline_output_element_size
                                          1, ## baseline_output_element_label_size
                                          1, ## baseline_output_mineral_size
@@ -35,18 +37,21 @@ test_that("fct_export_network::visnetwork_to_igraph() works", {
   expect_true(class(graph) == "igraph")
   
   # node color
-  expect_true(all(igraph::V(graph)$color[igraph::V(graph)$group =="element" & 
-                                           !(igraph::V(graph)$name %in% custom_selection_element) &
-                                           !(igraph::V(graph)$name == focal)] == blue))
-  expect_true(all(igraph::V(graph)$color[igraph::V(graph)$name %in% custom_selection_element] == purple))
-  expect_true(all(igraph::V(graph)$color[igraph::V(graph)$name == focal] == yellow))
-  expect_true(all(igraph::V(graph)$color[igraph::V(graph)$group =="mineral"] == red))
+  custom_ids <- c("O-2", "P")
+  focal_ids <- c("Fe", "Fe+2", "Fe+3")
+    
+  expect_true(all(igraph::V(graph)$color[igraph::V(graph)$group == "element" & 
+                                           !(igraph::V(graph)$name %in% custom_ids) &
+                                           !(igraph::V(graph)$name %in% focal_ids)] == true_element_color))
+  expect_true(all(igraph::V(graph)$color[igraph::V(graph)$name %in% true_custom_selection_element] == true_custom_selection_color))
+  expect_true(all(igraph::V(graph)$color[igraph::V(graph)$name == focal] == true_highlight_color))
+  expect_true(all(igraph::V(graph)$color[igraph::V(graph)$group =="mineral"] == true_mineral_color))
   
   # frame should be NA
   expect_true(all(is.na(igraph::V(graph)$frame.color)))
   
   # edge color
-  expect_true(all(igraph::E(graph)$color == purple))
+  expect_true(all(igraph::E(graph)$color == true_edge_color))
   
   # sizes are _awful_, let's make sure they're numbers and element is bigger than mineral
   expect_true(all(is.numeric(igraph::V(graph)$size)))
@@ -55,12 +60,12 @@ test_that("fct_export_network::visnetwork_to_igraph() works", {
   
   # font size
   expect_true(all(is.numeric(igraph::V(graph)$font.size)))
-  expect_true(all(igraph::V(graph)$font.color[igraph::V(graph)$group =="element"] == black))
-  expect_true(all(igraph::V(graph)$font.color[igraph::V(graph)$group =="mineral"] == purple))
+  expect_true(all(igraph::V(graph)$font.color[igraph::V(graph)$group =="element"] == true_element_label_color))
+  expect_true(all(igraph::V(graph)$font.color[igraph::V(graph)$group =="mineral"] == true_mineral_label_color))
   
   #shape
-  expect_true(all(igraph::V(graph)$shape[igraph::V(graph)$group =="element"] == "circle"))
-  expect_true(all(igraph::V(graph)$shape[igraph::V(graph)$group =="mineral"] == "square"))
+  expect_true(all(igraph::V(graph)$shape[igraph::V(graph)$group =="mineral"] == true_mineral_shape))
+  expect_true(all(igraph::V(graph)$shape[igraph::V(graph)$group =="element"] == true_element_shape))
   
 })
 

@@ -34,7 +34,7 @@ prepare_selected_node_table <- function(nodes, edges, locality_info)
     dplyr::rename(id = to) -> edges_element_id
 
   nodes %>%
-    dplyr::select(-label, -network_degree, -font.face, -title, -type) -> nodes2
+    dplyr::select(-label, -network_degree, -font.face, -title) -> nodes2
 
   nodes2 %>% 
     dplyr::filter(group == "mineral") %>%
