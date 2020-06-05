@@ -25,8 +25,8 @@ test_that("fct_export_network::visnetwork_to_igraph() works", {
   expect_true(igraph_version$vis_aspect_ratio > 0)
   
   # check coordinates
-  # TODO: BELOW TEST CONFLICTING WITH OS AND/OR R VERSION
-  expect_true(class(igraph_version$coords) == "matrix") ## on linux/travis this is [1] "matrix" "array"  ?????
+  if (R.Version()$major < 4) expect_true(class(igraph_version$coords) == "matrix") 
+  if (R.Version()$major >= 4) expect_true(class(igraph_version$coords) == c("matrix", "array"))
   expect_equal(igraph_version$coords[,1], position_tibble$x)
   expect_equal(igraph_version$coords[,2], -1*position_tibble$y) ## NEGATIVE!!!!
   

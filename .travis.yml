@@ -7,7 +7,7 @@ warnings_are_errors: FALSE
 
 r:
   - oldrel
-#  - release
+  - release
   - devel
   
 r_packages:
