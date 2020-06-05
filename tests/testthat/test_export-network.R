@@ -83,6 +83,7 @@ test_that("fct_export_network::visnetwork_to_igraph() works", {
   expect_true(igraph_version$vis_aspect_ratio > 0)
   
   # check coordinates
+  print(class(igraph_version$coords))
   expect_true(class(igraph_version$coords) == "matrix")
   expect_equal(igraph_version$coords[,1], position_tibble$x)
   expect_equal(igraph_version$coords[,2], -1*position_tibble$y) ## NEGATIVE!!!!
