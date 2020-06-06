@@ -36,6 +36,8 @@ test_that("fct_style_network::style_nodes() returns appropriate structure and ba
   
 })
 
+
+
 #Test style_nodes(), cluster colors  -----------------------------------------------
 test_that("fct_style_network::style_nodes() cluster node colors", {
   
@@ -102,7 +104,7 @@ test_that("fct_style_network::style_nodes() node font color with TEXT", {
   
   # element font color when shape is text should be the NODE COLOR, and we also check for highlighted. mineral should still be mineral color
   regular_element_nodes <- styled_nodes_test$font.color[styled_nodes_test$group == "element" & !(styled_nodes_test$element_name %in% true_special_element_names)]
-  expect_true(all((regular_element_nodes == true_element_label_color)))
+  expect_true(all((regular_element_nodes == true_element_color)))
   expect_true(all(styled_nodes_test$font.color[styled_nodes_test$group == "element" &
                                           styled_nodes_test$element_name == true_focal_element_name] == true_highlight_color))                
   expect_true(all(styled_nodes_test$font.color[styled_nodes_test$id %in% true_custom_select_element_names] == true_custom_selection_color)) 

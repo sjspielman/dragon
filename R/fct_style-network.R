@@ -12,11 +12,11 @@ style_edges <- function(edges, edge_options){
     edge_colors <- edges %>% 
       mutate(color = edge_options$edge_color)             
   } else {
-    out <- obtain_colors_legend(edges, 
-                                edge_options$edge_color_by, 
-                                "c", 
-                                edge_options$edge_palette,
-                                edge_options$na_color)
+    out <- obtain_dynamic_colors_legend(edges, 
+                                        edge_options$edge_color_by, 
+                                        "c", 
+                                        edge_options$edge_palette,
+                                        edge_options$na_color)
     
     edge_colors <-  dplyr::mutate(edges, color = out$colors)
     colorlegend_edge <- out$leg
@@ -93,12 +93,11 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
   ## Color *all* nodes by cluster ----------------------------------------------------------------
   if (style_options$color_by_cluster) 
   {        
-    out_cluster <- obtain_colors_legend(full_nodes, 
-                                        "cluster_ID", 
-                                        "d", 
-                                        NA, 
-                                        discrete_colors = style_options$cluster_colors, 
-                                        style_options$na_color)
+    out_cluster <- obtain_dynamic_colors_legend(full_nodes, 
+                                               "cluster_ID", 
+                                               "d", 
+                                               style_options$cluster_colors, 
+                                               style_options$na_color)
     legend_list[["both_legend"]] <- out_cluster$legend
     full_nodes %>%
       dplyr::select(id, group) %>%
@@ -117,11 +116,11 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
       mineral_out  <- obtain_legend_singlecolor(style_options$mineral_color, style_options$mineral_shape, "Mineral")
     } else
     {  
-      mineral_out <- obtain_colors_legend(mineral_nodes, 
-                                  style_options$mineral_color_by, 
-                                  "c", 
-                                  style_options$mineral_palette,
-                                  style_options$na_color)
+      mineral_out <- obtain_dynamic_colors_legend(mineral_nodes, 
+                                                 style_options$mineral_color_by, 
+                                                 "c", 
+                                                 style_options$mineral_palette,
+                                                 style_options$na_color)
       raw_mineral_colors <- mineral_out$colors
     } 
     
@@ -129,16 +128,16 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
     if (style_options$element_color_by == "singlecolor")
     {
       element_color <- style_options$element_color
-      if (style_options$element_shape == "text") element_color <- style_options$element_label_color
+     # if (style_options$element_shape == "text") element_color <- style_options$element_label_color
       
       element_out <- obtain_legend_singlecolor(element_color, style_options$element_shape, "Element")
     }  else
     {
-      element_out  <- obtain_colors_legend(element_nodes,
-                                           style_options$element_color_by, 
-                                           ifelse(style_options$element_color_by %in% ordinal_color_variables, "d", "c"),
-                                           style_options$element_palette,
-                                           style_options$na_color) 
+      element_out  <- obtain_dynamic_colors_legend(element_nodes,
+                                                  style_options$element_color_by, 
+                                                  ifelse(style_options$element_color_by %in% ordinal_color_variables, "d", "c"),
+                                                  style_options$element_palette,
+                                                  style_options$na_color) 
       raw_element_colors <- element_out$colors
     }   
 
@@ -249,16 +248,10 @@ style_nodes_shape_highlight_label <- function(node_attr_styled_nodes, style_opti
                                             color.background), 
                   ## Element font color                                                                                       
                   font.color = ifelse(group == "element", style_options$element_label_color, style_options$mineral_label_color),
-                  ## Update font color --> background color if text shape
-                  font.color       = ifelse(element_name %in% focal_element_names & 
-                                               style_options$element_shape == "text" & 
-                                               style_options$highlight_element, 
-                                            style_options$highlight_color, 
-                                            font.color),
-                  font.color       = ifelse(element_name %in% custom_selection_as_names & 
-                                                style_options$element_shape == "text", 
-                                            style_options$custom_selection_element, 
-                                            font.color))                           
+                  ## Update font color to equal background color if text shape
+                  font.color = ifelse(group == "element" & style_options$element_shape == "text",
+                                      color.background, 
+                                      font.color))                        
 }
 
 
@@ -278,6 +271,14 @@ theme_dragon <- ggplot2::theme_set(cowplot::theme_cowplot() +
                                                     legend.box.background = ggplot2::element_rect(color = "white")))                                  
 
 
+
+
+#' Assign specific color palette to use for community cluster styling throughout Shiny App
+#' 
+#' @param cluster_palette A string of a palette from RColorBrewer
+#' @param n_clusters      A numeric equaling the number of clusters in the network
+#' 
+#' @returns array of hexadecimal colors to style clusters with
 set_cluster_colors <- function(cluster_palette, n_clusters)
 {
   
@@ -294,12 +295,23 @@ set_cluster_colors <- function(cluster_palette, n_clusters)
 }
 
 
-obtain_colors_legend <- function(dat, color_variable, variable_type, palettename, na_color, discrete_colors = NA)
+#' Obtain colors based on user-provided attribute and build associated legend
+#' 
+#' @param dat A tibble of either nodes or edges to be styled
+#' @param color_variable A string indicating which variable is being used to determine color
+#' @param variable_type A string, either "c" or "d", indicating if color_variable is continuous ("c") or discrete ("d")
+#' @param colors_or_palette A string representing either a palette name from RColorBrewer to be used as continuous node colors, or an array of colors to be applied to community clusters
+#' @param na_color A string indicating the color to use for NA conditions
+#' 
+#' @returns A single-length list with item 'legend' containing the legend grob itself
+obtain_dynamic_colors_legend <- function(dat, color_variable, variable_type, colors_or_palette, na_color)
 {
   ## variable type:
   ## "d" = discrete, ordinal. THERE ARE NO NOMINAL EXCEPT FOR CLUSTER, WHICH IS HANDLED DIFFERENTLY.
   ## "c" = continuous
   
+  ## NOTE: KEEP direction=-1 in scale_color_brewer() and scale_color_distiller()
+
   cvar <- as.symbol(color_variable)
   dat %>% dplyr::mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
   legendtitle <- variable_to_title[[color_variable]]
@@ -318,9 +330,9 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
     #, legend.title = ggplot2::element_text(size = ggplot2::rel(0.8)))
     if (color_variable == "cluster_ID") 
     {   ## cluster, colors already given
-      p <- p + ggplot2::scale_color_manual(name = legendtitle, na.value = na_color, values = discrete_colors)
+      p <- p + ggplot2::scale_color_manual(name = legendtitle, na.value = na_color, values = colors_or_palette) ## NO DIRECTION HERE
     } else {
-      p <- p + ggplot2::scale_color_brewer(palette = palettename, name = legendtitle, na.value = na_color)
+      p <- p + ggplot2::scale_color_brewer(palette = colors_or_palette, name = legendtitle, na.value = na_color, direction = -1)
     } 
   }
   
@@ -329,8 +341,7 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
     ggplot2::ggplot(dat2) + 
       ggplot2::aes(x = x, y = !!cvar, color = !!cvar) + 
       ggplot2::geom_point() + 
-      ## note: should **keep** direction=-1
-      ggplot2::scale_color_distiller(name = legendtitle, palette = palettename, direction = -1, na.value = na_color) + 
+      ggplot2::scale_color_distiller(name = legendtitle, palette = colors_or_palette, direction = -1, na.value = na_color) + 
       ggplot2::guides(colour = ggplot2::guide_colourbar(barheight = ggplot2::unit(1, "cm"),
                                                         title.position="top", 
                                                         frame.colour = "black", 
@@ -348,6 +359,13 @@ obtain_colors_legend <- function(dat, color_variable, variable_type, palettename
 
 
 
+#' Build a legend associated with single-colored nodes 
+#' 
+#' @param singlecolor A string of the color to be used
+#' @param singlesize A string of the associated node shape
+#' @param legendtitle A string to use as the outputted legend's title
+#' 
+#' @returns A single-length list with item 'legend' containing the legend grob itself
 obtain_legend_singlecolor <- function(singlecolor, singleshape, legendtitle)
 {
 
@@ -368,7 +386,15 @@ obtain_legend_singlecolor <- function(singlecolor, singleshape, legendtitle)
 
 
 
-
+#' Determine node sizes based on user-provided attribute
+#' 
+#' @param filtered_nodes A tibble containing nodes filtered for the group, either element or mineral
+#' @param size_variable A string indicating which variable is being used to determine node sizing
+#' @param lowsize A numeric for the lower bound of sizing
+#' @param highsize A numeric for the upper bound of sizing
+#' @param size_scale A numeric to scale ggplot sizes for improved display in visnetwork
+#' 
+#' @returns Numeric array of sizes to be applied to nodes in filtered group 
 obtain_node_sizes <- function(filtered_nodes, size_variable, lowsize, highsize, size_scale = 1)
 {
   
@@ -383,8 +409,7 @@ obtain_node_sizes <- function(filtered_nodes, size_variable, lowsize, highsize, 
     dplyr::pull(size) -> sizes
   sizes <- sizes * size_scale
   return(sizes) ## ARRAY
-  #  dplyr::select(id, size) %>%
-  #  dplyr::mutate(size = size * size_scale) ## TIBBLE WITH COLUMNS ID AND SIZE
+
 }
 
 

@@ -175,12 +175,12 @@ mineral_color_by_choices <- c("Single color"                = "singlecolor",
 
 ### These are all guaranteed to NOT be NA
 element_size_by_choices <- c("Single size" = "singlesize",
-                             network_degree_norm_str = "network_degree_norm", 
-                             closeness_str           = "closeness", 
-                             num_localities_str      = "num_localities")
+                             "Normalized network degree" = "network_degree_norm", 
+                             "Network closeness centrality"           = "closeness", 
+                             "Number of known localities"      = "num_localities")
 mineral_size_by_choices <- c("Single size" = "singlesize",
-                            max_age_str         = "max_age",      
-                            num_localities_str  = "num_localities")
+                            "Maximum known age"         = "max_age",      
+                            "Number of known localities" = "num_localities")
 
 
 edge_color_by_choices   <- c("Single color" = "singlecolor",  
@@ -208,10 +208,12 @@ model_response_choices <- c(max_age_str,
 
 model_predictor_choices <- c(model_response_choices, cluster_ID_str)
 
-cluster_plot_choices <- c("Strip chart" = "strip",
-                          "Violin plot" = "violin",
-                          "Sina plot"   = "sina",
-                          "Boxplot"     = "boxplot")
+categorical_model_variables <- c(cluster_ID_str)
+
+categorical_plot_choices <- c("Strip chart" = "strip",
+                              "Violin plot" = "violin",
+                              "Sina plot"   = "sina",
+                              "Boxplot"     = "boxplot")
 
 
 ## Network construction choices -------------------------------------------

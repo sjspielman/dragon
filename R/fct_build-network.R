@@ -294,13 +294,23 @@ add_shiny_node_titles <- function(nodes, elements_by_redox)
   if (elements_by_redox){
     charadd <- 2
   }
+  ## Because node size for elements is determined by the LABEL SIZE, we need to ensure:
+  ## if elements_by_redox is FALSE, we want length THREE for labels
+  ## if elements_by_redox is TRUE, we want length FIVE for labels
   
   nodes %>%
+   # dplyr::rowwise() %>%
     dplyr::mutate(font.face = "courier",
-                  label = dplyr::case_when(group == "mineral"                     ~ label,
-                                          group == "element" & nchar(label) == 1+charadd  ~ paste0(" ", label, " "),
-                                          group == "element" & nchar(label) == 2+charadd  ~ paste0(" ", label),
-                                          group == "element" & nchar(label) == 3+charadd  ~ label), ## END label case_when  
+                  label = dplyr::case_when(elements_by_redox == FALSE & nchar(label) == 1 ~ paste0(" ", label, " "), ## 1 / 1 / 1
+                                           elements_by_redox == FALSE & nchar(label) == 2 ~ paste0(" ", label),      ## 1 / 2
+                                           elements_by_redox == FALSE & nchar(label) == 3 ~ label, 
+                                           TRUE ~ label),
+                  label = dplyr::case_when(elements_by_redox == TRUE & nchar(label) == 1 ~ paste0("  ", label, "  "), ## 2 / 1 / 2
+                                           elements_by_redox == TRUE & nchar(label) == 2 ~ paste0("  ", label, " "),  ## 2 / 2 / 1
+                                           elements_by_redox == TRUE & nchar(label) == 3 ~ paste0(" ", label, " "),   ## 1 / 3 / 1
+                                           elements_by_redox == TRUE & nchar(label) == 4 ~ paste0(" ", label),        ## 1 / 4
+                                           elements_by_redox == TRUE & nchar(label) == 5 ~ label, 
+                                           TRUE ~ label),                                               
                   title = dplyr::case_when(group == "mineral"  ~ paste0("<p>", 
                                                                         id, "<br>", 
                                                                         ima_chemistry, "<br>", 
@@ -319,6 +329,10 @@ add_shiny_node_titles <- function(nodes, elements_by_redox)
                                                                                                           paste0("Electronegativity: ", pauling)), "</p>"),                                                        
                                             group == "element" & elements_by_redox == FALSE ~ paste0("<p>", 
                                                                                                      element_name, "<br>", 
+                                                                                                     ifelse(is.na(element_redox_network), 
+                                                                                                          "", 
+                                                                                                          paste0("Mean network redox state: ", element_redox_network)
+                                                                                                    ), "<br>",  
                                                                                                      ifelse(is.na(AtomicMass), 
                                                                                                             "", 
                                                                                                             paste0("Atomic mass: ", AtomicMass)), "<br>",  
@@ -327,7 +341,21 @@ add_shiny_node_titles <- function(nodes, elements_by_redox)
                                                                                                             paste0("Electronegativity: ", pauling)), "</p>")
                                           ), ## END title case_when                     
                  ) %>% ## END mutate
-    dplyr::distinct()
+    dplyr::distinct() -> nodes_shinied
+  
+  ## Check there are no NAs and label length is right
+  num_na_label <- sum(is.na(nodes_shinied$label))
+  stopifnot(num_na_label == 0)
+  
+  nodes_shinied %>%
+    dplyr::filter(group == "element") %>% 
+    dplyr::pull(label) -> shiny_labels
+  
+  if (elements_by_redox) stopifnot(all(nchar(shiny_labels) == 5))
+  if (!elements_by_redox) stopifnot(all(nchar(shiny_labels) == 3))
+  
+  
+  nodes_shinied
   
 }
 

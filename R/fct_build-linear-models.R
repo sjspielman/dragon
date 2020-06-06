@@ -9,21 +9,30 @@
 fit_linear_model <- function(response, predictor, mineral_nodes)
 {
 
+  ## Baseline: if cluster_ID, some may be removed. we want to remember which are being modeled
+  keep_clusters <- NA
+
+
   ## Prep model -----------------------------------------------------
-  if(predictor == cluster_ID_str){
+  response_string <- paste0("`", response, "`")
+  predictor_string <- paste0("`", predictor, "`")
+  
+  if(predictor %in% categorical_model_variables){ 
     # rename to match tibble
     predictor <- "cluster_ID" 
+    predictor_col <- as.symbol(predictor)
     
     # remove all clusters with <3 minerals
     mineral_nodes %>%
-      dplyr::group_by(cluster_ID) %>% 
+      dplyr::group_by({{predictor_col}}) %>% 
       dplyr::mutate(n = n()) %>%
       dplyr::ungroup() %>%
       dplyr::filter(n>=3) %>%
-      dplyr::select(-n) -> mineral_nodes 
+      dplyr::select(-n) -> mineral_nodes
+    keep_clusters <- unique(mineral_nodes$cluster_ID)
+    # Ensure factor
+    predictor_string <- paste0("factor(`", predictor, "`)")
   } 
-  response_string <- paste0("`", response, "`")
-  predictor_string <- paste0("`", predictor, "`")
   fit_string <- paste(response_string, "~", predictor_string)
 
   ## Build model ------------------------------------------------
@@ -65,7 +74,8 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
                   "Standard error"       = std.error,
                   "t-statistic"          = statistic,
                   "P-value"              = p.value) -> model_fit_table
-  return(list("model_fit" = model_fit_table,  ## tibble
+  return(list("keep_clusters" = keep_clusters, 
+              "model_fit" = model_fit_table,  ## tibble
               "tukey_fit" = tukey_fit_table,  ## tibble
               "tukey_ok_variance" = tukey_ok_variance ## logical
              )
@@ -77,6 +87,7 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
 #' Plot results from linear regression, specifically where community cluster is the predictor variable
 #' 
 #' @param response   Variable used as regression response
+#' @param keep_clusters Array of which community clusters were used in modeling and should be plotted
 #' @param mineral_nodes  Tibble containing data to visualize
 #' @param cluster_colors  Array of pre-specified colors to use across categories in plot
 #' @param plot_type  String indicating which type of plot to make, one of 'strip', 'sina', 'violin', or 'boxplot'
@@ -86,11 +97,15 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
 #' @param point_size  Numeric used as point size for either strip or sina plots. Argument is ignored for boxplot and violin plot.
 #'
 #' @returns ggplot object to be displayed
-plot_linear_model_cluster <- function(response, mineral_nodes, cluster_colors, plot_type, flip_coord, show_mean_se, show_legend, point_size)
+plot_linear_model_cluster <- function(response, keep_clusters, mineral_nodes, cluster_colors, plot_type, flip_coord, show_mean_se, show_legend, point_size)
 {
 
+  use_cluster_colors <- cluster_colors[keep_clusters]
+
   ## Build the baseline plot output for models with cluster as predictor ------------------------------------
-  ggplot2::ggplot(mineral_nodes) + 
+  mineral_nodes %>%
+    dplyr::filter(cluster_ID %in% keep_clusters) %>%
+    ggplot2::ggplot() + 
       ggplot2::aes(x = cluster_ID, 
                    y = !!sym(response)) + 
       ggplot2::xlab(cluster_ID_str) + 
@@ -104,28 +119,28 @@ plot_linear_model_cluster <- function(response, mineral_nodes, cluster_colors, p
     fitted_model_plot <- fitted_model_plot + 
                   ggplot2::aes(color = cluster_ID) + 
                   ggplot2::geom_jitter(size=point_size, width=0.1) + 
-                  ggplot2::scale_color_manual(values = cluster_colors, name = cluster_ID_str)
+                  ggplot2::scale_color_manual(values = use_cluster_colors, name = cluster_ID_str)
   }
   if (plot_type == "sina")
   {
     fitted_model_plot <- fitted_model_plot + 
                   ggplot2::aes(color = cluster_ID) + 
                   ggforce::geom_sina(size=point_size) +  
-                  ggplot2::scale_color_manual(values = cluster_colors, name = cluster_ID_str)
+                  ggplot2::scale_color_manual(values = use_cluster_colors, name = cluster_ID_str)
   }
   if (plot_type == "violin")
   {
     fitted_model_plot <- fitted_model_plot + 
                   ggplot2::aes(fill = cluster_ID) + 
                   ggplot2::geom_violin() +  
-                  ggplot2::scale_fill_manual(values = cluster_colors, name = cluster_ID_str)
+                  ggplot2::scale_fill_manual(values = use_cluster_colors, name = cluster_ID_str)
   }
   if (plot_type == "boxplot")
   {
     fitted_model_plot <- fitted_model_plot + 
                   ggplot2::aes(fill = cluster_ID) + 
                   ggplot2::geom_boxplot() +  
-                  ggplot2::scale_fill_manual(values = cluster_colors, name = cluster_ID_str)
+                  ggplot2::scale_fill_manual(values = use_cluster_colors, name = cluster_ID_str)
   }
 
 

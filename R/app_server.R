@@ -593,16 +593,16 @@ app_server <- function( input, output, session ) {
   #################################################################################################################
   
   output$model_plot_options <- renderUI({
-    if (input$predictor == cluster_ID_str) predictor <- "cluster"
-    if (input$predictor != cluster_ID_str) predictor <- "other"
+    if (input$predictor == cluster_ID_str) predictor <- "categorical"
+    if (input$predictor != cluster_ID_str) predictor <- "scatter"
     switch(predictor,
-      "cluster" = list(shinyWidgets::pickerInput("plot_type", "Plot type:", cluster_plot_choices, selected = "strip"),
+      "categorical" = list(shinyWidgets::pickerInput("plot_type", "Plot type:", categorical_plot_choices, selected = "strip"),
                        shinyWidgets::prettySwitch("show_legend", "Show legend", value = FALSE, status="danger"),
                        shinyWidgets::prettySwitch("show_mean_se", "Show mean and standard error", value = FALSE, status="danger"),
                        shinyWidgets::prettySwitch("flip_coord", "Flip coordinates", value = FALSE, status="danger"),
                        shiny::numericInput("point_size_cluster", "Point size for sina or strip chart", 2, min = 0.5, max = 4)
                       ),   
-      "other"   =  list(shinyWidgets::prettySwitch("logx", "Use log scale on X-axis", value = FALSE, status="danger"),
+      "scatter"   =  list(shinyWidgets::prettySwitch("logx", "Use log scale on X-axis", value = FALSE, status="danger"),
                         shinyWidgets::prettySwitch("logy", "Use log scale on Y-axis", value = FALSE, status="danger",),
                         shinyWidgets::prettySwitch("bestfit", "Show regression line (with 95% confidence interval).", value = FALSE, status="danger"),
                         shiny::numericInput("point_size_scatter",  "Point size", 2, min = 0.5, max = 4),
@@ -675,14 +675,14 @@ app_server <- function( input, output, session ) {
                               type = "warning"
                             )
     }
-    fitted_linear_model ## a list itself: $model_fit, $tukey_fit, $tukey_ok_variance (only used above)
+    fitted_linear_model ## a list itself: $mineral_nodes, $model_fit, $tukey_fit, $tukey_ok_variance (only used above)
   })  ## END linear_model_output reactive
   
   
   linear_model_plot <- reactive({ 
     if (input$predictor == cluster_ID_str)
     {
-      p <- plot_linear_model_cluster(input$response, chemistry_network()$mineral_nodes, chemistry_network()$cluster_colors, input$plot_type, input$flip_coord, input$show_mean_se, input$show_legend, input$point_size_cluster)
+      p <- plot_linear_model_cluster(input$response, linear_model_output()$keep_clusters, chemistry_network()$mineral_nodes, chemistry_network()$cluster_colors, input$plot_type, input$flip_coord, input$show_mean_se, input$show_legend, input$point_size_cluster)
     } else  {
       p <- plot_linear_model_scatter(input$response, input$predictor, chemistry_network()$mineral_nodes, input$logx, input$logy, input$point_color, input$point_size_scatter, input$bestfit, input$bestfit_color)
     }    

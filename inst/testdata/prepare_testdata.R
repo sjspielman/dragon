@@ -1,10 +1,8 @@
 library(dragon)
-load_only <- T
-testdata_path <- system.file("testdata",package="dragon")
-outpath <- "./" #"inst/testdata/"
-  
-focal <- "Fe" ## Focal element used in true data network
 
+################### THIS IS ALL ALSO IN THE SETUP TEST SUITE #############################
+##########################################################################################
+focal <- "Fe" ## Focal element used in true data network
 
 ## Variables for style testing ------------------------------
 blue   <- "#0000FF"
@@ -78,41 +76,35 @@ true_style_options <- list("color_by_cluster"  = FALSE,
                            "edge_color_by" = "singlecolor", 
                            "edge_color"    = true_edge_color,
                            "edge_palette"  = true_edge_palette)
+###########################################################################################
+###########################################################################################
 
-#### Create the testing files -----------------------------------------------------
-if (!load_only)
-{
-  ## Build a test network ---------------------------------------------------------
-  network_by_redox <- dragon::initialize_network(focal, 
-                                                 force_all_elements = FALSE, 
-                                                 elements_by_redox = TRUE, 
-                                                 age_range         = c(4, 5),
-                                                 max_age_type      = "Maximum",
-                                                 cluster_algorithm = "Louvain")
-  readr::write_csv(network_by_redox$edges, file.path(outpath, "edges_by_redox.csv"))
-  readr::write_csv(network_by_redox$nodes, file.path(outpath, "nodes_by_redox.csv"))
-  igraph::write_graph(network_by_redox$network, "graph_by_redox.igraph", format="ncol")
 
-   network_by_redox$nodes %>%
-     dplyr::filter(group == "mineral") %>%
-     dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>%
-     dplyr::mutate(cluster_ID = factor(cluster_ID)) %>%
-     dplyr::rename(!! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
-                   !! variable_to_title[["closeness"]] := closeness,
-                   !! variable_to_title[["mean_pauling"]] := mean_pauling,
-                   !! variable_to_title[["cov_pauling"]] := cov_pauling,
-                   !! variable_to_title[["num_localities"]] := num_localities,
-                   !! variable_to_title[["max_age"]] := max_age) %>%
-     readr::write_csv(file.path(outpath, "true_mineral_nodes.csv"))
-}
+#### Code below created the CSV files and graph used for testing and were manually inspected for accuracy -------------------------
+network_by_redox <- dragon::initialize_network(focal, 
+                                               force_all_elements = FALSE, 
+                                               elements_by_redox = TRUE, 
+                                               age_range         = c(4, 5),
+                                               max_age_type      = "Maximum",
+                                               cluster_algorithm = "Louvain")
+readr::write_csv(network_by_redox$edges, file.path(outpath, "edges_by_redox.csv"))
+readr::write_csv(network_by_redox$nodes, file.path(outpath, "nodes_by_redox.csv"))
+igraph::write_graph(network_by_redox$network, "graph_by_redox.igraph", format="ncol")
 
-## Style the test network with default styling ------------------------
-n <- readr::read_csv(file.path(testdata_path, "nodes_by_redox.csv"), col_types = readr::cols())
-e <- readr::read_csv(file.path(testdata_path, "edges_by_redox.csv"), col_types = readr::cols())
-true_styled_nodes <- style_nodes(n, true_style_options)
-true_styled_edges <- style_edges(e, true_style_options)
+network_by_redox$nodes %>%
+   dplyr::filter(group == "mineral") %>%
+   dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>%
+   dplyr::mutate(cluster_ID = factor(cluster_ID)) %>%
+   dplyr::rename(!! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
+                 !! variable_to_title[["closeness"]] := closeness,
+                 !! variable_to_title[["mean_pauling"]] := mean_pauling,
+                 !! variable_to_title[["cov_pauling"]] := cov_pauling,
+                 !! variable_to_title[["num_localities"]] := num_localities,
+                 !! variable_to_title[["max_age"]] := max_age) %>%
+   readr::write_csv(file.path(outpath, "true_mineral_nodes.csv"))
 
-if (!load_only) {
-  readr::write_csv(true_styled_nodes$styled_nodes, file.path(outpath, "styled_nodes.csv"))
-  readr::write_csv(true_styled_edges$styled_edges, file.path(outpath, "styled_edges.csv"))
-}
+true_styled_nodes <- style_nodes(network_by_redox$nodes, true_style_options)
+true_styled_edges <- style_edges(network_by_redox$edges, true_style_options)
+
+readr::write_csv(true_styled_nodes$styled_nodes, file.path(outpath, "styled_nodes.csv"))
+readr::write_csv(true_styled_edges$styled_edges, file.path(outpath, "styled_edges.csv"))

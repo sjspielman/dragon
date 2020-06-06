@@ -186,7 +186,7 @@ app_ui <- function(request) {
                         
             menuItem(text = "Node Labels and Font", 
               fluidRow(
-                column(6, colourpicker::colourInput("element_label_color", "Element font color:", value = default_element_label_color))
+                column(12, colourpicker::colourInput("element_label_color", "Element font color (applies only when element shape is not 'text'):", value = default_element_label_color)),
               ),  ## END fluidRow
               fluidRow( 
                 column(6, colourpicker::colourInput("mineral_label_color", "Mineral font color:", value = default_mineral_label_color)),

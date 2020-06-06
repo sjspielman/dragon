@@ -149,6 +149,12 @@ test_that("fct_build_network::construct_network() with elements_by_redox = F", {
   ## Edges, nodes compatible
   edges_to_nodes <- unique(c(test_edges$to, test_edges$from ))
   expect_equal(sort(edges_to_nodes), sort(test_nodes$id)) 
+  
+  ## No NAs in various fields "known" to be silly
+  expect_true(sum(is.na(test_nodes$label)) == 0)
+  expect_true(sum(is.na(test_nodes$id)) == 0)
+  expect_true(sum(is.na(test_nodes$title)) == 0)
+  expect_true(all(test_nodes$group %in% c("element", "mineral")))
 
    
 })
@@ -184,6 +190,12 @@ test_that("fct_build_network::construct_network() with elements_by_redox = T", {
   edges_to_nodes <- unique(c(test_edges$to, test_edges$from ))
   expect_equal(sort(edges_to_nodes), sort(test_nodes$id)) 
   
+  ## No NAs in various fields "known" to be silly
+  expect_true(sum(is.na(test_nodes$label)) == 0)
+  expect_true(sum(is.na(test_nodes$id)) == 0)
+  expect_true(sum(is.na(test_nodes$title)) == 0)
+  expect_true(all(test_nodes$group %in% c("element", "mineral")))
+  
 })
 
 
@@ -208,6 +220,7 @@ test_that("fct_build_network::specify_community_detect_network() with Louvain co
   expect_true( length(test_cluster$clustered_net) == length(unique(test_cluster$nodes$cluster_ID)) )
   
 })
+
 
 
 ## Test that initialize_network() works -----------------------------------------------
