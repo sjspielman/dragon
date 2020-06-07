@@ -43,7 +43,7 @@ prepare_selected_node_table <- function(nodes, edges, locality_info)
 
   nodes2 %>% 
     dplyr::filter(group == "element") %>%
-    dplyr::select(id, cluster_ID, closeness, network_degree_norm, element_name, element_hsab, TablePeriod, TableGroup, AtomicMass, AtomicRadius, pauling, MetalType, Density, SpecificHeat, element_redox_network, num_localities) %>%
+    dplyr::select(id, cluster_ID, closeness, network_degree_norm, element_name, element_hsab, table_period, table_group, atomic_mass, atomic_radius, pauling, metal_type, element_density, element_specific_heat, element_redox_network, num_localities) %>%
     dplyr::rename(num_localities_element = num_localities)-> element_nodes  
     
 
@@ -93,13 +93,13 @@ prepare_selected_node_table <- function(nodes, edges, locality_info)
                     !! variable_to_title[["element_redox_network"]] := element_redox_network,            
                     !! variable_to_title[["pauling"]] := pauling,
                     !! variable_to_title[["element_hsab"]] := element_hsab,
-                    !! variable_to_title[["TableGroup"]] := TableGroup,
-                    !! variable_to_title[["TablePeriod"]] := TablePeriod,
-                    !! variable_to_title[["MetalType"]] := MetalType,
-                    !! variable_to_title[["AtomicMass"]] := AtomicMass,
-                    !! variable_to_title[["AtomicRadius"]] := AtomicRadius,
-                    !! variable_to_title[["SpecificHeat"]] := SpecificHeat,
-                    !! variable_to_title[["Density"]] := Density ,
+                    !! variable_to_title[["table_group"]] := table_group,
+                    !! variable_to_title[["table_period"]] := table_period,
+                    !! variable_to_title[["metal_type"]] := metal_type,
+                    !! variable_to_title[["atomic_mass"]] := atomic_mass,
+                    !! variable_to_title[["atomic_radius"]] := atomic_radius,
+                    !! variable_to_title[["element_specific_heat"]] := element_specific_heat,
+                    !! variable_to_title[["element_density"]] := element_density ,
                     !! variable_to_title[["num_localities_element"]] := num_localities_element,  
                     !! variable_to_title[["element_cluster_ID"]] := element_cluster_ID,
                     !! variable_to_title[["element_closeness"]] := element_closeness,

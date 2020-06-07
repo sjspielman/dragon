@@ -1,60 +1,88 @@
-load("R/sysdata.rda") ## TODO devtools:check() fails without explicit load. how fix? can i do library(dragon)? probably not?
-# from stackoverflow?: If your package name is somepackage and the object saved was nhanes_files with devtools::use_data(nhanes_files, internal = TRUE) then you can access this in your functions by calling somepackage:::nhanes_files.
-
-#' Maximum age possible for mineral selection
-#'
-#' @export
-total_max_age   <- round( max(rruff$max_age) + 0.1, 1)
+#load("R/sysdata.rda") ## TODO devtools:check() fails without explicit load. how fix? can i do library(dragon)? probably not?
+# from stackoverflow?: 
+# If your package name is somepackage and the object saved 
+#    was nhanes_files with devtools::use_data(nhanes_files, internal = TRUE) 
+#    then you can access this in your functions by calling somepackage:::nhanes_files.
 
 
-#' Tibble of MED minerals and associated elements, in tidy format
-#'
-#' @export
-rruff_separated <- element_redox_states %>% dplyr::select(-element_redox_mineral)
 
-
-#' Initialize a mineral-chemistry network as stand-alone network rather than for embedding into the Shiny App.
+#' Initialize a mineral-chemistry network as stand-alone network rather than for embedding 
+#' into the Shiny App.
 #' 
-#' @param elements_of_interest A array of specified elements whose minerals should be included in the network. For all elements, specify "all".
-#' @param force_all_elements   A logical. If FALSE (default), minerals containing any of `elements_of_interest` will be included in network. If TRUE, only minerals with full intersection of all specified elements will be included in network.
-#' @param elements_by_redox    A logical. If FALSE (default), element nodes will be constructed regardless of redox state. If TRUE, creates separate node for each element's redox state, e.g. Fe2+ and Fe3+ would be separate nodes.
-#' @param age_range            A array of two numbers giving inclusive range of mineral ages in Ga to include in network. 
-#' @param max_age_type         A string indicating how mineral ages should be assessed. If "Maximum" (default), filters minerals using maximum known ages at localities. If "Minimum", filters minerals using minimum known ages at localities. 
-#' @param cluster_algorithm    A string giving community clustering algorithm, one of "Louvain" (default) or "Leading eigenvector". 
+#' @param elements_of_interest A array of specified elements whose minerals should be included in
+#' the network. For all elements, specify "all".
+#'
+#' @param force_all_elements   A logical. If FALSE (default), minerals containing any of 
+#' `elements_of_interest` will be included in network. If TRUE, only minerals with full 
+#' intersection of all specified elements will be included in network.
+#' @param elements_by_redox    A logical. If FALSE (default), element nodes will be constructed
+#' regardless of redox state. If TRUE, creates separate node for each element's redox state, 
+#' e.g. Fe2+ and Fe3+ would be separate nodes.
+#' @param age_range            A array of two numbers giving inclusive range of mineral ages in Ga
+#'  to include in network. 
+#' @param max_age_type         A string indicating how mineral ages should be assessed. 
+#' If "Maximum" (default), filters minerals using maximum known ages at localities. 
+#' If "Minimum", filters minerals using minimum known ages at localities. 
+#' @param cluster_algorithm    A string giving community clustering algorithm, one of 
+#' "Louvain" (default) or "Leading eigenvector". 
+#' #' @param use_data_cache    A logical. If TRUE (default) cached RRUFF (Mineral Evolution Database)
+#'  will be used to build the network. If FALSE, data will be fetched from RRUFF here. CAUTION: May 
+#'  take several minutes to update.
 #' 
-#' @returns Named list containing an igraph-formatted network ('network'), an igraph-formatted list of cluster memberships ('clustering'), a tibble of nodes and associated metadata ('nodes'), and a tibble of edges and associated metadata  ('edges')
+#' @returns Named list containing an igraph-formatted network ('network'), an 
+#' igraph::communities object giving node cluster memberships ('clustering'), a tibble of nodes
+#' associated metadata ('nodes'), and a tibble of edges and associated metadata ('edges')
 #' 
 #' @examples
-#' # Include all Iron minerals whose maximum known age is between 1-2 Gya, and apply Louvain clustering
+#' \dontrun{
+#' # Include all Iron minerals whose maximum known age is between 1-2 Gya, and apply 
+#' #   Louvain clustering
 #' initialize_network("Fe", age_range = c(1,2))
 #'
-#' # Include all minerals containing \emph{either} Iron and Oxygen whose maximum known age is between 1-2 Gya, and apply Louvain clustering
+#' # Include all minerals containing \emph{either} Iron and Oxygen whose maximum known age 
+#' #   is between 1-2 Gya, and apply Louvain clustering
 #' initialize_network(c("Fe", "O"), age_range = c(1,2))
 #'
-#' # Include all minerals containing \emph{both} Iron and Oxygen whose maximum known age is between 1-2 Gya, and apply Louvain clustering
+#' # Include all minerals containing \emph{both} Iron and Oxygen whose maximum known age is 
+#' #   between 1-2 Gya, and apply Louvain clustering
 #' initialize_network(c("Fe", "O"), force_all_elements = TRUE, age_range = c(1,2))
 #'
 #' # Build the full mineral network
 #' initialize_network("all")
+#'}
 initialize_network <- function(elements_of_interest, 
                                force_all_elements = FALSE, 
                                elements_by_redox = FALSE, 
-                               age_range         = c(0, total_max_age),
+                               age_range         = c(0, 5),
                                max_age_type      = "Maximum",
-                               cluster_algorithm = "Louvain")
+                               cluster_algorithm = "Louvain",
+                               use_data_cache    = TRUE)
 {
+  
+  if (use_data_cache)
+  {
+    rruff_data <- rruff_data_cache
+    element_redox_states <- element_redox_states_cache
+  } else
+  {
+    print("ALERT:  Downloading data from Mineral Evolution Database. Please be patient! This may/will take several minutes, or longer depending on your internet connection.")
+    rruff_data <- fetch_rruff_data()
+    element_redox_states <- calculate_element_redox_states(rruff_data)
+    print("....Done! Building your network now.")
+  }
+  
   if(stringr::str_to_lower(elements_of_interest) == "all"){
-    elements_of_interest <- all_elements
+    elements_of_interest <- element_info$element
   }
   age_range <- sort(age_range)
   
-  subset_rruff <- initialize_data(elements_of_interest, force_all_elements)
+  subset_rruff <- initialize_data(rruff_data, element_redox_states, elements_of_interest, force_all_elements)
   if (nrow(subset_rruff) == 0) stop("Network cannot be constructed with provided elements.")
   
   age_data    <- initialize_data_age(subset_rruff, age_range, max_age_type)
   if (nrow(age_data$elements_only_age) == 0) stop("Network cannot be constructed at specified age range.")
 
-  network_raw <- construct_network(age_data$elements_only_age, elements_by_redox)
+  network_raw <- construct_network(age_data$elements_only_age, elements_by_redox, element_redox_states)
   if (nrow(network_raw$nodes) == 0) stop("Network could not be constructed. Please adjust input settings.")
   if (nrow(network_raw$edges) == 0) stop("Network could not be constructed. Please adjust input settings.")
 
@@ -70,31 +98,37 @@ initialize_network <- function(elements_of_interest,
 
 
 #' Subset MED data to contain only elements of interest for network construction
-#' 
+#'
+#' @param rruff_data Input rruff data
+#' @param element_redox_states A tibble of elements and their associated redox states per mineral
 #' @param elements_of_interest A array of specified elements whose minerals should be included in the network. For all elements, specify "all".
 #' @param force_all_elements   A logical. If FALSE (default), minerals containing any of `elements_of_interest` will be included in network. If TRUE, only minerals with full intersection of all specified elements will be included in network.
 #' @param max_age_type         A string indicating how mineral ages should be assessed. If "Maximum" (default), filters minerals using maximum known ages at localities. If "Minimum", filters minerals using minimum known ages at localities. 
-initialize_data <- function(elements_of_interest, force_all_elements = FALSE)
+#' @returns Tibble subsetted from rruff containing only those minerals with specified element settings
+#' @noRd
+initialize_data <- function(rruff_data, element_redox_states, elements_of_interest, force_all_elements = FALSE)
 { 
 
   ## Must have all elements
   if (force_all_elements)
   {
     n_elements <- length(elements_of_interest)
-    rruff_separated %>%
+    element_redox_states %>% 
+      dplyr::select(-element_redox_mineral) %>%
       dplyr::group_by(mineral_name) %>%
       dplyr::mutate(has_element = ifelse( sum(element %in% elements_of_interest) == n_elements, TRUE, FALSE)) %>% 
       dplyr::filter(has_element == TRUE) -> elements_only_raw
   } else 
   { ## Has at least one element
-    rruff_separated %>%
+    element_redox_states %>% 
+      dplyr::select(-element_redox_mineral) %>%
       dplyr::group_by(mineral_name) %>%
       dplyr::filter(element %in% elements_of_interest) -> elements_only_raw
   }
   elements_only_raw %>%
     dplyr::ungroup() %>%
     dplyr::select(mineral_name) %>%
-    dplyr::inner_join(rruff) -> elements_only
+    dplyr::inner_join(rruff_data) -> elements_only
   elements_only
 }
 
@@ -102,6 +136,8 @@ initialize_data <- function(elements_of_interest, force_all_elements = FALSE)
 #' 
 #' @param elements_only A tibble containing all minerals and associated information which contain specified elements
 #' @param age_range            A array of two numbers giving inclusive range of mineral ages in Ga to include in network. 
+#' @returns Named list of two tibbles: 'elements_only_age' is subsetted rruff to specified age range, and 'locality_info' contains all locality information for minerals in 'elements_age_only'
+#' @noRd
 initialize_data_age <- function(elements_only, age_range, max_age_type)
 {
   lb <- age_range[1]
@@ -144,10 +180,14 @@ initialize_data_age <- function(elements_only, age_range, max_age_type)
 
 
 #' Construct network and apply metadata to mineral, element nodes
-#' 
+#'
 #' @param elements_only_age A tibble containing all minerals and associated information which contain specified elements at the specified age range
 #' @param elements_by_redox A logical. If FALSE, element nodes will be constructed regardless of redox state. If TRUE, creates separate node for each element's redox state, e.g. Fe2+ and Fe3+ would be separate nodes.
-construct_network   <- function(elements_only_age, elements_by_redox)
+#' @param element_redox_states A tibble of elements and their associated redox states per mineral
+#'
+#' @returns Named list with completed network: 'nodes' is a tibble of all node info, 'edges' is a tibble of all edge info, and 'network' is the igraph::graph object
+#' @noRd
+construct_network   <- function(elements_only_age, elements_by_redox, element_redox_states)
 {
   
   ## Merge data with redox states, element_info, and some associated processing --------------------------------
@@ -167,9 +207,9 @@ construct_network   <- function(elements_only_age, elements_by_redox)
     dplyr::select(-element_redox_mineral_sign) %>%
     dplyr::left_join(element_info, by = "element") %>%
     ## Factor some of the joined in columns from element_info
-    dplyr::mutate(element_hsab = factor(element_hsab, levels = element_hsab_levels),
-                  TablePeriod  = factor(TablePeriod),
-                  TableGroup   = factor(TableGroup)) %>%
+    dplyr::mutate(element_hsab = factor(element_hsab, levels = c("Hard acid", "Int. acid", "Soft acid", "Soft base", "Int. base", "Hard base")),
+                  table_period  = factor(table_period),
+                  table_group   = factor(table_group)) %>%
     ## Calculate electronegativity quantities - so we need to merge in element_info at this time
     dplyr::group_by(mineral_name) %>%
     dplyr::mutate(mean_pauling = mean(pauling),
@@ -217,7 +257,7 @@ construct_network   <- function(elements_only_age, elements_by_redox)
   
   ## names to, element_redox_network
   network_information %>% 
-    dplyr::select(to, element_name, num_localities_mineral, element_hsab, AtomicMass, NumberofProtons, TablePeriod, TableGroup, AtomicRadius, pauling, MetalType, Density, SpecificHeat) %>%
+    dplyr::select(to, element_name, num_localities_mineral, element_hsab, atomic_mass, number_of_protons, table_period, table_group, atomic_radius, pauling, metal_type, element_density, element_specific_heat) %>%
     dplyr::distinct() %>%
     dplyr::group_by(to) %>%
     dplyr::mutate(num_localities_element = sum(num_localities_mineral)) %>% 
@@ -258,10 +298,12 @@ construct_network   <- function(elements_only_age, elements_by_redox)
 
 
 #' Perform community clustering according to specified algorithm
-#' 
+#'
 #' @param network A network in igraph format
 #' @param nodes   A tibble containing all node information and metadata
 #' @param cluster_algorithm    A string giving community clustering algorithm, one of "Louvain" (default) or "Leading eigenvector". 
+#' @returns A named list of 'nodes' tibble updated to containing 'cluster_ID' and 'cluster_algorithm' columns, and 'clustered_net' which is an igraph::communities object
+#' @noRd
 specify_community_detect_network <- function(network, nodes, cluster_algorithm)
 {
   if (!(cluster_algorithm %in% allowed_cluster_algorithms)) stop("Cluster algorithm must be one of either 'Louvain' or 'Leading eigenvector'.")
@@ -274,7 +316,7 @@ specify_community_detect_network <- function(network, nodes, cluster_algorithm)
   tibble::tibble( "id"                = clustered_net$names, 
                   "cluster_ID"        = as.factor(clustered_net$membership), 
                   "cluster_algorithm" = cluster_algorithm) %>%
-    right_join(nodes, by = "id") -> nodes 
+    dplyr::right_join(nodes, by = "id") -> nodes 
 
   return( 
     list("nodes"          = nodes, 
@@ -285,9 +327,11 @@ specify_community_detect_network <- function(network, nodes, cluster_algorithm)
 }
 
 #' Format labels and titles to nodes for display in Shiny App
-#' 
+#'
 #' @param nodes   A tibble containing all node information and metadata
 #' @param elements_by_redox  A logical. If FALSE (default), element nodes have been constructed regardless of redox state. If TRUE, separate nodes have been created for each element's redox state, e.g. Fe2+ and Fe3+ would be separate nodes.
+#' @returns An updated nodes tibble containing additional columns 'title' and 'font.face', and the 'label' column is fixed width
+#' @noRd
 add_shiny_node_titles <- function(nodes, elements_by_redox)
 {
   charadd <- 0
@@ -321,9 +365,9 @@ add_shiny_node_titles <- function(nodes, elements_by_redox)
                                                                                                           "", 
                                                                                                           paste0("Redox state: ", element_redox_network)
                                                                                                     ),"<br>",    
-                                                                                                   ifelse(is.na(AtomicMass), 
+                                                                                                   ifelse(is.na(atomic_mass), 
                                                                                                           "", 
-                                                                                                          paste0("Atomic mass: ", AtomicMass)), "<br>",  
+                                                                                                          paste0("Atomic mass: ", atomic_mass)), "<br>",  
                                                                                                    ifelse(is.na(pauling), 
                                                                                                           "", 
                                                                                                           paste0("Electronegativity: ", pauling)), "</p>"),                                                        
@@ -333,9 +377,9 @@ add_shiny_node_titles <- function(nodes, elements_by_redox)
                                                                                                           "", 
                                                                                                           paste0("Mean network redox state: ", element_redox_network)
                                                                                                     ), "<br>",  
-                                                                                                     ifelse(is.na(AtomicMass), 
+                                                                                                     ifelse(is.na(atomic_mass), 
                                                                                                             "", 
-                                                                                                            paste0("Atomic mass: ", AtomicMass)), "<br>",  
+                                                                                                            paste0("Atomic mass: ", atomic_mass)), "<br>",  
                                                                                                      ifelse(is.na(pauling), 
                                                                                                             "", 
                                                                                                             paste0("Electronegativity: ", pauling)), "</p>")
@@ -358,24 +402,4 @@ add_shiny_node_titles <- function(nodes, elements_by_redox)
   nodes_shinied
   
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

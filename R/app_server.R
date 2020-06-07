@@ -3,11 +3,84 @@
 #' @param input,output,session Internal parameters for {shiny}. 
 #'     DO NOT REMOVE.
 #' @import shiny
-#' @import dplyr
 #' @noRd
 app_server <- function( input, output, session ) {
+  
+  ## Define rrruff reactives ----------------------------------------------------------------
+  rruff <- reactiveVal(list("rruff_data"           = NULL, 
+                            "element_redox_states" = NULL,
+                            "cache"                = NULL))
+  
+  ## Prompt for MED data to use -------------------------------------------------------------
+  observe({
+    if (find_most_recent_date() != rruff_cache_date) ## SHOULD BE != 
+    { 
+      shinyWidgets::confirmSweetAlert(
+        session,
+        "use_rruff_cache",
+        title = "Welcome to dragon!",
+        text = tags$span(
+                "We use MED data, cached from the MED update on", 
+                tags$b(rruff_cache_date), ". MED was mostly recently updated on ",  
+                tags$b(find_most_recent_date()), 
+                ". Do you want to used the cached data, or re-download right now?",
+                br(),br(),
+                tags$b("CAUTION: Downloading will take several minutes!")
+              ),                                     
+        type = "info",
+        btn_labels = c("Download data", "Use data cache"), # FALSE, TRUE
+        btn_colors = c("#FE642E", "#04B404"),
+        closeOnClickOutside = FALSE, 
+        showCloseButton = FALSE, 
+        html = TRUE
+      )
+    } else {
+      shinyWidgets::sendSweetAlert(
+         session = session, title = "Welcome to dragon!", type = "info",
+        text = paste0("We're using the most up to date MED data, which was released on ", rruff_cache_date, ".")
+      )
+      rruff(list("rruff_data"           = rruff_data_cache, 
+                 "element_redox_states" = element_redox_states_cache,
+                 "cache"                = TRUE))
+    }
+  })
+
+
     
-  ## Call styling modules
+  observeEvent(input$use_rruff_cache, {
+    if (!(input$use_rruff_cache))
+    {
+      shinyWidgets::sendSweetAlert(
+          session = session, title = "Downloading now!", type = "info",
+          text = tags$span("Please be aware this process will take",
+                        tags$b("several minutes."),
+                        "You will be notified when the download is complete.", 
+                        br(),br(),
+                        "You can close this message any time."),
+          html = TRUE
+      )
+      future::future({
+        prepare_rruff_data()
+      }) %...>% rruff()
+    } else {
+      rruff(list("rruff_data"           = rruff_data_cache, 
+                 "element_redox_states" = element_redox_states_cache,
+                 "cache"                = TRUE))
+    }
+  })
+
+
+  observeEvent(rruff()$cache, {
+    if (rruff()$cache == FALSE)
+    {
+      shinyWidgets::sendSweetAlert(
+          session = session, title = "Download is complete!", type = "success",
+          text = "You may now proceed to build your network with the most recent MED data."
+        )
+    }
+  })
+  
+  ## Call styling modules ----------------------------------------------------------------------
   element_node_color <- callModule(mod_server_choose_color_sd_palette, id = "mod_element_colors")
   mineral_node_color <- callModule(mod_server_choose_color_sd_palette, id = "mod_mineral_colors")
   edge_color         <- callModule(mod_server_choose_color_sd_palette, id = "mod_edge_colors")
@@ -18,6 +91,10 @@ app_server <- function( input, output, session ) {
   ## Construct the network from user input ------------------------------------------
   chemistry_network <- reactive({
   
+
+    req(rruff()$rruff_data)
+    req(rruff()$element_redox_states)
+    #req(rruff()$cache) # THIS IS YOUR REMINDER TO NOT REQ THIS SINCE FALSE IS NOT TRUTHY
     req(input$elements_of_interest)
     
     elements_of_interest <- input$elements_of_interest
@@ -31,57 +108,57 @@ app_server <- function( input, output, session ) {
     input$network_layout
     input$network_layout_seed
     
-    if (length(elements_of_interest) == length(all_elements)) 
+    if (length(elements_of_interest) == nrow(element_info)) 
     {
-      shinyalert::shinyalert( "Warning!", 
-                              "Networks with all elements, especially at more recent time frames, may be very slow - please be patient.",
-                              type = "warning"
-                            )
+      shinyWidgets::sendSweetAlert(
+        session = session, title = "Warning!", type = "warning",
+        text = "Networks with all elements, especially at more recent time frames, may be very slow - please be patient."
+      )
     }
-    
-    elements_only <- initialize_data(elements_of_interest, force_all_elements)
+    elements_only <- initialize_data(rruff()$rruff_data, rruff()$element_redox_states, elements_of_interest, force_all_elements)
     if (nrow(elements_only) == 0)
     {
-      shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
-                              "There is no network for selected element(s) as specified.",
-                              type = "error"
-                            )        
+      shinyWidgets::sendSweetAlert(
+        session = session, title = sample(error_choices)[[1]], type = "error",
+        text = "There is no network for selected element(s) as specified."
+      )
       shiny::validate( shiny::need(nrow(elements_only) > 0, ""))
     }
-
+  
     initialized <- initialize_data_age(elements_only, age_range, max_age_type)
     elements_only_age <- initialized$elements_only_age    
     if (nrow(elements_only_age) == 0)
     {
-       shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
-                              "There is no network for selected element(s) at the age range specified.",
-                              type = "error"
-                            )    
+      shinyWidgets::sendSweetAlert(
+        session = session, title = sample(error_choices)[[1]], type = "error",
+        text = "There is no network for selected element(s) at the age range specified."
+      )    
       shiny::validate( shiny::need(nrow(elements_only_age) > 0, ""))
     }
-
-    network <- construct_network(elements_only_age, elements_by_redox)
+  
+    ## TODO: ASYNC
+    network <- construct_network(elements_only_age, elements_by_redox, rruff()$element_redox_states)
     if (length(network) != 3 | nrow(network$nodes) == 0  | nrow(network$edges) == 0)
     {
-       shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
-                              "Network could not be constructed. Please adjust input settings.",
-                              type = "error"
-                            )  
+      shinyWidgets::sendSweetAlert(
+        session = session, title = sample(error_choices)[[1]], type = "error",
+        text = "Network could not be constructed. Please adjust input settings."
+      ) 
       shiny::validate( shiny::need(length(network) ==3, "") )
     }
     nodes <- network$nodes 
     graph <- network$network
-
+  
     ## Perform community clustering, which also updates nodes ----------------------------
     clustered <- specify_community_detect_network(graph, nodes, input$cluster_algorithm)
-
+  
     n_clusters <- length(unique(clustered$nodes$cluster_ID))
     if (n_clusters < 1)
     {
-       shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
-                              "Clustering could not be performed.",
-                              type = "error"
-                            )    
+      shinyWidgets::sendSweetAlert(
+        session = session, title = sample(error_choices)[[1]], type = "error",
+        text = "Clustering could not be performed."
+      )    
       shiny::validate( shiny::need(n_clusters >= 1, ""))
     }
     
@@ -89,13 +166,13 @@ app_server <- function( input, output, session ) {
     cluster_colors <- set_cluster_colors(input$cluster_palette, n_clusters)  
     if (length(cluster_colors) != n_clusters)
     {
-       shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
-                              "Clustering styling could not be applied.",
-                              type = "error"
-                            )    
+      shinyWidgets::sendSweetAlert(
+        session = session, title = sample(error_choices)[[1]], type = "error",
+        text = "Clustering could not be performed."
+      )    
       shiny::validate( shiny::need(length(cluster_colors) == n_clusters, ""))
     }
-
+  
     ## Subset mineral nodes, used in modeling --------------------------------------------
     clustered$nodes %>%
       dplyr::filter(group == "mineral") %>%
@@ -118,7 +195,7 @@ app_server <- function( input, output, session ) {
                  "locality_info" = initialized$locality_info,
                  "clustering"     = clustered$clustered_net, 
                  "cluster_colors" = cluster_colors))
-    
+  
   })
   
 
@@ -131,7 +208,7 @@ app_server <- function( input, output, session ) {
       dplyr::select(id) %>% 
       tidyr::separate(id, c("base_element", "blah"), sep = "[\\s\\+\\-]") %>%
       dplyr::arrange(base_element) %>%
-      pull(base_element)-> available_base_elements
+      dplyr::pull(base_element)-> available_base_elements
     
     shinyWidgets::pickerInput("custom_selection_element", 
                               "Highlight a set of elements",             
@@ -232,7 +309,7 @@ app_server <- function( input, output, session ) {
  
     
     ## Render the network itself using visNetwork -----------------------------------------------
-    output$networkplot <- renderVisNetwork({
+    output$networkplot <- visNetwork::renderVisNetwork({
       nodes <- chemistry_network()$nodes
       ## network plot construction should be inside isolate. 
       ## visNetworkProxy() function takes over any viz changes from these initial settings
@@ -247,48 +324,48 @@ app_server <- function( input, output, session ) {
         if (build_only == FALSE) 
         {
           ## Define baseline network for visualization with user-specified styles -----------------
-          base_network <- visNetwork(starting_nodes, starting_edges)
+          base_network <- visNetwork::visNetwork(starting_nodes, starting_edges)
 
           ## Set the network layout ---------------------------------------------------------------
           if (input$network_layout == "physics") {
             ## Seizure-inducing layout
             base_network %<>% 
-              visPhysics(solver        = input$physics_solver, 
-                         stabilization = TRUE) # default is 1000 iterations we dont have time for that.
+              visNetwork::visPhysics(solver = input$physics_solver, 
+                                     stabilization = TRUE) # default is 1000 iterations we dont have time for that.
           } else {
             ## igraph network layout
             base_network %<>% 
-              visIgraphLayout(layout     = input$network_layout, 
-                              type       = "full", 
-                              randomSeed = input$network_layout_seed) 
+              visNetwork::visIgraphLayout(layout     = input$network_layout, 
+                                          type       = "full", 
+                                          randomSeed = input$network_layout_seed) 
           }
           ## Plot it up with visNetwork options
           base_network %>%
-           visOptions(highlightNearest = list(enabled = TRUE, degree = input$selected_degree)) %>%
-            visInteraction(dragView  = TRUE,
-                           dragNodes         = TRUE,
-                           zoomView          = TRUE,
-                           hover             = TRUE,
-                           selectConnectedEdges = TRUE,
-                           hideEdgesOnDrag   = TRUE,
-                           multiselect       = TRUE,
-                           navigationButtons = FALSE) %>%
-            visGroups(groupname = "element",
-                      color = network_style_options()[["element_color"]], 
-                      shape = network_style_options()[["element_shape"]], 
-                      font  = list(size = input$element_label_size)
-                      ) %>%
-            visGroups(groupname = "mineral",
-                      color = network_style_options()[["mineral_color"]], 
-                      shape = network_style_options()[["mineral_shape"]],
-                      size  = input$mineral_size,
-                      font  = list(size = ifelse(input$mineral_label_size == 0,
-                                                 "NA",
-                                                 input$mineral_label_size))
-                      ) %>%
-            visEdges(color = network_style_options()[["edge_color"]],
-                     width = input$edge_weight,
-                     smooth = FALSE) ## smooth=FALSE has no visual effect that I can perceive, and improves speed. Cool.
+           visNetwork::visOptions(highlightNearest = list(enabled = TRUE, degree = input$selected_degree)) %>%
+            visNetwork::visInteraction(dragView  = TRUE,
+                                       dragNodes         = TRUE,
+                                       zoomView          = TRUE,
+                                       hover             = TRUE,
+                                       selectConnectedEdges = TRUE,
+                                       hideEdgesOnDrag   = TRUE,
+                                       multiselect       = TRUE,
+                                       navigationButtons = FALSE) %>%
+            visNetwork::visGroups(groupname = "element",
+                                  color = network_style_options()[["element_color"]], 
+                                  shape = network_style_options()[["element_shape"]], 
+                                  font  = list(size = input$element_label_size)
+                                  ) %>%
+            visNetwork::visGroups(groupname = "mineral",
+                                  color = network_style_options()[["mineral_color"]], 
+                                  shape = network_style_options()[["mineral_shape"]],
+                                  size  = input$mineral_size,
+                                  font  = list(size = ifelse(input$mineral_label_size == 0,
+                                                             "NA",
+                                                             input$mineral_label_size))
+                                  ) %>%
+            visNetwork::visEdges(color = network_style_options()[["edge_color"]],
+                                 width = input$edge_weight,
+                                 smooth = FALSE) ## smooth=FALSE has no visual effect that I can perceive, and improves speed. Cool.
         } ## END if(build_only == FALSE)
       })  ## END isolate()        
     }) ## END renderVisNetwork({})
@@ -306,7 +383,7 @@ app_server <- function( input, output, session ) {
     observeEvent(input$store_position, {
       # TODO does this need a build_only == F?
       #if (build_only == FALSE) visNetworkProxy("networkplot") %>% visGetPositions()
-      visNetworkProxy("networkplot") %>% visGetPositions()
+      visNetwork::visNetworkProxy("networkplot") %>% visNetwork::visGetPositions()
     })  ## END observeEvent
     
     ## visNetworkProxy observer to perform *all network updates* ---------------------------------------
@@ -318,19 +395,19 @@ app_server <- function( input, output, session ) {
         node_styler()$styled_nodes$font.size
         ## visGroups, visNodes, visEdges are global options shared among nodes/edges
         ## Need to use visUpdateNodes and visUpdateEdges for changing individually. This applies to color schemes.
-        visNetworkProxy("networkplot") %>%
-          visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
-          visUpdateEdges(edges = edge_styler()$styled_edges) %>%
-          visEdges(width = input$edge_weight) %>%
-          visGetSelectedNodes() %>%
-          visInteraction(dragView             = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
-                         hover                = input$hover,
-                         selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
-                         zoomView             = input$zoom_view,
-                         multiselect          = TRUE,
-                         hideEdgesOnDrag      = input$hide_edges_on_drag,
-                         navigationButtons    = input$nav_buttons) %>%
-          visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree)) 
+        visNetwork::visNetworkProxy("networkplot") %>%
+          visNetwork::visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
+          visNetwork::visUpdateEdges(edges = edge_styler()$styled_edges) %>%
+          visNetwork::visEdges(width = input$edge_weight) %>%
+          visNetwork::visGetSelectedNodes() %>%
+          visNetwork::visInteraction(dragView             = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
+                                     hover                = input$hover,
+                                     selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
+                                     zoomView             = input$zoom_view,
+                                     multiselect          = TRUE,
+                                     hideEdgesOnDrag      = input$hide_edges_on_drag,
+                                     navigationButtons    = input$nav_buttons) %>%
+          visNetwork::visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree)) 
       }
     }) ## END observe
 
@@ -348,13 +425,12 @@ app_server <- function( input, output, session ) {
       
       if(output_layout == "physics")
       {
-        shinyalert::shinyalert("Warning!", ## Enjoyable random error
-                               "Dynamic physics layout cannot be exported to PDF. Preparing export with Fruchterman-Reingold layout.",
-                               type = "warning"
-                              ) 
+        shinyWidgets::sendSweetAlert(
+          session = session, title = "Warning!", type = "warning",
+          text = "Dynamic physics layouts cannot be exported to PDF. Preparing export with Fruchterman-Reingold layout."
+        )    
         output_layout <- "layout_with_fr"
       }
-      print(input$networkplot_positions)
       calculate_output_node_positions(node_styler()$styled_nodes, 
                                       input$networkplot_positions, 
                                       chemistry_network()$graph,
@@ -480,10 +556,10 @@ app_server <- function( input, output, session ) {
       
       ## Reveal table unless it is false
       if(raw_node_table() == FALSE){
-        shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
-                              "Error rendering node table. Please file an issue at https://github.com/spielmanlab/dragon/issues",
-                              type = "error"
-                            )        
+        shinyWidgets::sendSweetAlert(
+          session = session, title = sample(error_choices)[[1]], type = "error",
+          text = "Error rendering node table. Please file an issue at https://github.com/spielmanlab/dragon/issues"
+        )    
         shiny::validate( shiny::need(raw_node_table() != FALSE, ""))
       }
       ## TODO waiting on usability feedback here
@@ -510,83 +586,84 @@ app_server <- function( input, output, session ) {
   output$show_nodeTable <- renderUI({
     box(width=12,status = "primary", 
         title = "Selected Node Information", collapsible = TRUE,
-        uiOutput("choose_nodes"),
-        br(),
-        tags$b("Choose which variables to include in table."),
-        br(),
+        shiny::uiOutput("choose_nodes"),
+        shiny::br(),
+        shiny::tags$b("Choose which variables to include in table."),
+        shiny::br(),
+        #
+        ##div(style="display:inline-block;vertical-align:top;",
+        #shiny::actionButton("include_all_selectednodes", label="Include all variables"),
+        #shiny::actionButton("clear_all_selectednodes", label="Clear variable selection"),
+        ##),
+        #br(),br(),
+        #
         #div(style="display:inline-block;vertical-align:top;",
-        actionButton("include_all_selectednodes", label="Include all variables"),
-        actionButton("clear_all_selectednodes", label="Clear variable selection"),
-        #),
-        br(),br(),
-        
-        div(style="display:inline-block;vertical-align:top;",
-            prettyCheckboxGroup(
-              inputId = "columns_selectednode_mineral",
-              label = tags$span(style="font-weight:700", "Mineral variables:"), 
-              choices = selected_node_table_column_choices_mineral
-            )),
-        div(style="display:inline-block;vertical-align:top;",
-            prettyCheckboxGroup(
-              inputId = "columns_selectednode_element",
-              label = tags$span(style="font-weight:700", "Element variables:"), 
-              choices = selected_node_table_column_choices_element
-            )),
+        #    shinyWidgets::prettyCheckboxGroup(
+        #      inputId = "columns_selectednode_mineral",
+        #      label = tags$span(style="font-weight:700", "Mineral variables:"), 
+        #      choices = selected_node_table_column_choices_mineral
+        #    )),
+        #div(style="display:inline-block;vertical-align:top;",
+        #    shinyWidgets::prettyCheckboxGroup(
+        #      inputId = "columns_selectednode_element",
+        #      label = tags$span(style="font-weight:700", "Element variables:"), 
+        #      choices = selected_node_table_column_choices_element
+        #    )),
         #div(style="display:inline-block;vertical-align:top;",
         #    prettyCheckboxGroup(
         #      inputId = "columns_selectednode_netinfo",
         #      label = tags$span(style="font-weight:700", "Network variables:"), 
         #      choices = selected_node_table_column_choices_netinfo
         #    )),
-        div(style="display:inline-block;vertical-align:top;",
-            prettyCheckboxGroup(
-              inputId = "columns_selectednode_locality",
-              label = tags$span(style="font-weight:700", "Locality variables:"), 
-              choices = selected_node_table_column_choices_locality
-            )),
-        div(style="font-size:85%;", 
+        #div(style="display:inline-block;vertical-align:top;",
+        #    prettyCheckboxGroup(
+        #      inputId = "columns_selectednode_locality",
+        #      label = tags$span(style="font-weight:700", "Locality variables:"), 
+        #      choices = selected_node_table_column_choices_locality
+        #    )),
+        shiny::div(style="font-size:85%;", 
           DT::dataTableOutput("nodeTable")
         ),
-        br()
+        shiny::br()
     )
   })   
-  observeEvent(input$include_all_selectednodes, {
-    updatePrettyCheckboxGroup(session=session, 
-                              inputId="columns_selectednode_mineral", 
-                              choices = selected_node_table_column_choices_mineral, 
-                              selected = selected_node_table_column_choices_mineral)
-    updatePrettyCheckboxGroup(session=session, 
-                              inputId="columns_selectednode_element", 
-                              choices = selected_node_table_column_choices_element, 
-                              selected = selected_node_table_column_choices_element)
-    #updatePrettyCheckboxGroup(session=session, 
-    #                          inputId="columns_selectednode_netinfo", 
-    #                          choices = selected_node_table_column_choices_netinfo, 
-    #                          selected = selected_node_table_column_choices_netinfo)
-    updatePrettyCheckboxGroup(session=session, 
-                              inputId="columns_selectednode_locality", 
-                              choices = selected_node_table_column_choices_locality, 
-                              selected = selected_node_table_column_choices_locality)
-  })
+  #observeEvent(input$include_all_selectednodes, {
+  #  updatePrettyCheckboxGroup(session=session, 
+  #                            inputId="columns_selectednode_mineral", 
+  #                            choices = selected_node_table_column_choices_mineral, 
+  #                            selected = selected_node_table_column_choices_mineral)
+  #  updatePrettyCheckboxGroup(session=session, 
+  #                            inputId="columns_selectednode_element", 
+  #                            choices = selected_node_table_column_choices_element, 
+  #                            selected = selected_node_table_column_choices_element)
+  #  #updatePrettyCheckboxGroup(session=session, 
+  #  #                          inputId="columns_selectednode_netinfo", 
+  #  #                          choices = selected_node_table_column_choices_netinfo, 
+  #  #                          selected = selected_node_table_column_choices_netinfo)
+  #  updatePrettyCheckboxGroup(session=session, 
+  #                            inputId="columns_selectednode_locality", 
+  #                            choices = selected_node_table_column_choices_locality, 
+  #                            selected = selected_node_table_column_choices_locality)
+  #})
   
-  observeEvent(input$clear_all_selectednodes, {
-    updatePrettyCheckboxGroup(session=session, 
-                              inputId="columns_selectednode_mineral", 
-                              choices = selected_node_table_column_choices_mineral, 
-                              selected = NULL)
-    updatePrettyCheckboxGroup(session=session, 
-                              inputId="columns_selectednode_element", 
-                              choices = selected_node_table_column_choices_element, 
-                              selected = NULL)
-    #updatePrettyCheckboxGroup(session=session, 
-    #                          inputId="columns_selectednode_netinfo", 
-    #                          choices = selected_node_table_column_choices_netinfo, 
-    #                          selected = NULL)
-    updatePrettyCheckboxGroup(session=session, 
-                              inputId="columns_selectednode_locality", 
-                              choices = selected_node_table_column_choices_locality, 
-                              selected = NULL)
-  })
+  #observeEvent(input$clear_all_selectednodes, {
+  #  updatePrettyCheckboxGroup(session=session, 
+  #                            inputId="columns_selectednode_mineral", 
+  #                            choices = selected_node_table_column_choices_mineral, 
+  #                            selected = NULL)
+  #  updatePrettyCheckboxGroup(session=session, 
+  #                            inputId="columns_selectednode_element", 
+  #                            choices = selected_node_table_column_choices_element, 
+  #                            selected = NULL)
+  #  #updatePrettyCheckboxGroup(session=session, 
+  #  #                          inputId="columns_selectednode_netinfo", 
+  #  #                          choices = selected_node_table_column_choices_netinfo, 
+  #  #                          selected = NULL)
+  #  updatePrettyCheckboxGroup(session=session, 
+  #                            inputId="columns_selectednode_locality", 
+  #                            choices = selected_node_table_column_choices_locality, 
+  #                            selected = NULL)
+  #})
   
   
   #################################################################################################################
@@ -597,18 +674,20 @@ app_server <- function( input, output, session ) {
     if (input$predictor != cluster_ID_str) predictor <- "scatter"
     switch(predictor,
       "categorical" = list(shinyWidgets::pickerInput("plot_type", "Plot type:", categorical_plot_choices, selected = "strip"),
-                       shinyWidgets::prettySwitch("show_legend", "Show legend", value = FALSE, status="danger"),
-                       shinyWidgets::prettySwitch("show_mean_se", "Show mean and standard error", value = FALSE, status="danger"),
-                       shinyWidgets::prettySwitch("flip_coord", "Flip coordinates", value = FALSE, status="danger"),
-                       shiny::numericInput("point_size_cluster", "Point size for sina or strip chart", 2, min = 0.5, max = 4)
-                      ),   
+                           shinyWidgets::prettySwitch("show_legend", "Show legend", value = FALSE, status="danger"),
+                           shinyWidgets::prettySwitch("show_mean_se", "Show mean and standard error", value = FALSE, status="danger"),
+                           shinyWidgets::prettySwitch("flip_coord", "Flip coordinates", value = FALSE, status="danger"),
+                           shinyWidgets::prettySwitch("grid_cluster", "Show background grid", value = FALSE, status="danger"),
+                           shiny::numericInput("point_size_cluster", "Point size for sina or strip chart", 2, min = 0.5, max = 4)
+                          ),   
       "scatter"   =  list(shinyWidgets::prettySwitch("logx", "Use log scale on X-axis", value = FALSE, status="danger"),
-                        shinyWidgets::prettySwitch("logy", "Use log scale on Y-axis", value = FALSE, status="danger",),
-                        shinyWidgets::prettySwitch("bestfit", "Show regression line (with 95% confidence interval).", value = FALSE, status="danger"),
-                        shiny::numericInput("point_size_scatter",  "Point size", 2, min = 0.5, max = 4),
-                        colourpicker::colourInput("point_color", "Point color", value = "black"),
-                        colourpicker::colourInput("bestfit_color", "Regression line color", value = "blue")
-                      )
+                          shinyWidgets::prettySwitch("logy", "Use log scale on Y-axis", value = FALSE, status="danger",),
+                          shinyWidgets::prettySwitch("bestfit", "Show regression line (with 95% confidence interval).", value = FALSE, status="danger"),
+                          shinyWidgets::prettySwitch("grid_scatter", "Show background grid", value = FALSE, status="danger"),
+                          shiny::numericInput("point_size_scatter",  "Point size", 2, min = 0.5, max = 4),
+                          colourpicker::colourInput("point_color", "Point color", value = "black"),
+                          colourpicker::colourInput("bestfit_color", "Regression line color", value = "blue")
+                        )
     )
   })
  
@@ -626,19 +705,19 @@ app_server <- function( input, output, session ) {
     ## Ensure different predictor/response variables -------------------------------------------
     if (input$predictor == input$response)
     {
-      shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
-                              "You have selected the same predictor and response variable. Please select new variable(s)",
-                              type = "error"
-                            )  
+      shinyWidgets::sendSweetAlert(
+        session = session, title = sample(error_choices)[[1]], type = "error",
+        text = "You have selected the same predictor and response variable. Please select new variable(s)."
+      )    
       shiny::validate( shiny::need(input$predictor != input$response, ""))
     }
     
     ## Ensure there are sufficient numbers of minerals to analyze (>= 3) -------------------------------
     if (nrow(chemistry_network()$mineral_nodes) < 3) {
-      shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
-                              "There are fewer than three minerals in your network. To perform statistics, you need at least three data points. Please construct a differet network.",
-                              type = "error"
-                            )  
+      shinyWidgets::sendSweetAlert(
+        session = session, title = sample(error_choices)[[1]], type = "error",
+        text = "There are fewer than three minerals in your network. To perform statistics, you need at least three data points. Please construct a differet network."
+      )    
       shiny::validate( shiny::need(nrow(chemistry_network()$mineral_nodes) >= 3, ""))
       fitted_linear_model <- NULL
       plotted_linear_model <- NULL
@@ -655,10 +734,10 @@ app_server <- function( input, output, session ) {
       
       if ( n_clusters < 2  )
       {    
-      shinyalert::shinyalert( sample(error_choices)[[1]], ## Enjoyable random error
-                              "There is insufficient data to analyze community clusters. Please select a different predictor variable.",
-                              type = "error"
-                            )
+        shinyWidgets::sendSweetAlert(
+          session = session, title = sample(error_choices)[[1]], type = "error",
+          text = "There is insufficient data to analyze community clusters. Please select a different predictor variable."
+        )
         shiny::validate( shiny::need(n_clusters >= 2, ""))
       } 
     } # END  if (input$predictor == cluster_ID_str)
@@ -670,10 +749,10 @@ app_server <- function( input, output, session ) {
     fitted_linear_model  <- fit_linear_model(input$response, input$predictor, chemistry_network()$mineral_nodes)
     if (fitted_linear_model$tukey_ok_variance == FALSE) 
     {
-      shinyalert::shinyalert( "Caution!", ## Enjoyable random error
-                              "Community clusters have unequal variances and modeling results may not be precise.",
-                              type = "warning"
-                            )
+      shinyWidgets::sendSweetAlert(
+        session = session, title = "Caution!", type = "warning",
+        text = "Community clusters have unequal variances and modeling results may not be precise."
+      )
     }
     fitted_linear_model ## a list itself: $mineral_nodes, $model_fit, $tukey_fit, $tukey_ok_variance (only used above)
   })  ## END linear_model_output reactive
@@ -682,9 +761,9 @@ app_server <- function( input, output, session ) {
   linear_model_plot <- reactive({ 
     if (input$predictor == cluster_ID_str)
     {
-      p <- plot_linear_model_cluster(input$response, linear_model_output()$keep_clusters, chemistry_network()$mineral_nodes, chemistry_network()$cluster_colors, input$plot_type, input$flip_coord, input$show_mean_se, input$show_legend, input$point_size_cluster)
+      p <- plot_linear_model_cluster(input$response, linear_model_output()$keep_clusters, chemistry_network()$mineral_nodes, chemistry_network()$cluster_colors, input$plot_type, input$flip_coord, input$show_mean_se, input$show_legend, input$point_size_cluster, input$grid_cluster)
     } else  {
-      p <- plot_linear_model_scatter(input$response, input$predictor, chemistry_network()$mineral_nodes, input$logx, input$logy, input$point_color, input$point_size_scatter, input$bestfit, input$bestfit_color)
+      p <- plot_linear_model_scatter(input$response, input$predictor, chemistry_network()$mineral_nodes, input$logx, input$logy, input$point_color, input$point_size_scatter, input$bestfit, input$bestfit_color, input$grid_scatter)
     }    
     p
   })  ## END linear_model_plot reactive
@@ -716,7 +795,7 @@ app_server <- function( input, output, session ) {
 
       
   ## Render the download button for model plot ------------------------------------------
-  output$download_model_plot <- downloadHandler(
+  output$download_model_plot <- shiny::downloadHandler(
     filename = function() {
       paste("dragon_model_plot-", Sys.Date(), ".pdf", sep="")
     },
@@ -729,7 +808,7 @@ app_server <- function( input, output, session ) {
   #################################################################################################################
   #################################################################################################################
 
-  network_style_options <- reactive({
+  network_style_options <- shiny::reactive({
     
     ## VALIDATION ---------------------------------------------
     ## Element color
@@ -738,13 +817,13 @@ app_server <- function( input, output, session ) {
       chemistry_network()$nodes %>%
         dplyr::filter(group == "element") %>%
         dplyr::select( element_color_variable ) %>%
-        na.omit -> element_validate
+        tidyr::drop_na() -> element_validate
         if (nrow(element_validate) <= 0)
         {
-          shinyalert::shinyalert(sample(error_choices)[[1]], ## Enjoyable random error
-                                 "The specified color scheme cannot be applied to elements due to insufficient node information in the MED database. Please select a different element color scheme.",
-                                 type = "error"
-                                ) 
+          shinyWidgets::sendSweetAlert(
+            session = session, title = sample(error_choices)[[1]], type = "error",
+            text = "The specified color scheme cannot be applied to elements due to insufficient node information in the MED database. Please select a different element color scheme."
+          ) 
           shiny::validate( shiny::need(nrow(element_validate) > 0, ""))
         }
     }
@@ -754,13 +833,13 @@ app_server <- function( input, output, session ) {
       chemistry_network()$nodes %>%
         dplyr::filter(group == "mineral") %>%
         dplyr::select( mineral_color_variable ) %>%
-        na.omit -> mineral_validate
+        tidyr::drop_na() -> mineral_validate
       if (nrow(mineral_validate) <= 0)
       {
-        shinyalert::shinyalert(sample(error_choices)[[1]], ## Enjoyable random error
-                               "The specified color scheme cannot be applied to minerals due to insufficient node information in the MED database. Please select a different mineral color scheme.",
-                               type = "error"
-                              ) 
+        shinyWidgets::sendSweetAlert(
+          session = session, title = sample(error_choices)[[1]], type = "error",
+          text = "The specified color scheme cannot be applied to minerals due to insufficient node information in the MED database. Please select a different mineral color scheme."
+        ) 
         shiny::validate( shiny::need(nrow(mineral_validate) > 0, ""))
       }
     }
@@ -769,13 +848,13 @@ app_server <- function( input, output, session ) {
     if(edge_color_variable != "singlecolor"){
       chemistry_network()$edges %>%
         dplyr::select( edge_color_variable ) %>%
-        na.omit -> edges_validate
+        tidyr::drop_na() -> edges_validate
       if (nrow(edges_validate) <= 0)
       {
-        shinyalert::shinyalert(sample(error_choices)[[1]], ## Enjoyable random error
-                               "The specified color scheme cannot be applied to edges due to insufficient node information in the MED database. Please select a different edge color scheme.",
-                               type = "error"
-                              ) 
+        shinyWidgets::sendSweetAlert(
+          session = session, title = sample(error_choices)[[1]], type = "error",
+          text = "The specified color scheme cannot be applied to edges due to insufficient node information in the MED database. Please select a different edge color scheme."
+        ) 
         shiny::validate( shiny::need(nrow(edges_validate) > 0, ""))
       }
     }

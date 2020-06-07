@@ -26,7 +26,7 @@ app_ui <- function(request) {
           sidebarMenu(id = "thismusttakeanidapparently", chooseSliderSkin(skin = "Flat"),
             ## NETWORK DATA SELECTION ---------------------------------------------------------------------------------------------
             shinyWidgets::pickerInput("elements_of_interest", tags$span(style="font-weight:400", "Select focal element(s):"),
-                        choices = all_elements,
+                        choices = element_info$element,
                         options = list(
                           `actions-box` = TRUE, 
                           size = 6,
@@ -37,7 +37,7 @@ app_ui <- function(request) {
             
             ## shinyBS does not work with golem. 
             #shinyBS::tipify( 
-              shiny::sliderInput("age_range", "Age (Ga) for the youngest minerals:", min = 0, max = total_max_age, step = 0.1, value = c(0,total_max_age)), 
+              shiny::sliderInput("age_range", "Age (Ga) for the youngest minerals:", min = 0, max = 5, step = 0.1, value = c(0,5)), 
             #  title = "Based on mineral discovery dates as recorded in MED"
             #), ## END tipify
             #shinyBS::tipify(
@@ -92,15 +92,15 @@ app_ui <- function(request) {
             ## NETWORK VISUAL STYLE MENUS ---------------------------------------------------------------------------------------------
             menuItem(text = "Node Colors",
                      ##### DO NOT REMOVE THIS TAG #####
-                     tags$head(tags$style("
-                       .palette-style{ 
-                       display: inline;
-                       vertical-align: middle;
-                       color: black;
-                       font-weight: 600;
-                       padding-left: 7px;
-                       }")),
-                     #### SERIOUSLY DONT DO IT ####
+                    # tags$head(tags$style("
+                    #   .palette-style{ 
+                    #   display: inline;
+                    #   vertical-align: middle;
+                    #   color: black;
+                    #   font-weight: 600;
+                    #   padding-left: 7px;
+                    #   }")),
+                     ##### SERIOUSLY DONT DO IT ######
                      
               mod_ui_choose_color_sd_palette("mod_element_colors", 
                                              "Color elements based on:",
@@ -323,14 +323,14 @@ app_ui <- function(request) {
                 
                 
                 ## CONDITIONAL BUTTON TO SHOW/HIDE NODE TABLE -----------------------------------------------
-                br(),br(),br(),
-                conditionalPanel('input.build_only == false', {
-                  fluidRow(
-                    column(width = 12,
-                      shiny::uiOutput("show_nodeTable")
-                    )
-                  )
-                }),
+                #br(),br(),br(),
+                #conditionalPanel('input.build_only == false', {
+                #  fluidRow(
+                #    column(width = 12,
+                #      shiny::uiOutput("show_nodeTable")
+                #    )
+                #  )
+                #}),
                 
                 
                 ## NETWORK EXPORT BOX -----------------------------------------------------------------------
@@ -464,11 +464,18 @@ golem_add_external_resources <- function(){
   tags$head(
     golem::favicon(),
     golem::activate_js(),
-    shinyalert::useShinyalert(),
+    shinyWidgets::useSweetAlert(), ## May not be necessary per docs except for progress bars, but let's use it.
     bundle_resources(
       path = app_sys('app/www'),
       app_title = 'dragon'
-    )
+    ),
+    tags$style(".palette-style{ 
+                  display: inline;
+                  vertical-align: middle;
+                  color: black;
+                  font-weight: 600;
+                  padding-left: 7px;}"
+                )
     
     # Add here other external resources
     # for example, you can add shinyalert::useShinyalert() 

@@ -23,22 +23,24 @@ usethis::use_package("purrr")
 usethis::use_package("readr")
 usethis::use_package("tibble")
 usethis::use_package("broom") 
-usethis::use_package("cowplot")
 usethis::use_package("magrittr")
+usethis::use_package("cowplot")
 usethis::use_package("shiny") 
 usethis::use_package("shinythemes")
 usethis::use_package("shinydashboard")
 usethis::use_package("shinyWidgets") 
-usethis::use_package("shinyalert")
 usethis::use_package("colourpicker")
 usethis::use_package("colorspace")
 usethis::use_package("RColorBrewer")
 usethis::use_package("DT")
 usethis::use_package("visNetwork") 
 usethis::use_package("igraph")
-
-
-
+usethis::use_package("stats")
+usethis::use_package("promises")
+usethis::use_package("future")
+usethis::use_package("rvest")
+usethis::use_package("xml2")
+usethis::use_package("lubridate")
 
 
 ## Add modules ----

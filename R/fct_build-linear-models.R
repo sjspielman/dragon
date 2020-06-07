@@ -1,11 +1,12 @@
 
 #' Fit linear regression given a user-specified response and predictor variable on mineral data in network
-#' 
+#'
 #' @param response   Variable to be used as regression response
 #' @param predictor  Variable to be used as regression predictor
 #' @param mineral_nodes  Tibble containing data to be modeled
 #'
 #' @returns Named list containing a tidied fitted model tibble ('model_fit'), a tidied fitted Tukey test tibble if performed ('tukey_fit'), a logical indicating if equal or unequal variance across groups associated with Tukey ('tukey_ok_variance')
+#' @noRd
 fit_linear_model <- function(response, predictor, mineral_nodes)
 {
 
@@ -25,18 +26,19 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
     # remove all clusters with <3 minerals
     mineral_nodes %>%
       dplyr::group_by({{predictor_col}}) %>% 
-      dplyr::mutate(n = n()) %>%
+      dplyr::mutate(n = dplyr::n()) %>%
       dplyr::ungroup() %>%
       dplyr::filter(n>=3) %>%
       dplyr::select(-n) -> mineral_nodes
     keep_clusters <- unique(mineral_nodes$cluster_ID)
+    
     # Ensure factor
     predictor_string <- paste0("factor(`", predictor, "`)")
   } 
   fit_string <- paste(response_string, "~", predictor_string)
 
   ## Build model ------------------------------------------------
-  model_fit <- lm(stats::as.formula(fit_string), data = mineral_nodes, na.action = na.omit )
+  model_fit <- lm(stats::as.formula(fit_string), data = mineral_nodes, na.action = stats::na.omit )
   
   
   # Run a Tukey as needed -------------------------------------------
@@ -45,7 +47,7 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
   if(predictor == "cluster_ID")
   {
     ## Test for variance assumption and provide warning if not met ----------------------------------------------
-    test_variance_pvalue <- stats::bartlett.test(stats::as.formula(fit_string), data = mineral_nodes, na.action = na.omit)$p.value
+    test_variance_pvalue <- stats::bartlett.test(stats::as.formula(fit_string), data = mineral_nodes, na.action = stats::na.omit)$p.value
     if (test_variance_pvalue <= 0.05) tukey_ok_variance <- FALSE
 
     stats::TukeyHSD(aov(model_fit)) %>%
@@ -65,6 +67,8 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
   broom::tidy(model_fit) %>%
     dplyr::mutate(term  = stringr::str_replace(term, "cluster_ID", paste0(cluster_ID_str, " ")),
                   term  = stringr::str_replace_all(term, "`", ""),
+                  term  = stringr::str_replace_all(term, "factor\\(", ""),
+                  term  = stringr::str_replace_all(term, "\\)", ""),
                   estimate = round(estimate, 6),
                   std.error = round(std.error, 6),
                   statistic = round(statistic, 6),
@@ -95,19 +99,20 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
 #' @param show_mean_se  Logical indicating if mean and standard error per group should be displayed in the plot. Displayed if TRUE.
 #' @param show_legend  Logical indicating if the legend should be displayed. Displayed if TRUE. Default: FALSE. 
 #' @param point_size  Numeric used as point size for either strip or sina plots. Argument is ignored for boxplot and violin plot.
+#' @param show_grid  Logical indicating if a background grid should be displayed in the plot. Displayed if TRUE. Default: FALSE. 
 #'
 #' @returns ggplot object to be displayed
-plot_linear_model_cluster <- function(response, keep_clusters, mineral_nodes, cluster_colors, plot_type, flip_coord, show_mean_se, show_legend, point_size)
+#' @noRd
+plot_linear_model_cluster <- function(response, keep_clusters, mineral_nodes, cluster_colors, plot_type, flip_coord, show_mean_se, show_legend, point_size, show_grid)
 {
 
   use_cluster_colors <- cluster_colors[keep_clusters]
-
+  resp <- as.symbol(response)
   ## Build the baseline plot output for models with cluster as predictor ------------------------------------
   mineral_nodes %>%
     dplyr::filter(cluster_ID %in% keep_clusters) %>%
     ggplot2::ggplot() + 
-      ggplot2::aes(x = cluster_ID, 
-                   y = !!sym(response)) + 
+      ggplot2::aes(x = cluster_ID, y = {{resp}}) +
       ggplot2::xlab(cluster_ID_str) + 
       ggplot2::ylab(response) +
       ggplot2::theme(legend.text  = ggplot2::element_text(size=12), 
@@ -138,7 +143,7 @@ plot_linear_model_cluster <- function(response, keep_clusters, mineral_nodes, cl
   if (plot_type == "boxplot")
   {
     fitted_model_plot <- fitted_model_plot + 
-                  ggplot2::aes(fill = cluster_ID) + 
+                  ggplot2::aes(fill = cluster_ID) +  ## Should we add alpha?
                   ggplot2::geom_boxplot() +  
                   ggplot2::scale_fill_manual(values = use_cluster_colors, name = cluster_ID_str)
   }
@@ -159,6 +164,9 @@ plot_linear_model_cluster <- function(response, keep_clusters, mineral_nodes, cl
   ## Legend ---------------------------------------------------------------------------------
   if (!(show_legend))  fitted_model_plot <- fitted_model_plot + ggplot2::theme(legend.position = "none")
   
+  ## Grid ------------------------------------------------------------
+  if (show_grid)  fitted_model_plot <- fitted_model_plot + cowplot::background_grid()
+     
   
   return( fitted_model_plot )
 }
@@ -177,21 +185,27 @@ plot_linear_model_cluster <- function(response, keep_clusters, mineral_nodes, cl
 #' @param point_size Numeric indicating the point size in the scatterplot
 #' @param bestfit Logical indicating if regression line should be displayed with 95% confidence interval
 #' @param bestfit_color String indicating what color should be used for the regression line. Ignored if bestfit = FALSE.
+#' @param show_grid  Logical indicating if a background grid should be displayed in the plot. Displayed if TRUE. Default: FALSE. 
 #'
 #' @returns ggplot object to be displayed
-plot_linear_model_scatter <- function(response, predictor, mineral_nodes, logx, logy, point_color, point_size, bestfit, bestfit_color)
+#' @noRd
+plot_linear_model_scatter <- function(response, predictor, mineral_nodes, logx, logy, point_color, point_size, bestfit, bestfit_color, show_grid)
 {
+
+  resp <- as.symbol(response)
+  pred <- as.symbol(predictor)
+  
   ## Build the scatterplot for models that do NOT HAVE cluster as predictor ------------------------------------
   ggplot2::ggplot(mineral_nodes) + 
-    ggplot2::aes(x = !!sym(predictor), 
-                 y = !!sym(response)) +
+    ggplot2::aes(x = {{pred}}, y = {{resp}}) +
     ggplot2::xlab(predictor) + 
     ggplot2::ylab(response) + 
     ggplot2::geom_point(size = point_size, color = point_color) -> fitted_model_plot
 
-  if (logx) fitted_model_plot <- fitted_model_plot + ggplot2::scale_x_log10()
-  if (logy) fitted_model_plot <- fitted_model_plot + ggplot2::scale_y_log10()
-  if (bestfit) fitted_model_plot <- fitted_model_plot + ggplot2::geom_smooth(method = "lm", color = bestfit_color)
+  if (logx)      fitted_model_plot <- fitted_model_plot + ggplot2::scale_x_log10()
+  if (logy)      fitted_model_plot <- fitted_model_plot + ggplot2::scale_y_log10()
+  if (bestfit)   fitted_model_plot <- fitted_model_plot + ggplot2::geom_smooth(method = "lm", color = bestfit_color)
+  if (show_grid) fitted_model_plot <- fitted_model_plot + cowplot::background_grid()
   
   return( fitted_model_plot )  
 }

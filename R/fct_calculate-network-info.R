@@ -3,6 +3,7 @@
 #' 
 #' @param graph igraph network object
 #' @returns Numeric value of network connectivity
+#' @noRd
 calculate_connectivity <- function(graph)
 {
   igraph::vertex_connectivity(graph)
@@ -13,6 +14,7 @@ calculate_connectivity <- function(graph)
 #' 
 #' @param membership Cluster node memberships as calculated by the `membership` attribute of a clustered igraph network
 #' @returns Numeric value of network modularity, rounded to 4 digits
+#' @noRd
 calculate_modularity <- function(membership)
 {
   round(max(membership$modularity), 4) 
@@ -25,6 +27,7 @@ calculate_modularity <- function(membership)
 #' @param edges A tibble of all edges in network
 #' @param elements_by_redox A logical indicating if element nodes are separated by redox state  (TRUE) or all redox states for a given element equate to one node (FALSE)
 #' @returns List of numeric quantities "n_mineral_nodes", "n_element_nodes", "n_edges", and "n_base_elements" which is NA if elements_by_redox=FALSE
+#' @noRd
 calculate_number_nodes_edges <- function(nodes, edges, elements_by_redox)
 {
 
@@ -40,8 +43,7 @@ calculate_number_nodes_edges <- function(nodes, edges, elements_by_redox)
   {
     nodes %>% 
       dplyr::filter(group == "element") %>%
-      tidyr::separate(id, c("base_element", "jazz"), sep = "[\\s\\+\\-]", fill = "right") %>%
-      dplyr::select(base_element) %>%
+      dplyr::select(element_name) %>%
       dplyr::distinct() %>%
       nrow() -> n_base_elements
   }

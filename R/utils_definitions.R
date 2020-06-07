@@ -4,280 +4,99 @@ options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Setting for DT to show
 options(scipen=3)                                      ## Sci when more than 3 digits
 on.exit(options(original_options), add=TRUE)
 
+## Future planning -------------------------------------------------------------------
+future::plan(future::multiprocess) # can you live here?
+
+## MED URLs --------------------------------------------------------------------------
+rruff_exporting_url <- "http://rruff.info/mineral_list/MED/exporting/"
+rruff_m1_url        <- paste0(rruff_exporting_url, "tbl_mineral.csv")
+rruff_m2_url        <- paste0(rruff_exporting_url, "tbl_locality_age_cache_alt.csv")
+
 ## Explicit pipe definitions ---------------------------------------------------------
 `%>%`  <- magrittr::`%>%`
 `%<>%` <- magrittr::`%>%`
+`%...>%` <- promises::`%...>%`
 
-
-
-## Elements --------------------------------------------------------------------------
-all_elements <- c("Ag", "Al", "As", "Au", "B", "Ba", "Be", "Bi", "Br", "C", "Ca", "Cd", "Ce", "Cl", "Co", "Cr", "Cs", "Cu", "Dy", "Er", "F", "Fe", "Ga", "Gd", "Ge", "H", "Hf", "Hg", "I", "In", "Ir", "K", "La", "Li", "Mg", "Mn", "Mo", "N", "Na", "Nb", "Nd", "Ni", "O", "Os", "P", "Pb", "Pd", "Pt", "Rb", "Re", "REE", "Rh", "Ru", "S", "Sb", "Sc", "Se", "Si", "Sm", "Sn", "Sr", "Ta", "Te", "Th", "Ti", "Tl", "U", "V", "W", "Y", "Yb", "Zn", "Zr")
 
 
 ## Enjoyable error messages ----------------------------------------------------------------
 error_choices <- c("Oh no!", "Sorry, that's not gonna work.", "Try again!", "Womp womp :(", "No dice!", "Uh oh!", "Woopsies!")
 
 
-
-## Variable names as shown in UI menus ------------------------------------------------------
-element_redox_mineral_str   <- "Element redox in mineral" 
-element_redox_network_str   <- "Mean element redox in network"
-max_age_str                 <- "Maximum known age (Ga) of mineral" 
-min_age_str                 <- "Minimum known age (Ga) of mineral" 
-max_age_locality_str        <- "Maximum age (Ga) of mineral at locality" 
-min_age_locality_str        <- "Minimum age (Ga) of mineral at locality" 
-age_type_str                <- "Age type at locality" 
-num_localities_mineral_str  <- "Number of known mineral localities" 
-num_localities_element_str  <- "Number of known element localities" 
-num_localities_str          <- "Number of known localities" 
-network_degree_norm_str     <- "Degree centrality (normalized)" 
-mineral_network_degree_norm_str <- "Mineral network degree centrality (normalized)" 
-element_network_degree_norm_str <- "Element network degree centrality (normalized)" 
-network_degree_str          <- "Degree centrality" 
-closeness_str               <- "Closeness centrality"
-mineral_closeness_str       <- "Mineral network closeness centrality"
-element_closeness_str       <- "Element network closeness centrality"
-pauling_str                 <- "Element electronegativity" 
-mean_pauling_str            <- "Mean mineral electronegativity"  
-cov_pauling_str             <- "COV mineral electronegativity"
-id_str                      <- "Node name" 
-cluster_ID_str              <- "Community cluster" 
-mineral_cluster_ID_str      <- "Mineral community cluster"
-element_cluster_ID_str      <- "Element community cluster"
-group_str                   <- "Node type"
-element_str                 <- "Element"
-element_name_str            <- "Full element name"
-mineral_name_str            <- "Mineral"
-mineral_name_node_table_str <- "Minerals containing element"
-element_node_table_str      <- "Elements in mineral"
-mineral_id_str              <- "Mineral ID"
-mindat_id_str               <- "Mindat ID"
-locality_longname_str       <- "Locality name"
-age_type_str                <- "Age type"
-rruff_chemistry_str         <- "RRUFF formula"
-ima_chemistry_str           <- "IMA formula"
-element_hsab_str            <- "Element HSAB theory"
-element_mass_str            <- "Element atomic mass"
-element_radius_str          <- "Element atomic radius"
-element_protons_str         <- "Number of protons"
-element_group_str           <- "Element group"
-element_period_str          <- "Element period"
-element_metaltype_str       <- "Element metal type"
-element_density_str         <- "Element density"
-element_specificheat_str    <- "Element specific heat"
-
-
-
-## UI variable names matched to their actual variables -------------------------------------------------------
-variable_to_title <-  c("element_redox_mineral" = element_redox_mineral_str, 
-                        "element_redox_network" = element_redox_network_str,
-                        "max_age" = max_age_str, 
-                        "min_age" = min_age_str, 
-                        "age_type" = age_type_str,
-                        "num_localities_mineral" = num_localities_mineral_str, 
-                        "num_localities_element" = num_localities_element_str, 
-                        "num_localities" = num_localities_str, # MODELING ONLY
-                        "locality_longname"      = locality_longname_str,
-                        "network_degree_norm" = network_degree_norm_str, 
-                        "element_network_degree_norm" = element_network_degree_norm_str, 
-                        "mineral_network_degree_norm" = mineral_network_degree_norm_str, 
-                        "network_degree" = network_degree_str, 
-                        "closeness" = closeness_str,
-                        "mineral_closeness" = mineral_closeness_str,
-                        "element_closeness" = element_closeness_str,
-                        "pauling" = pauling_str, 
-                        "mean_pauling" = mean_pauling_str,  
-                        "cov_pauling" = cov_pauling_str,
-                        "id" = id_str, 
-                        "cluster_ID" = cluster_ID_str, 
-                        "mineral_cluster_ID" = mineral_cluster_ID_str,
-                        "element_cluster_ID" = element_cluster_ID_str,
-                        "group" = group_str,
-                        "element" = element_str,
-                        "element_name" = element_name_str,
-                        "mineral_name" = mineral_name_str,
-                        "mineral_id" = mineral_id_str,
-                        "mindat_id" = mindat_id_str,
-                        "age_type" = age_type_str,
-                        "rruff_chemistry" = rruff_chemistry_str,
-                        "ima_chemistry" = ima_chemistry_str,
-                        "element_hsab" = element_hsab_str, 
-                        "NumberofProtons" = element_protons_str, 
-                        "AtomicMass" = element_mass_str,
-                        "AtomicRadius" = element_radius_str,
-                        "TableGroup" = element_group_str,
-                        "TablePeriod" = element_period_str, 
-                        "MetalType" = element_metaltype_str,
-                        "Density" = element_density_str,
-                        "SpecificHeat" = element_specificheat_str, 
-                        "max_age_locality" = max_age_locality_str,
-                        "min_age_locality" = min_age_locality_str)
-
-
-
-## Definitions associated with network styling ----------------------------------------------------------------------------
-default_element_color    <- "skyblue"
-default_mineral_color    <- "firebrick3"
-default_edge_color       <- "grey30"
-default_element_palette  <- "Blues"
-default_mineral_palette  <- "Reds"
-default_cluster_palette  <- "Dark2"
-default_edge_palette     <- "BrBG"
-default_edge_color       <- "#5E5E5E"
-default_highlight_color  <- "lightgoldenrod1"
-default_selection_color  <- "chartreuse3"
-default_na_color         <- "#DCDCDC"
-default_element_label_color <- "black"
-default_mineral_label_color <- "black"
-default_element_shape       <- "circle"
-default_mineral_shape       <- "dot"
-element_size_scale_divisor <- 1
-mineral_size_scale_divisor <- 10
-mineral_size_min <- 5
-mineral_size_max <- 30
-element_size_min <- 1
-element_size_max <- 4
-lighten_darken_factor <- 0.3
-
-vis_to_gg_shape <- list("circle"  = 19,
-                        "box"     = 15,
-                        "text"    = 19,
-                        "dot"     = 19,
-                        "square"  = 15)
-
-ordinal_color_variables <- c("element_hsab",  "TablePeriod", "TableGroup") # WE HAVE TURNED OFF TABLEPERIOD AND GROUP FOR COLORING SINCE TOO MANY COLORS. Keep this for now, can't hurt.
-element_hsab_levels     <- c("Hard acid", "Int. acid", "Soft acid", "Soft base", "Int. base", "Hard base")
-
-
-## Definitions of choices used in UI----------------------------------------------------------------------------
-
-
-## Style UI choices ------------------------------------------------------------
-element_color_by_choices =  c("Single color"            = "singlecolor",  
-                              "Degree centrality"       = "network_degree_norm",
-                              "Redox state in network"  = "element_redox_network",
-                              "HSAB theory"             = "element_hsab",
-                              "Electronegativity"       = "pauling", 
-                              "Number of localities (based on mineral discovery)" = "num_localities",
-                              "Atomic mass"             = "AtomicMass",
-                              #"Number of protons" = "NumberofProtons", # NOT FUNDAMENTALLY DIFF FROM ATOMIC MASS
-                              #"Periodic Table Group"       = "TableGroup", # TOO MANY FOR PALETTE
-                              #"Periodic Table Period"       = "TablePeriod", # TOO MANY FOR PALETTE
-                              #"Metal type"    = "MetalType", ## legend is a disaster. unless someone requests this feature, it's out
-                              "Density"                = "Density",
-                              "Specific Heat"          = "SpecificHeat")
-
-mineral_color_by_choices <- c("Single color"                = "singlecolor",  
-                             "Maximum known age"           = "max_age",      
-                             "Number of known localities"  = "num_localities",
-                             "Mean electronegativity"      = "mean_pauling", 
-                             "COV electronegativity"       = "cov_pauling")
-
-### These are all guaranteed to NOT be NA
-element_size_by_choices <- c("Single size" = "singlesize",
-                             "Normalized network degree" = "network_degree_norm", 
-                             "Network closeness centrality"           = "closeness", 
-                             "Number of known localities"      = "num_localities")
-mineral_size_by_choices <- c("Single size" = "singlesize",
-                            "Maximum known age"         = "max_age",      
-                            "Number of known localities" = "num_localities")
-
-
-edge_color_by_choices   <- c("Single color" = "singlecolor",  
-                            "Element redox state in network" = "element_redox_network",
-                            "Element redox state in mineral" = "element_redox_mineral",
-                            "Number of known mineral localities" = "num_localities_mineral",
-                            "Mean mineral electronegativity"     = "mean_pauling",
-                            "COV mineral electronegativity"     = "cov_pauling",
-                            "Maximum known age of mineral"      = "max_age")
-
-element_shape_choices <- c("Circle"                = "circle",
-                           "Square"                = "box", 
-                           "Text only (no shape)"  = "text")
-
-mineral_shape_choices <-  c("Circle"   = "dot", #### !!!!!!
-                            "Square"   = "square")
-
-## Modeling choices ----------------------------------------
-model_response_choices <- c(max_age_str,
-                            mean_pauling_str,
-                            cov_pauling_str,
-                            network_degree_norm_str,
-                            closeness_str,
-                            num_localities_str) 
-
-model_predictor_choices <- c(model_response_choices, cluster_ID_str)
-
-categorical_model_variables <- c(cluster_ID_str)
-
-categorical_plot_choices <- c("Strip chart" = "strip",
-                              "Violin plot" = "violin",
-                              "Sina plot"   = "sina",
-                              "Boxplot"     = "boxplot")
-
-
-## Network construction choices -------------------------------------------
-network_layout_choices <- list(`Force-directed` = c("Fruchterman Reingold"   = "layout_with_fr",
-                                                   "GEM force-directed"      = "layout_with_gem"),
-                                Other           = c("Dynamic physics layout (WARNING: Do not use if photosensitive)" = "physics",
-                                                    "Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
-                                                    "Layout in circle"            = "layout_in_circle",
-                                                    "Layout in sphere"            = "layout_on_sphere"))
-
-physics_choices <- c("forceAtlas2Based"       = "forceAtlas2Based",
-                     "Barnes-Hut"             = "barnesHut",
-                     "Repulsion"              = "repulsion", 
-                     "Hierarchical repulsion" = "hierarchicalRepulsion")
-
-cluster_alg_louvain_str <- "Louvain"
-cluster_alg_eig_str <- "Leading eigenvector"
-allowed_cluster_algorithms <- c(cluster_alg_louvain_str, cluster_alg_eig_str)
-
-
-
-# No longer used.
-#css_string_selectedNode <- "float:right; width: 200px; font-size: 14px; color: #000; background-color: #F1F1F1; border-radius: 0px; border: solid 1px #DCDCDC; height: 34px; margin: -1.4em 0.5em 0em 0em;"
-
-## Definitions 
-
-
-
-
-
-# TODO THIS IS WRONG NOW
-## Arrays used in selected_node_table dropdown menus ---------------------------------
-selected_node_table_column_choices_mineral   <- c(mineral_id_str, 
-                                                  rruff_chemistry_str, 
-                                                  ima_chemistry_str, 
-                                                  max_age_str, 
-                                                  num_localities_mineral_str,
-                                                  mean_pauling_str, 
-                                                  cov_pauling_str,
-                                                  mineral_cluster_ID_str,
-                                                  mineral_closeness_str,
-                                                  mineral_network_degree_norm_str)
-selected_node_table_column_choices_locality  <- c(mindat_id_str, 
-                                                  locality_longname_str, 
-                                                  age_type_str, 
-                                                  max_age_locality_str, 
-                                                  min_age_locality_str)
-selected_node_table_column_choices_element   <- c(element_name_str, 
-                                                  element_redox_network_str, 
-                                                  pauling_str, 
-                                                  element_hsab_str, 
-                                                  element_group_str, 
-                                                  element_period_str, 
-                                                  element_metaltype_str, 
-                                                  element_mass_str,
-                                                  element_radius_str,
-                                                  element_specificheat_str,
-                                                  element_density_str,
-                                                  num_localities_element_str, 
-                                                  element_cluster_ID_str,
-                                                  element_closeness_str,
-                                                  element_network_degree_norm_str,
-                                                  element_redox_mineral_str) ## THIS ONE WILL REQUIRE APPEARING THE MINERAL NAME
-
-
-
-
+## Element information --------------------------------------------------------------------------
+element_info <- tibble::tribble(
+  ~element_name, ~element, ~element_hsab, ~atomic_mass, ~number_of_protons, ~table_period, ~table_group, ~atomic_radius, ~pauling, ~metal_type, ~element_density, ~element_specific_heat,
+  "Silver", "Ag", "Soft acid", 107.868, 47, 5, 11, 1.80, 1.93, "Transition Metal", 1.05e+01, 0.235, 
+  "Aluminum", "Al", "Hard acid", 26.982, 13, 3, 13, 1.80, 1.61, "Metal", 2.70e+00, 0.897, 
+  "Arsenic", "As", "Hard acid", 74.922, 33, 4, 15, 1.30, 2.18, "Metalloid", 5.78e+00, 0.329, 
+  "Gold", "Au", "Soft acid", 196.967, 79, 6, 11, 1.80, 2.54, "Transition Metal", 1.93e+01, 0.129, 
+  "Boron", "B", "Soft acid", 10.811, 5, 2, 13, 1.20, 2.04, "Metalloid", 2.34e+00, 1.026, 
+  "Barium", "Ba", "Hard acid", 137.327, 56, 6, 2, 2.80, 0.89, "Alkaline Earth Metal", 3.59e+00, 0.204, 
+  "Beryllium", "Be", "Hard acid", 9.012, 4, 2, 2, 1.40, 1.57, "Alkaline Earth Metal", 1.85e+00, 1.825, 
+  "Bismuth", "Bi", "Int. acid", 208.980, 83, 6, 15, 1.60, 2.02, "Metal", 9.81e+00, 0.122, 
+  "Bromine", "Br", "Soft base", 79.904, 35, 4, 17, 1.10, 2.96, "Halogen", 3.12e+00, 0.474, 
+  "Carbon", "C", "Soft base", 12.011, 6, 2, 14, 0.91, 2.55, "Nonmetal", 2.27e+00, 0.709, 
+  "Calcium", "Ca", "Hard acid", 40.078, 20, 4, 2, 2.20, 1.00, "Alkaline Earth Metal", 1.54e+00, 0.647, 
+  "Cadmium", "Cd", "Soft acid", 112.411, 48, 5, 12, 1.70, 1.69, "Transition Metal", 8.69e+00, 0.232, 
+  "Cerium", "Ce", "Hard acid", 140.116, 58, 6, NA, 2.70, 1.12, "Lanthanide", 6.77e+00, 0.192, 
+  "Chlorine", "Cl", "Int., base", 35.453, 17, 3, 17, 0.97, 3.16, "Halogen", 3.21e-03, 0.479, 
+  "Cobalt", "Co", "Int. acid", 58.933, 27, 4, 9, 1.70, 1.88, "Transition Metal", 8.86e+00, 0.421, 
+  "Chromium", "Cr", "Hard acid", 51.996, 24, 4, 6, 1.90, 1.66, "Transition Metal", 7.15e+00, 0.449, 
+  "Cesium", "Cs", "Hard acid", 132.905, 55, 6, 1, 3.30, 0.79, "Alkali Metal", 1.87e+00, 0.242, 
+  "Copper", "Cu", "Int. acid", 63.546, 29, 4, 11, 1.60, 1.90, "Transition Metal", 8.96e+00, 0.385, 
+  "Dysprosium", "Dy", "Hard acid", 162.500, 66, 6, NA, 2.50, 1.22, "Lanthanide", 8.55e+00, 0.170, 
+  "Erbium", "Er", "Hard acid", 167.259, 68, 6, NA, 2.50, 1.24, "Lanthanide", 9.07e+00, 0.168, 
+  "Fluorine", "F", "Hard base", 18.998, 9, 2, 17, 0.57, 3.98, "Halogen", 1.70e-03, 0.824, 
+  "Iron", "Fe", "Int. acid", 55.845, 26, 4, 8, 1.70, 1.83, "Transition Metal", 7.87e+00, 0.449, 
+  "Gallium", "Ga", "Hard acid", 69.723, 31, 4, 13, 1.80, 1.81, "Metal", 5.91e+00, 0.371, 
+  "Gadolinium", "Gd", "Hard acid", 157.250, 64, 6, NA, 2.50, 1.20, "Lanthanide", 7.90e+00, 0.236, 
+  "Germanium", "Ge", "Hard acid", 72.640, 32, 4, 14, 1.50, 2.01, "Metalloid", 5.32e+00, 0.320, 
+  "Hydrogen", "H", "Hard acid", 1.007, 1, 1, 1, 0.79, 2.20, "Nonmetal", 8.99e-05, 14.304, 
+  "Hafnium", "Hf", "Hard acid", 178.490, 72, 6, 4, 2.20, 1.30, "Transition Metal", 1.33e+01, 0.144, 
+  "Mercury", "Hg", "Soft acid", 200.590, 80, 6, 12, 1.80, 2.00, "Transition Metal", 1.35e+01, 0.140, 
+  "Iodine", "I", "Soft base", 126.904, 53, 5, 17, 1.30, 2.66, "Halogen", 4.93e+00, 0.214, 
+  "Indium", "In", "Int. acid", 114.818, 49, 5, 13, 2.00, 1.78, "Metal", 7.31e+00, 0.233, 
+  "Iridium", "Ir", "Soft acid", 192.217, 77, 6, 9, 1.90, 2.20, "Transition Metal", 2.26e+01, 0.131, 
+  "Potassium", "K", "Hard acid", 39.098, 19, 4, 1, 2.80, 0.82, "Alkali Metal", 8.62e-01, 0.757, 
+  "Lanthanum", "La", "Hard acid", 138.905, 57, 6, 3, 2.70, 1.10, "Lanthanide", 6.15e+00, 0.195, 
+  "Lithium", "Li", "Hard acid", 6.941, 3, 2, 1, 2.10, 0.98, "Alkali Metal", 5.34e-01, 3.582, 
+  "Magnesium", "Mg", "Hard acid", 24.305, 12, 3, 2, 1.70, 1.31, "Alkaline Earth Metal", 1.74e+00, 1.023, 
+  "Manganese", "Mn", "Int. acid", 54.938, 25, 4, 7, 1.80, 1.55, "Transition Metal", 7.44e+00, 0.479, 
+  "Molybdenum", "Mo", "Int. acid", 95.960, 42, 5, 6, 2.00, 2.16, "Transition Metal", 1.02e+01, 0.251, 
+  "Nitrogen", "N", "Int., base", 14.007, 7, 2, 15, 0.75, 3.04, "Nonmetal", 1.25e-03, 1.040, 
+  "Sodium", "Na", "Hard acid", 22.990, 11, 3, 1, 2.20, 0.93, "Alkali Metal", 9.71e-01, 1.228, 
+  "Niobium", "Nb", "Hard acid", 92.906, 41, 5, 5, 2.10, 1.60, "Transition Metal", 8.57e+00, 0.265, 
+  "Neodymium", "Nd", "Hard acid", 144.242, 60, 6, NA, 2.60, 1.14, "Lanthanide", 7.01e+00, 0.190, 
+  "Nickel", "Ni", "Int. acid", 58.693, 28, 4, 10, 1.60, 1.91, "Transition Metal", 8.91e+00, 0.444, 
+  "Oxygen", "O", "Hard base", 15.999, 8, 2, 16, 0.65, 3.44, "Nonmetal", 1.43e-03, 0.918, 
+  "Osmium", "Os", "Soft acid", 190.230, 76, 6, 8, 1.90, 2.20, "Transition Metal", 2.26e+01, 0.130, 
+  "Phosphorus", "P", "Soft base", 30.974, 15, 3, 15, 1.20, 2.19, "Nonmetal", 1.82e+00, 0.769, 
+  "Lead", "Pb", "Int. acid", 207.200, 82, 6, 14, 1.80, 2.33, "Metal", 1.13e+01, 0.129, 
+  "Palladium", "Pd", "Soft acid", 106.420, 46, 5, 10, 1.80, 2.20, "Transition Metal", 1.20e+01, 0.244, 
+  "Platinum", "Pt", "Soft acid", 195.084, 78, 6, 10, 1.80, 2.28, "Transition Metal", 2.15e+01, 0.133, 
+  "Rubidium", "Rb", "Hard acid", 85.468, 37, 5, 1, 3.00, 0.82, "Alkali Metal", 1.53e+00, 0.363, 
+  "Rhenium", "Re", "Int. acid", 186.207, 75, 6, 7, 2.00, 1.90, "Transition Metal", 2.10e+01, 0.137, 
+  "Rare-earth element", "REE", NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 
+  "Rhodium", "Rh", "Soft acid", 102.906, 45, 5, 9, 1.80, 2.28, "Transition Metal", 1.24e+01, 0.243, 
+  "Ruthenium", "Ru", "Soft acid", 101.070, 44, 5, 8, 1.90, 2.20, "Transition Metal", 1.24e+01, 0.238, 
+  "Sulfur", "S", "Int., base", 32.065, 16, 3, 16, 1.10, 2.58, "Nonmetal", 2.07e+00, 0.710, 
+  "Antimony", "Sb", "Hard acid", 121.760, 51, 5, 15, 1.50, 2.05, "Metalloid", 6.69e+00, 0.207, 
+  "Scandium", "Sc", "Hard acid", 44.956, 21, 4, 3, 2.10, 1.36, "Transition Metal", 2.99e+00, 0.568, 
+  "Selenium", "Se", "Soft base", 78.960, 34, 4, 16, 1.20, 2.55, "Nonmetal", 4.81e+00, 0.321, 
+  "Silicon", "Si", "Hard acid", 28.086, 14, 3, 14, 1.50, 1.90, "Metalloid", 2.33e+00, 0.705, 
+  "Samarium", "Sm", "Hard acid", 150.360, 62, 6, NA, 2.60, 1.17, "Lanthanide", 7.52e+00, 0.197, 
+  "Tin", "Sn", "Hard acid", 118.710, 50, 5, 14, 1.70, 1.96, "Metal", 7.29e+00, 0.228, 
+  "Strontium", "Sr", "Hard acid", 87.620, 38, 5, 2, 2.50, 0.95, "Alkaline Earth Metal", 2.64e+00, 0.301, 
+  "Tantalum", "Ta", "Int. acid", 180.948, 73, 6, 5, 2.10, 1.50, "Transition Metal", 1.67e+01, 0.140, 
+  "Technetium", "Tc", "Int. acid", 98.000, 43, 5, 7, 2.00, 1.90, "Transition Metal", 1.15e+01, NA, 
+  "Tellurium", "Te", "Soft base", 127.600, 52, 5, 16, 1.40, 2.10, "Metalloid", 6.23e+00, 0.202, 
+  "Thorium", "Th", "Hard acid", 232.038, 90, 7, NA, NA, 1.30, "Actinide", 1.17e+01, 0.113, 
+  "Titanium", "Ti", "Hard acid", 47.867, 22, 4, 4, 2.00, 1.54, "Transition Metal", 4.54e+00, 0.523, 
+  "Thallium", "Tl", "Soft acid", 204.383, 81, 6, 13, 2.10, 2.04, "Metal", 1.19e+01, 0.129, 
+  "Uranium", "U", "Hard acid", 238.029, 92, 7, NA, NA, 1.38, "Actinide", 1.90e+01, 0.116, 
+  "Vanadium", "V", "Hard acid", 50.942, 23, 4, 5, 1.90, 1.63, "Transition Metal", 6.11e+00, 0.489, 
+  "Tungsten", "W", "Int. acid", 183.840, 74, 6, 6, 2.00, 2.36, "Transition Metal", 1.93e+01, 0.132, 
+  "Yttrium", "Y", "Hard acid", 88.906, 39, 5, 3, 2.30, 1.22, "Transition Metal", 4.47e+00, 0.298, 
+  "Ytterbium", "Yb", "Hard acid", 173.054, 70, 6, NA, 2.40, 1.10, "Lanthanide", 6.97e+00, 0.155, 
+  "Zinc", "Zn", "Int. acid", 65.380, 30, 4, 12, 1.50, 1.65, "Transition Metal", 7.13e+00, 0.388, 
+  "Zirconium", "Zr", "Hard acid", 91.224, 40, 5, 4, 2.20, 1.33, "Transition Metal", 6.51e+00, 0.278)

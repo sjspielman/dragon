@@ -1,6 +1,6 @@
 Package: dragon
 Title: Deep Time Redox Analysis of the Geobiology Ontology Network
-Version: 0.2.1
+Version: 0.3.0
 Authors@R: person('Stephanie', 'Spielman', email = 'spielman@rowan.edu', role = c('cre', 'aut'))
 Description: Visualization and manipulation of the mineral-chemistry network across deep time on earth.
 License: GPL-3
@@ -14,21 +14,31 @@ Imports:
     dplyr,
     RColorBrewer,
     stringr,
-    tidyr,
+    tidyr (>= 1.0.0),
     purrr,
     tibble,
     broom,
-    cowplot,
+    cowplot (>= 1.0.0),
     ggforce,
     magrittr,
     shinythemes,
     shinydashboard,
     shinyWidgets,
-    shinyalert,
     colourpicker,
     colorspace,
     visNetwork,
-    igraph
+    igraph,
+    attempt,
+    glue,
+    htmltools,
+    processx,
+    stats,
+    promises,
+    future,
+    lubridate,
+    xml2,
+    rvest,
+    pkgload
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.0
@@ -39,5 +49,27 @@ Suggests:
 VignetteBuilder: knitr
 URL: https://github.com/spielmanlab/dragon
 BugReports: https://github.com/spielmanlab/dragon/issues
-Depends: 
-    R (>= 2.10)
+Depends:
+    R (>= 3.5.0)
+Collate:
+    'utils_definitions.R'
+    'utils_globals.R'
+    'utils_names.R'
+    'utils_palette.R'
+    'utils_style-network.R'
+    'utils_ui-choices.R'
+    'fct_prepare-rruff-data.R'
+    'fct_build-legend.R'
+    'fct_build-linear-models.R'
+    'fct_build-network.R'
+    'fct_build-node-table.R'
+    'fct_calculate-network-info.R'
+    'fct_export-network.R'
+    'fct_style-network.R'
+    'mod_choose-color-palette.R'
+    'golem_utils_server.R'
+    'golem_utils_ui.R'
+    'app_config.R'
+    'app_server.R'
+    'app_ui.R'
+    'run_app.R'

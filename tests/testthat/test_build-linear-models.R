@@ -53,7 +53,8 @@ test_that("fct_run_linear_models::plot_linear_model_scatter()", {
                                             true_point_color, 
                                             true_point_size, 
                                             TRUE,  ## bestfit
-                                            true_bestfit_color)
+                                            true_bestfit_color, 
+                                            FALSE) #grid
   
   ## TODO really should compare to an actual plot
   plot_data_geom_point <- ggplot2::ggplot_build(test_plotted)$data[[1]]
@@ -82,7 +83,8 @@ test_that("fct_run_linear_models::plot_linear_model_cluster()", {
                                         FALSE, ## flip_coord
                                         FALSE, ## show_mean_se
                                         FALSE, ## show legend
-                                        true_point_size)
+                                        true_point_size,
+                                        FALSE) ## grid
                                         
   ## TODO really should compare to an actual plot
   plot_data_box <- ggplot2::ggplot_build(test_box)$data[[1]]
@@ -99,7 +101,8 @@ test_that("fct_run_linear_models::plot_linear_model_cluster()", {
                                           FALSE, ## flip_coord
                                           FALSE, ## show_mean_se
                                           TRUE, ## show legend
-                                          true_point_size)
+                                          true_point_size, 
+                                          FALSE)
   
   ## TODO really should compare to an actual plot
   plot_data_strip <- ggplot2::ggplot_build(test_strip)$data[[1]]

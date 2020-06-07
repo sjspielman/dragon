@@ -4,13 +4,14 @@
 #' @param edge_options   A named list of all network styles to be applied
 #' 
 #' @returns Named list containing a legend to display for edges ('edge_legend') if needed, and an updated edge tibble with colors incorporated ('styled_edges')
+#' @noRd
 style_edges <- function(edges, edge_options){
   
   colorlegend_edge <- FALSE
   if (edge_options$edge_color_by == "singlecolor") 
   {
     edge_colors <- edges %>% 
-      mutate(color = edge_options$edge_color)             
+      dplyr::mutate(color = edge_options$edge_color)             
   } else {
     out <- obtain_dynamic_colors_legend(edges, 
                                         edge_options$edge_color_by, 
@@ -34,6 +35,7 @@ style_edges <- function(edges, edge_options){
 #' @param style_options   A named list of all network styles to be applied
 #' 
 #' @returns Named list containing legend(s) to display for nodes ('both_legend' used for cluster coloring, 'element_legend' used for element nodes alone, and 'mineral_legend' used for mineral nodes alone), and an updated node tibble with styles incorporated ('styled_nodes')
+#' @noRd
 style_nodes <- function(nodes, style_options)
 {
   
@@ -81,6 +83,7 @@ style_nodes <- function(nodes, style_options)
 #' @param style_options   A named list of all network styles to be applied
 #' 
 #' @returns Named list containing legend(s) to display for nodes ('both_legend' used for cluster coloring, 'element_legend' used for element nodes alone, and 'mineral_legend' used for mineral nodes alone), and a tibble of colors to apply to nodes ('colors')
+#' @noRd
 style_nodes_colors_legend <- function(full_nodes, style_options)
 {
 
@@ -101,12 +104,12 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
     legend_list[["both_legend"]] <- out_cluster$legend
     full_nodes %>%
       dplyr::select(id, group) %>%
-      mutate(color.background = out_cluster$colors) -> final_colors
+      dplyr::mutate(color.background = out_cluster$colors) -> final_colors
 
   } else 
   { 
-    element_nodes <- full_nodes %>% filter(group == "element")
-    mineral_nodes <- full_nodes %>% filter(group == "mineral")
+    element_nodes <- full_nodes %>% dplyr::filter(group == "element")
+    mineral_nodes <- full_nodes %>% dplyr::filter(group == "mineral")
     raw_element_colors <- rep(style_options$element_color, nrow(element_nodes))
     raw_mineral_colors <- style_options$mineral_color  #rep(style_options$mineral_color, nrow(mineral_nodes))
                                                             
@@ -117,11 +120,11 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
     } else
     {  
       mineral_out <- obtain_dynamic_colors_legend(mineral_nodes, 
-                                                 style_options$mineral_color_by, 
-                                                 "c", 
-                                                 style_options$mineral_palette,
-                                                 style_options$na_color)
-      raw_mineral_colors <- mineral_out$colors
+                                                  style_options$mineral_color_by, 
+                                                  "c", 
+                                                  style_options$mineral_palette,
+                                                  style_options$na_color)
+      raw_mineral_colors <- mineral_out$colors 
     } 
     
     ## Color elements  ------------------------------------------------------------
@@ -134,10 +137,10 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
     }  else
     {
       element_out  <- obtain_dynamic_colors_legend(element_nodes,
-                                                  style_options$element_color_by, 
-                                                  ifelse(style_options$element_color_by %in% ordinal_color_variables, "d", "c"),
-                                                  style_options$element_palette,
-                                                  style_options$na_color) 
+                                                   style_options$element_color_by, 
+                                                   ifelse(style_options$element_color_by %in% ordinal_color_variables, "d", "c"),
+                                                   style_options$element_palette,
+                                                   style_options$na_color) 
       raw_element_colors <- element_out$colors
     }   
 
@@ -176,10 +179,11 @@ style_nodes_colors_legend <- function(full_nodes, style_options)
 #' @param style_options A named list of all network styles to be applied
 #' 
 #' @returns Tibble with names: id, size, group, font.size
+#' @noRd
 style_nodes_sizes <- function(full_nodes, style_options)
 {
-  element_nodes <- full_nodes %>% filter(group == "element")
-  mineral_nodes <- full_nodes %>% filter(group == "mineral")
+  element_nodes <- full_nodes %>% dplyr::filter(group == "element")
+  mineral_nodes <- full_nodes %>% dplyr::filter(group == "mineral")
   ## ELEMENT SIZES -----------------------------------------------------------
   if (style_options$element_size_by != "singlesize") 
   {
@@ -230,6 +234,7 @@ style_nodes_sizes <- function(full_nodes, style_options)
 #' @param style_options   A named list of all network styles to be applied
 #' 
 #' @returns Updated tibble of nodes containing new styling
+#' @noRd
 style_nodes_shape_highlight_label <- function(node_attr_styled_nodes, style_options)
 {
   custom_selection_as_names <- element_info$element_name[element_info$element %in% style_options$custom_selection_element]
@@ -260,9 +265,11 @@ style_nodes_shape_highlight_label <- function(node_attr_styled_nodes, style_opti
 
 
 #' Point size used for legend keys
+#' @noRd
 geom.point.size <- 10
 
 #' Theme for legend key items built on top of cowplot
+#' @noRd
 theme_dragon <- ggplot2::theme_set(cowplot::theme_cowplot() + 
                                      ggplot2::theme(legend.position       = "bottom",
                                                     legend.text           = ggplot2::element_text(size=11),
@@ -279,6 +286,7 @@ theme_dragon <- ggplot2::theme_set(cowplot::theme_cowplot() +
 #' @param n_clusters      A numeric equaling the number of clusters in the network
 #' 
 #' @returns array of hexadecimal colors to style clusters with
+#' @noRd
 set_cluster_colors <- function(cluster_palette, n_clusters)
 {
   
@@ -304,6 +312,7 @@ set_cluster_colors <- function(cluster_palette, n_clusters)
 #' @param na_color A string indicating the color to use for NA conditions
 #' 
 #' @returns A single-length list with item 'legend' containing the legend grob itself
+#' @noRd
 obtain_dynamic_colors_legend <- function(dat, color_variable, variable_type, colors_or_palette, na_color)
 {
   ## variable type:
@@ -313,7 +322,7 @@ obtain_dynamic_colors_legend <- function(dat, color_variable, variable_type, col
   ## NOTE: KEEP direction=-1 in scale_color_brewer() and scale_color_distiller()
 
   cvar <- as.symbol(color_variable)
-  dat %>% dplyr::mutate(x = 1:n()) -> dat2  ## quick hack works with both edges, nodes.
+  dat %>% dplyr::mutate(x = 1:dplyr::n()) -> dat2  ## quick hack works with both edges, nodes.
   legendtitle <- variable_to_title[[color_variable]]
   
   
@@ -366,6 +375,7 @@ obtain_dynamic_colors_legend <- function(dat, color_variable, variable_type, col
 #' @param legendtitle A string to use as the outputted legend's title
 #' 
 #' @returns A single-length list with item 'legend' containing the legend grob itself
+#' @noRd
 obtain_legend_singlecolor <- function(singlecolor, singleshape, legendtitle)
 {
 
@@ -395,6 +405,7 @@ obtain_legend_singlecolor <- function(singlecolor, singleshape, legendtitle)
 #' @param size_scale A numeric to scale ggplot sizes for improved display in visnetwork
 #' 
 #' @returns Numeric array of sizes to be applied to nodes in filtered group 
+#' @noRd
 obtain_node_sizes <- function(filtered_nodes, size_variable, lowsize, highsize, size_scale = 1)
 {
   

@@ -2,7 +2,7 @@
 test_that("fct_build_network::initialize_data() with a single element", {
   
   elements_of_interest <- "Cd"
-  test_output <- initialize_data(elements_of_interest, FALSE)
+  test_output <- initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
 
   ## The number of rows WITH Cd should be all of them
   test_output %>%
@@ -23,7 +23,7 @@ test_that("fct_build_network::initialize_data() with a single element", {
 ## Test initialize_data(), multiple elements unforced -----------------------------------
 test_that("fct_build_network::initialize_data() with multiple unforced elements", {
   elements_of_interest <- c("Cd", "Sn")
-  test_output <- initialize_data(elements_of_interest, FALSE)
+  test_output <- initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
   
   ## The number of rows WITH Cd or Sn should be all of them
   test_output %>%
@@ -45,7 +45,7 @@ test_that("fct_build_network::initialize_data() with multiple unforced elements"
 ## Test initialize_data(), multiple elements forced -----------------------------------
 test_that("fct_build_network::initialize_data() with multiple forced elements", {
   elements_of_interest <- c("Cd", "Sn")
-  test_output <- initialize_data(elements_of_interest, TRUE)
+  test_output <- initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, TRUE)
   
   ## The number of rows WITH Cd or Sn should be all of them
   test_output %>%
@@ -68,7 +68,7 @@ test_that("fct_build_network::initialize_data() with multiple forced elements", 
 test_that("fct_build_network::initialize_data_age() using maximum known age", {
   elements_of_interest <- c("Cd")
   age_range <- c(1, 2.5)
-  test_input <- initialize_data(elements_of_interest, FALSE)
+  test_input <- initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
   test_output <- initialize_data_age(test_input, age_range, "Maximum")
   
   ## Should return two df's
@@ -96,7 +96,7 @@ test_that("fct_build_network::initialize_data_age() using maximum known age", {
 test_that("fct_build_network::initialize_data_age() using minimum known age", {
   elements_of_interest <- c("Cd")
   age_range <- c(1, 2.5)
-  test_input <- initialize_data(elements_of_interest, FALSE)
+  test_input <- initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
   test_output <- initialize_data_age(test_input, age_range, "Minimum")
   
   ## Should return two df's
@@ -124,8 +124,8 @@ test_that("fct_build_network::initialize_data_age() using minimum known age", {
 test_that("fct_build_network::construct_network() with elements_by_redox = F", {
   elements_of_interest <- c("Cd")
   age_range <- c(1, 2.5)
-  age_data <- initialize_data_age(initialize_data(elements_of_interest, FALSE), age_range, "Maximum")
-  test_output <- construct_network(age_data$elements_only_age, FALSE)
+  age_data <- initialize_data_age(initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, FALSE), age_range, "Maximum")
+  test_output <- construct_network(age_data$elements_only_age, FALSE, element_redox_states_cache)
   
   ## Length of 3 with correct names
   expected_names_one <- c("edges", "nodes", "network")
@@ -142,7 +142,7 @@ test_that("fct_build_network::construct_network() with elements_by_redox = F", {
 
   ## Nodes tests
   test_nodes <- test_output$nodes
-  expected_names_nodes<- c("id", "label", "title", "font.face", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
+  expected_names_nodes<- c("id", "label", "title", "font.face", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "atomic_mass", "number_of_protons", "table_period", "table_group", "atomic_radius", "pauling", "metal_type", "element_density", "element_specific_heat", "element_name", "element_redox_network", "num_localities")
   expect_equal(sort(names(test_nodes)), sort(expected_names_nodes)) 
   expect_true(length(test_nodes$id) == length(unique(test_nodes$id)) )
   
@@ -164,8 +164,8 @@ test_that("fct_build_network::construct_network() with elements_by_redox = F", {
 test_that("fct_build_network::construct_network() with elements_by_redox = T", {
   elements_of_interest <- c("Fe") ## Cd is disconnected
   age_range <- c(3, 4)
-  age_data <- initialize_data_age(initialize_data(elements_of_interest, FALSE), age_range, "Maximum")
-  test_output <- construct_network(age_data$elements_only_age, TRUE)
+  age_data <- initialize_data_age(initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, FALSE), age_range, "Maximum")
+  test_output <- construct_network(age_data$elements_only_age, TRUE, element_redox_states_cache)
   
   ## Length of 3 with correct names
   expected_names_one <- c("edges", "nodes", "network")
@@ -182,7 +182,7 @@ test_that("fct_build_network::construct_network() with elements_by_redox = T", {
   
   ## Nodes tests
   test_nodes <- test_output$nodes
-  expected_names_nodes<- c("id", "label", "title", "font.face", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
+  expected_names_nodes<- c("id", "label", "title", "font.face", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "atomic_mass", "number_of_protons", "table_period", "table_group", "atomic_radius", "pauling", "metal_type", "element_density", "element_specific_heat", "element_name", "element_redox_network", "num_localities")
   expect_equal(sort(names(test_nodes)), sort(expected_names_nodes)) 
   expect_true(length(test_nodes$id) == length(unique(test_nodes$id)) )
 
@@ -203,8 +203,8 @@ test_that("fct_build_network::construct_network() with elements_by_redox = T", {
 
 ## Test specify_community_detect_network(), using Louvain --------------------------------
 test_that("fct_build_network::specify_community_detect_network() with Louvain community clustering", {
-  age_data <- initialize_data_age(initialize_data("Fe", FALSE), c(3, 4), "Maximum")
-  network_raw <- construct_network(age_data$elements_only_age, TRUE)
+  age_data <- initialize_data_age(initialize_data(rruff_data_cache, element_redox_states_cache, "Fe", FALSE), c(3, 4), "Maximum")
+  network_raw <- construct_network(age_data$elements_only_age, TRUE, element_redox_states_cache)
   test_cluster <- specify_community_detect_network(network_raw$network, network_raw$nodes, "Louvain")
   
   ## Length of 3 with correct names
@@ -212,7 +212,7 @@ test_that("fct_build_network::specify_community_detect_network() with Louvain co
   expect_equal(sort(names(test_cluster)), sort(expected_names_one)) 
   
   ## Check that node nodes contains the added cluster columns
-  expected_names_nodes<- c("id", "cluster_ID", "cluster_algorithm", "title", "font.face", "label", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "AtomicMass", "NumberofProtons", "TablePeriod", "TableGroup", "AtomicRadius", "pauling", "MetalType", "Density", "SpecificHeat", "element_name", "element_redox_network", "num_localities")
+  expected_names_nodes<- c("id", "cluster_ID", "cluster_algorithm", "title", "font.face", "label", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "atomic_mass", "number_of_protons", "table_period", "table_group", "atomic_radius", "pauling", "metal_type", "element_density", "element_specific_heat", "element_name", "element_redox_network", "num_localities")
   expect_equal(sort(names(test_cluster$nodes)), sort(expected_names_nodes)) 
   
   
