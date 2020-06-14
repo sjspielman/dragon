@@ -1,6 +1,9 @@
-#' Run the Shiny Application
+#' Run the "dragon" Shiny Application
 #'
-#' @param ... A series of options to be used inside the app.
+#' \dontrun{
+#' library(dragon)
+#' dragon::run_app() # No arguments necessary! 
+#' }
 #'
 #' @export
 #' @importFrom shiny shinyApp

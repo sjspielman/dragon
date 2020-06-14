@@ -11,7 +11,6 @@
 #' 
 #' @param elements_of_interest A array of specified elements whose minerals should be included in
 #' the network. For all elements, specify "all".
-#'
 #' @param force_all_elements   A logical. If FALSE (default), minerals containing any of 
 #' `elements_of_interest` will be included in network. If TRUE, only minerals with full 
 #' intersection of all specified elements will be included in network.
@@ -25,8 +24,8 @@
 #' If "Minimum", filters minerals using minimum known ages at localities. 
 #' @param cluster_algorithm    A string giving community clustering algorithm, one of 
 #' "Louvain" (default) or "Leading eigenvector". 
-#' #' @param use_data_cache    A logical. If TRUE (default) cached RRUFF (Mineral Evolution Database)
-#'  will be used to build the network. If FALSE, data will be fetched from RRUFF here. CAUTION: May 
+#' @param use_data_cache    A logical. If TRUE (default) cached Mineral Evolution Database
+#'  will be used to build the network. If FALSE, data will be fetched from MED here. CAUTION: May 
 #'  take several minutes to update.
 #' 
 #' @returns Named list containing an igraph-formatted network ('network'), an 
@@ -61,13 +60,13 @@ initialize_network <- function(elements_of_interest,
   
   if (use_data_cache)
   {
-    rruff_data <- rruff_data_cache
+    med_data <- med_data_cache
     element_redox_states <- element_redox_states_cache
   } else
   {
     print("ALERT:  Downloading data from Mineral Evolution Database. Please be patient! This may/will take several minutes, or longer depending on your internet connection.")
-    rruff_data <- fetch_rruff_data()
-    element_redox_states <- calculate_element_redox_states(rruff_data)
+    rmed_data <- fetch_med_data()
+    element_redox_states <- calculate_element_redox_states(med_data)
     print("....Done! Building your network now.")
   }
   
@@ -76,10 +75,10 @@ initialize_network <- function(elements_of_interest,
   }
   age_range <- sort(age_range)
   
-  subset_rruff <- initialize_data(rruff_data, element_redox_states, elements_of_interest, force_all_elements)
-  if (nrow(subset_rruff) == 0) stop("Network cannot be constructed with provided elements.")
+  subset_med <- initialize_data(med_data, element_redox_states, elements_of_interest, force_all_elements)
+  if (nrow(subset_med) == 0) stop("Network cannot be constructed with provided elements.")
   
-  age_data    <- initialize_data_age(subset_rruff, age_range, max_age_type)
+  age_data    <- initialize_data_age(subset_med, age_range, max_age_type)
   if (nrow(age_data$elements_only_age) == 0) stop("Network cannot be constructed at specified age range.")
 
   network_raw <- construct_network(age_data$elements_only_age, elements_by_redox, element_redox_states)
@@ -99,14 +98,15 @@ initialize_network <- function(elements_of_interest,
 
 #' Subset MED data to contain only elements of interest for network construction
 #'
-#' @param rruff_data Input rruff data
+#' @param med_data Input Mineral Evolution Database data
 #' @param element_redox_states A tibble of elements and their associated redox states per mineral
 #' @param elements_of_interest A array of specified elements whose minerals should be included in the network. For all elements, specify "all".
 #' @param force_all_elements   A logical. If FALSE (default), minerals containing any of `elements_of_interest` will be included in network. If TRUE, only minerals with full intersection of all specified elements will be included in network.
 #' @param max_age_type         A string indicating how mineral ages should be assessed. If "Maximum" (default), filters minerals using maximum known ages at localities. If "Minimum", filters minerals using minimum known ages at localities. 
-#' @returns Tibble subsetted from rruff containing only those minerals with specified element settings
+#'
+#' @returns Tibble subsetted from MED containing only those minerals with specified element settings
 #' @noRd
-initialize_data <- function(rruff_data, element_redox_states, elements_of_interest, force_all_elements = FALSE)
+initialize_data <- function(med_data, element_redox_states, elements_of_interest, force_all_elements = FALSE)
 { 
 
   ## Must have all elements
@@ -128,7 +128,7 @@ initialize_data <- function(rruff_data, element_redox_states, elements_of_intere
   elements_only_raw %>%
     dplyr::ungroup() %>%
     dplyr::select(mineral_name) %>%
-    dplyr::inner_join(rruff_data) -> elements_only
+    dplyr::inner_join(med_data) -> elements_only
   elements_only
 }
 
@@ -136,7 +136,7 @@ initialize_data <- function(rruff_data, element_redox_states, elements_of_intere
 #' 
 #' @param elements_only A tibble containing all minerals and associated information which contain specified elements
 #' @param age_range            A array of two numbers giving inclusive range of mineral ages in Ga to include in network. 
-#' @returns Named list of two tibbles: 'elements_only_age' is subsetted rruff to specified age range, and 'locality_info' contains all locality information for minerals in 'elements_age_only'
+#' @returns Named list of two tibbles: 'elements_only_age' is subsetted MED data to specified age range, and 'locality_info' contains all locality information for minerals in 'elements_age_only'
 #' @noRd
 initialize_data_age <- function(elements_only, age_range, max_age_type)
 {
@@ -306,7 +306,7 @@ construct_network   <- function(elements_only_age, elements_by_redox, element_re
 #' @noRd
 specify_community_detect_network <- function(network, nodes, cluster_algorithm)
 {
-  if (!(cluster_algorithm %in% allowed_cluster_algorithms)) stop("Cluster algorithm must be one of either 'Louvain' or 'Leading eigenvector'.")
+  if (!(cluster_algorithm %in% cluster_algorithm_choices)) stop("Cluster algorithm must be one of either 'Louvain' or 'Leading eigenvector'.")
   
   
   if (cluster_algorithm == cluster_alg_louvain_str) clustered_net <- igraph::cluster_louvain(network)

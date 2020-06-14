@@ -1,4 +1,3 @@
-
 #' Calculate network connectivity
 #' 
 #' @param graph igraph network object

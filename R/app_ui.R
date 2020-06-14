@@ -83,7 +83,7 @@ app_ui <- function(request) {
                 )
               }), ## END conditionalPanel           
               shinyWidgets::pickerInput("cluster_algorithm", tags$span(style="font-weight:400", "Network community detection (clustering) algorithm:"),
-                          choices = allowed_cluster_algorithms, selected = "Louvain"
+                          choices = cluster_algorithm_choices, selected = "Louvain"
                          ) ## END pickerInput
             ), ## END menuitem
             

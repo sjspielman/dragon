@@ -5,12 +5,16 @@ options(scipen=3)                                      ## Sci when more than 3 d
 on.exit(options(original_options), add=TRUE)
 
 ## Future planning -------------------------------------------------------------------
-future::plan(future::multiprocess) # can you live here?
+future::plan(future::multiprocess) 
 
 ## MED URLs --------------------------------------------------------------------------
-rruff_exporting_url <- "http://rruff.info/mineral_list/MED/exporting/"
-rruff_m1_url        <- paste0(rruff_exporting_url, "tbl_mineral.csv")
-rruff_m2_url        <- paste0(rruff_exporting_url, "tbl_locality_age_cache_alt.csv")
+
+#' Lead portion of MED URL 
+med_exporting_url <- "http://rruff.info/mineral_list/MED/exporting/"
+#' URL of `tbl_mineral.csv` data from MED
+med_m1_url        <- paste0(med_exporting_url, "tbl_mineral.csv")
+#' URL of `tbl_locality_age_cache_alt.csv` data from MED
+med_m2_url        <- paste0(med_exporting_url, "tbl_locality_age_cache_alt.csv")
 
 ## Explicit pipe definitions ---------------------------------------------------------
 `%>%`  <- magrittr::`%>%`
@@ -20,10 +24,12 @@ rruff_m2_url        <- paste0(rruff_exporting_url, "tbl_locality_age_cache_alt.c
 
 
 ## Enjoyable error messages ----------------------------------------------------------------
+#' Enjoyable error messages for randomized use in sweetAlerts
 error_choices <- c("Oh no!", "Sorry, that's not gonna work.", "Try again!", "Womp womp :(", "No dice!", "Uh oh!", "Woopsies!")
 
 
 ## Element information --------------------------------------------------------------------------
+#' Tibble of element metadata
 element_info <- tibble::tribble(
   ~element_name, ~element, ~element_hsab, ~atomic_mass, ~number_of_protons, ~table_period, ~table_group, ~atomic_radius, ~pauling, ~metal_type, ~element_density, ~element_specific_heat,
   "Silver", "Ag", "Soft acid", 107.868, 47, 5, 11, 1.80, 1.93, "Transition Metal", 1.05e+01, 0.235, 

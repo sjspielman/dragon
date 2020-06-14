@@ -1,11 +1,10 @@
-# Build legend of network color attributes for display.
-# 
-# NOT EXPORTED
-#
-# @param edge_styler A list of edge stylings as created by dragon::style_edges()
-# @param node_styler A list of node stylings as created by dragon::style_nodes()
-#
-# @return A plot list of legends for display created with cowplot::plot_grid()
+#' Build legend of network color attributes for display.
+#'
+#' @param edge_styler A list of edge stylings as created by dragon::style_edges()
+#' @param node_styler A list of node stylings as created by dragon::style_nodes()
+#'
+#' @return A plot list of legends for display created with cowplot::plot_grid()
+#' @noRd
 build_legend <- function(edge_styler, node_styler)
 {
   ## If logical, it's FALSE and there is no legend

@@ -6,22 +6,22 @@
 #' @noRd
 app_server <- function( input, output, session ) {
   
-  ## Define rrruff reactives ----------------------------------------------------------------
-  rruff <- reactiveVal(list("rruff_data"           = NULL, 
-                            "element_redox_states" = NULL,
-                            "cache"                = NULL))
+  ## Define MED reactives ----------------------------------------------------------------
+  med <- reactiveVal(list("med_data"           = NULL, 
+                          "element_redox_states" = NULL,
+                          "cache"                = NULL))
   
   ## Prompt for MED data to use -------------------------------------------------------------
   observe({
-    if (find_most_recent_date() != rruff_cache_date) ## SHOULD BE != 
+    if (find_most_recent_date() != med_cache_date) ## SHOULD BE != 
     { 
       shinyWidgets::confirmSweetAlert(
         session,
-        "use_rruff_cache",
+        "use_med_cache",
         title = "Welcome to dragon!",
         text = tags$span(
                 "We use MED data, cached from the MED update on", 
-                tags$b(rruff_cache_date), ". MED was mostly recently updated on ",  
+                tags$b(med_cache_date), ". MED was mostly recently updated on ",  
                 tags$b(find_most_recent_date()), 
                 ". Do you want to used the cached data, or re-download right now?",
                 br(),br(),
@@ -37,9 +37,9 @@ app_server <- function( input, output, session ) {
     } else {
       shinyWidgets::sendSweetAlert(
          session = session, title = "Welcome to dragon!", type = "info",
-        text = paste0("We're using the most up to date MED data, which was released on ", rruff_cache_date, ".")
+        text = paste0("We're using the most up to date MED data, which was released on ", med_cache_date, ".")
       )
-      rruff(list("rruff_data"           = rruff_data_cache, 
+      med(list("med_data"           = med_data_cache, 
                  "element_redox_states" = element_redox_states_cache,
                  "cache"                = TRUE))
     }
@@ -47,8 +47,8 @@ app_server <- function( input, output, session ) {
 
 
     
-  observeEvent(input$use_rruff_cache, {
-    if (!(input$use_rruff_cache))
+  observeEvent(input$use_med_cache, {
+    if (!(input$use_med_cache))
     {
       shinyWidgets::sendSweetAlert(
           session = session, title = "Downloading now!", type = "info",
@@ -60,18 +60,18 @@ app_server <- function( input, output, session ) {
           html = TRUE
       )
       future::future({
-        prepare_rruff_data()
-      }) %...>% rruff()
+        prepare_med_data()
+      }) %...>% med()
     } else {
-      rruff(list("rruff_data"           = rruff_data_cache, 
+      med(list("med_data"           = med_data_cache, 
                  "element_redox_states" = element_redox_states_cache,
                  "cache"                = TRUE))
     }
   })
 
 
-  observeEvent(rruff()$cache, {
-    if (rruff()$cache == FALSE)
+  observeEvent(med()$cache, {
+    if (med()$cache == FALSE)
     {
       shinyWidgets::sendSweetAlert(
           session = session, title = "Download is complete!", type = "success",
@@ -92,9 +92,9 @@ app_server <- function( input, output, session ) {
   chemistry_network <- reactive({
   
 
-    req(rruff()$rruff_data)
-    req(rruff()$element_redox_states)
-    #req(rruff()$cache) # THIS IS YOUR REMINDER TO NOT REQ THIS SINCE FALSE IS NOT TRUTHY
+    req(med()$med_data)
+    req(med()$element_redox_states)
+    #req(med()$cache) # THIS IS YOUR REMINDER TO NOT REQ THIS SINCE FALSE IS NOT TRUTHY
     req(input$elements_of_interest)
     
     elements_of_interest <- input$elements_of_interest
@@ -115,7 +115,7 @@ app_server <- function( input, output, session ) {
         text = "Networks with all elements, especially at more recent time frames, may be very slow - please be patient."
       )
     }
-    elements_only <- initialize_data(rruff()$rruff_data, rruff()$element_redox_states, elements_of_interest, force_all_elements)
+    elements_only <- initialize_data(med()$med_data, med()$element_redox_states, elements_of_interest, force_all_elements)
     if (nrow(elements_only) == 0)
     {
       shinyWidgets::sendSweetAlert(
@@ -137,7 +137,7 @@ app_server <- function( input, output, session ) {
     }
   
     ## TODO: ASYNC
-    network <- construct_network(elements_only_age, elements_by_redox, rruff()$element_redox_states)
+    network <- construct_network(elements_only_age, elements_by_redox, med()$element_redox_states)
     if (length(network) != 3 | nrow(network$nodes) == 0  | nrow(network$edges) == 0)
     {
       shinyWidgets::sendSweetAlert(

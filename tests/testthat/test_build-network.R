@@ -2,7 +2,7 @@
 test_that("fct_build_network::initialize_data() with a single element", {
   
   elements_of_interest <- "Cd"
-  test_output <- initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
+  test_output <- initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
 
   ## The number of rows WITH Cd should be all of them
   test_output %>%
@@ -23,7 +23,7 @@ test_that("fct_build_network::initialize_data() with a single element", {
 ## Test initialize_data(), multiple elements unforced -----------------------------------
 test_that("fct_build_network::initialize_data() with multiple unforced elements", {
   elements_of_interest <- c("Cd", "Sn")
-  test_output <- initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
+  test_output <- initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
   
   ## The number of rows WITH Cd or Sn should be all of them
   test_output %>%
@@ -45,7 +45,7 @@ test_that("fct_build_network::initialize_data() with multiple unforced elements"
 ## Test initialize_data(), multiple elements forced -----------------------------------
 test_that("fct_build_network::initialize_data() with multiple forced elements", {
   elements_of_interest <- c("Cd", "Sn")
-  test_output <- initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, TRUE)
+  test_output <- initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, TRUE)
   
   ## The number of rows WITH Cd or Sn should be all of them
   test_output %>%
@@ -68,7 +68,7 @@ test_that("fct_build_network::initialize_data() with multiple forced elements", 
 test_that("fct_build_network::initialize_data_age() using maximum known age", {
   elements_of_interest <- c("Cd")
   age_range <- c(1, 2.5)
-  test_input <- initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
+  test_input <- initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
   test_output <- initialize_data_age(test_input, age_range, "Maximum")
   
   ## Should return two df's
@@ -96,7 +96,7 @@ test_that("fct_build_network::initialize_data_age() using maximum known age", {
 test_that("fct_build_network::initialize_data_age() using minimum known age", {
   elements_of_interest <- c("Cd")
   age_range <- c(1, 2.5)
-  test_input <- initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
+  test_input <- initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
   test_output <- initialize_data_age(test_input, age_range, "Minimum")
   
   ## Should return two df's
@@ -124,7 +124,7 @@ test_that("fct_build_network::initialize_data_age() using minimum known age", {
 test_that("fct_build_network::construct_network() with elements_by_redox = F", {
   elements_of_interest <- c("Cd")
   age_range <- c(1, 2.5)
-  age_data <- initialize_data_age(initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, FALSE), age_range, "Maximum")
+  age_data <- initialize_data_age(initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, FALSE), age_range, "Maximum")
   test_output <- construct_network(age_data$elements_only_age, FALSE, element_redox_states_cache)
   
   ## Length of 3 with correct names
@@ -164,7 +164,7 @@ test_that("fct_build_network::construct_network() with elements_by_redox = F", {
 test_that("fct_build_network::construct_network() with elements_by_redox = T", {
   elements_of_interest <- c("Fe") ## Cd is disconnected
   age_range <- c(3, 4)
-  age_data <- initialize_data_age(initialize_data(rruff_data_cache, element_redox_states_cache, elements_of_interest, FALSE), age_range, "Maximum")
+  age_data <- initialize_data_age(initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, FALSE), age_range, "Maximum")
   test_output <- construct_network(age_data$elements_only_age, TRUE, element_redox_states_cache)
   
   ## Length of 3 with correct names
@@ -203,7 +203,7 @@ test_that("fct_build_network::construct_network() with elements_by_redox = T", {
 
 ## Test specify_community_detect_network(), using Louvain --------------------------------
 test_that("fct_build_network::specify_community_detect_network() with Louvain community clustering", {
-  age_data <- initialize_data_age(initialize_data(rruff_data_cache, element_redox_states_cache, "Fe", FALSE), c(3, 4), "Maximum")
+  age_data <- initialize_data_age(initialize_data(med_data_cache, element_redox_states_cache, "Fe", FALSE), c(3, 4), "Maximum")
   network_raw <- construct_network(age_data$elements_only_age, TRUE, element_redox_states_cache)
   test_cluster <- specify_community_detect_network(network_raw$network, network_raw$nodes, "Louvain")
   

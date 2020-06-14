@@ -1,5 +1,17 @@
 ##########################################################################################################################
 ######################## Convert visNetwork to suitable igraph version for exporting the image ###########################
+
+#' Create an igraph-formatted network image from user specifications in order to export a high-resolution figure
+#'
+#' @param nodes Tibble of network nodes with associated styling
+#' @param edges Tibble of network edges with associated styling
+#' @param input_element_size_scale A user-inputted numeric to scale up/down (multiply) the final element node sizes
+#' @param input_element_size_scale A user-inputted numeric to scale up/down (multiply) the final element node sizes
+#' @param input_mineral_size_scale A user-inputted numeric to scale up/down (multiply) the final mineral node sizes
+#' @param show_node_frame A logical indicating if nodes should be outlined in the final image
+#'
+#' @return Named list of the styled igraph object ("igraph_network"), a matrix of layout coordinates to use in exported image ("coords"), and a numeric for the output network's aspect ratio ("vis_aspect_ratio")
+#' @noRd
 visnetwork_to_igraph <- function(nodes, edges, input_element_size_scale, input_element_label_scale, input_mineral_size_scale, show_node_frame)
 {
   
@@ -130,6 +142,16 @@ visnetwork_to_igraph <- function(nodes, edges, input_element_size_scale, input_e
 
 
 
+#' Create an igraph-formatted network image from user specifications in order to export a high-resolution figure
+#'
+#' @param nodes Tibble of network nodes
+#' @param positions List of node positions as determined by visNetwork::visGetPositions()
+#' @param inet Network in igraph format
+#' @param output_layout String indicating the network layout, as provided by user in UI. NOTE: physics layouts (non-static) are automatically changed to FR 
+#' @param seed Random seed specified by user in UI associated with stochastic layouts
+#'
+#' @return Tibble of nodes with additional columnc "x" and "y" giving coorindates
+#' @noRd
 calculate_output_node_positions <- function(nodes, positions, inet, output_layout, seed)
 {
   if (is.null(positions)){

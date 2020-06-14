@@ -1,15 +1,25 @@
-prepare_rruff_data <- function(cache = FALSE)
+#' Prepare Mineral Evolution Database data for use in dragon
+#'
+#' @param cache A logical to indicate if the dragon cache of Mineral Evolution Database (MED) data should be used (Default:FALSE). If TRUE, will fetch the most up-to-date data from MED.
+#'
+#' @return A named list of processed data: "med_data", "element_redox_states", and "cache" (same logical as the input)
+#' @noRd
+prepare_med_data <- function(cache = FALSE)
 {
-  rd <- fetch_rruff_data()
+  md <- fetch_med_data()
   ers <- calculate_element_redox_states(rd)
-  return( list("rruff_data" = rd, "element_redox_states" = ers, "cache" = cache) )
+  return( list("med_data" = rd, "element_redox_states" = ers, "cache" = cache) )
 }
 
-fetch_rruff_data <- function()
+#' Download and process information from Mineral Evolution Database data for use in dragon
+#'
+#' @return A tibble of relevant information from MED
+#' @noRd
+fetch_med_data <- function()
 {
   ## Download MED tables-------------------------------------------
-  m1 <- readr::read_tsv(rruff_m1_url, guess_max=10000)
-  m2 <- readr::read_tsv(rruff_m2_url, guess_max=10000)
+  m1 <- readr::read_tsv(med_m1_url, guess_max=10000)
+  m2 <- readr::read_tsv(med_m2_url, guess_max=10000)
   
   dplyr::left_join(m1, m2) %>% 
     dplyr::filter(at_locality == 1) %>%
@@ -37,13 +47,19 @@ fetch_rruff_data <- function()
 
 
 
-calculate_element_redox_states <- function(rruff_data)
+#' Extract element redox information, where known, for minerals within the downloaded MED data 
+#'
+#' @param A tibble of relevant information from MED as made with fetch_med_data()
+#' 
+#' @return A tibble containing element redox states per mineral
+#' @noRd
+calculate_element_redox_states <- function(med_data)
 {
   ## Return NULL right away if data is NULL ---------------------------------------
-  if(is.null(rruff_data)) return (NULL)
+  if(is.null(med_data)) return (NULL)
 
   ## Parse the redox ---------------------------------------------------
-  rruff_data %>% 
+  med_data %>% 
     dplyr::select(mineral_name, rruff_chemistry) %>% 
     dplyr::distinct() -> mineral_chem
   
@@ -78,7 +94,7 @@ calculate_element_redox_states <- function(rruff_data)
   ## Merge with elements unknown redox state (NA) -----------------------------------
   group1_elements <- c("H", "Li", "Na", "K", "Rb", "Cs", "Fr")
   group2_elements <- c("Be", "Mg", "Ca", "Sr", "Ba", "Ra")
-  rruff_data %>%
+  med_data %>%
     dplyr::select(mineral_name, chemistry_elements) %>%
     dplyr::distinct() %>%
     tidyr::separate_rows(chemistry_elements, sep = " ") %>%
@@ -92,7 +108,7 @@ calculate_element_redox_states <- function(rruff_data)
                                                             element %in% group2_elements ~ 2,
                                                             TRUE                         ~ as.numeric(element_redox_mineral)
     ) ## END case_when
-    ) -> element_redox_states
+  ) -> element_redox_states
   
   
   element_redox_states %>% dplyr::filter(element_redox_mineral == 0) -> num_zero_redox
@@ -102,9 +118,13 @@ calculate_element_redox_states <- function(rruff_data)
 }
 
 
+#' Query the MED to determine the most recent date the data used by dragon was updated
+#' 
+#' @return Stamp date of most recent MED update
+#' @noRd
 find_most_recent_date <- function()
 {
-  xml2::read_html(rruff_exporting_url) %>%
+  xml2::read_html(med_exporting_url) %>%
     rvest::html_node("table") %>% 
     rvest::html_table(fill=TRUE) %>% 
     as.data.frame() -> raw_html
