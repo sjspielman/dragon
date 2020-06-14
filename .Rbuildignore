@@ -12,5 +12,5 @@ rsconnect/
 ^CODE_OF_CONDUCT\.md$
 ^app\.R$
 ^rsconnect$
-^dev/$
+^dev$
 ^data-raw$
