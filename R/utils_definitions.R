@@ -4,8 +4,9 @@ options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Setting for DT to show
 options(scipen=3)                                      ## Sci when more than 3 digits
 on.exit(options(original_options), add=TRUE)
 
-## Future planning -------------------------------------------------------------------
-future::plan(future::multiprocess) 
+## Future planning with RStudio check to avoid warning -------------------------------
+if (future::supportsMulticore()) future::plan(future::multiprocess) 
+if (future::supportsMulticore() == FALSE) future::plan(future::multisession) 
 
 ## MED URLs --------------------------------------------------------------------------
 
