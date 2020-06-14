@@ -1,6 +1,5 @@
 ^\.travis\.yml$
-.DS_Store
-rsconnect/
+**/.DS_Store
 ^cran-comments\.md$
 .Rapp.history
 ^CRAN-RELEASE$
