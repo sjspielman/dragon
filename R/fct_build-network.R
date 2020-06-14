@@ -1,11 +1,3 @@
-#load("R/sysdata.rda") ## TODO devtools:check() fails without explicit load. how fix? can i do library(dragon)? probably not?
-# from stackoverflow?: 
-# If your package name is somepackage and the object saved 
-#    was nhanes_files with devtools::use_data(nhanes_files, internal = TRUE) 
-#    then you can access this in your functions by calling somepackage:::nhanes_files.
-
-
-
 #' Initialize a mineral-chemistry network as stand-alone network rather than for embedding 
 #' into the Shiny App.
 #' 
@@ -25,25 +17,25 @@
 #' @param cluster_algorithm    A string giving community clustering algorithm, one of 
 #' "Louvain" (default) or "Leading eigenvector". 
 #' @param use_data_cache    A logical. If TRUE (default) cached Mineral Evolution Database
-#'  will be used to build the network. If FALSE, data will be fetched from MED here. CAUTION: May 
-#'  take several minutes to update.
+#'  will be used to build the network. If FALSE, data will be fetched from MED here. CAUTION: Requires
+#'  internet connection and will take several minutes to update.
 #' 
-#' @returns Named list containing an igraph-formatted network ('network'), an 
-#' igraph::communities object giving node cluster memberships ('clustering'), a tibble of nodes
-#' associated metadata ('nodes'), and a tibble of edges and associated metadata ('edges')
+#' @returns Named list containing an igraph-formatted network (`network'), an 
+#' igraph::communities object giving node cluster memberships (`clustering'), a tibble of nodes
+#' associated metadata (`nodes'), and a tibble of edges and associated metadata (`edges')
 #' 
 #' @examples
 #' \dontrun{
 #' # Include all Iron minerals whose maximum known age is between 1-2 Gya, and apply 
-#' #   Louvain clustering
+#' #   Louvain community clustering
 #' initialize_network("Fe", age_range = c(1,2))
 #'
-#' # Include all minerals containing \emph{either} Iron and Oxygen whose maximum known age 
-#' #   is between 1-2 Gya, and apply Louvain clustering
+#' # Include all minerals containing either Iron and Oxygen whose maximum known age 
+#' #   is between 1-2 Gya
 #' initialize_network(c("Fe", "O"), age_range = c(1,2))
 #'
-#' # Include all minerals containing \emph{both} Iron and Oxygen whose maximum known age is 
-#' #   between 1-2 Gya, and apply Louvain clustering
+#' # Include all minerals containing both Iron and Oxygen whose maximum known age is 
+#' #   between 1-2 Gya
 #' initialize_network(c("Fe", "O"), force_all_elements = TRUE, age_range = c(1,2))
 #'
 #' # Build the full mineral network
@@ -60,6 +52,7 @@ initialize_network <- function(elements_of_interest,
   
   if (use_data_cache)
   {
+    ## TODO: does this need to be dragon:::med_data_cache?
     med_data <- med_data_cache
     element_redox_states <- element_redox_states_cache
   } else

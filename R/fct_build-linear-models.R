@@ -26,10 +26,10 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
     # remove all clusters with <3 minerals
     mineral_nodes %>%
       dplyr::group_by({{predictor_col}}) %>% 
-      dplyr::mutate(n = dplyr::n()) %>%
+      dplyr::mutate(num = dplyr::n()) %>%
       dplyr::ungroup() %>%
-      dplyr::filter(n>=3) %>%
-      dplyr::select(-n) -> mineral_nodes
+      dplyr::filter(num>=3) %>%
+      dplyr::select(-num) -> mineral_nodes
     keep_clusters <- unique(mineral_nodes$cluster_ID)
     
     # Ensure factor
@@ -38,7 +38,7 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
   fit_string <- paste(response_string, "~", predictor_string)
 
   ## Build model ------------------------------------------------
-  model_fit <- lm(stats::as.formula(fit_string), data = mineral_nodes, na.action = stats::na.omit )
+  model_fit <- stats::lm(stats::as.formula(fit_string), data = mineral_nodes, na.action = stats::na.omit )
   
   
   # Run a Tukey as needed -------------------------------------------
@@ -50,7 +50,7 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
     test_variance_pvalue <- stats::bartlett.test(stats::as.formula(fit_string), data = mineral_nodes, na.action = stats::na.omit)$p.value
     if (test_variance_pvalue <= 0.05) tukey_ok_variance <- FALSE
 
-    stats::TukeyHSD(aov(model_fit)) %>%
+    stats::TukeyHSD(stats::aov(model_fit)) %>%
       broom::tidy() %>%
       dplyr::select(-term) %>%
       dplyr::mutate(comparison  = stringr::str_replace_all(comparison, "-", " - "),

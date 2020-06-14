@@ -58,7 +58,7 @@ Collate:
     'utils_palette.R'
     'utils_style-network.R'
     'utils_ui-choices.R'
-    'fct_prepare-rruff-data.R'
+    'fct_prepare-med-data.R'
     'fct_build-legend.R'
     'fct_build-linear-models.R'
     'fct_build-network.R'

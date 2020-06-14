@@ -66,7 +66,7 @@ calculate_element_redox_states <- function(med_data)
   element_redox_states_raw <- tibble::tibble("mineral_name"          = as.character(), 
                                              "element"               = as.character(), 
                                              "element_redox_mineral" = as.double(), 
-                                             "n"                     = as.integer())
+                                             "num"                     = as.integer())
   for (mineral in mineral_chem$mineral_name)
   {
     mineral_chem %>%
@@ -75,7 +75,7 @@ calculate_element_redox_states <- function(med_data)
     temp <- tibble::as_tibble(as.data.frame(stringr::str_match_all(mindat$rruff_chemistry, "([A-Z][a-z]*)\\^(\\d)([+-])\\^"), stringsAsFactors=FALSE))
     if(nrow(temp) == 0)
     {
-      temp2 <- tibble::tibble("mineral_name" = mineral, "element" = NA, "element_redox_mineral" = NA, "n" = 1)
+      temp2 <- tibble::tibble("mineral_name" = mineral, "element" = NA, "element_redox_mineral" = NA, "num" = 1)
     } else
     {
       temp$X3 <- as.double(temp$X3)
@@ -83,9 +83,9 @@ calculate_element_redox_states <- function(med_data)
         dplyr::mutate(thesign = dplyr::if_else(X4 == "+", 1, -1), 
                       redox   = X3 * thesign) %>% 
         dplyr::select(redox, X2) %>%
-        dplyr::mutate(mineral_name = mineral, n=1:dplyr::n()) -> temp2
+        dplyr::mutate(mineral_name = mineral, num=1:dplyr::n()) -> temp2
       temp2 <- temp2[c(3, 2, 1, 4)]
-      names(temp2) <- c("mineral_name", "element", "element_redox_mineral", "n")
+      names(temp2) <- c("mineral_name", "element", "element_redox_mineral", "num")
     }
     
     element_redox_states_raw <- dplyr::bind_rows( element_redox_states_raw, temp2 )
@@ -100,7 +100,7 @@ calculate_element_redox_states <- function(med_data)
     tidyr::separate_rows(chemistry_elements, sep = " ") %>%
     dplyr::rename(element = chemistry_elements) %>%
     dplyr::left_join(element_redox_states_raw) %>% 
-    dplyr::select(-n) %>%
+    dplyr::select(-num) %>%
     dplyr::mutate(element_redox_mineral = dplyr::case_when(element == "O"               ~ -2,
                                                             element == "Si"              ~ 4, 
                                                             element %in% c("Cl", "F")    ~ -1, 

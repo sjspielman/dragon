@@ -33,12 +33,11 @@ visnetwork_to_igraph <- function(nodes, edges, input_element_size_scale, input_e
   ### Modify baselines depending on number of each node types.
   number_element_nodes <- nodes %>% 
                             dplyr::filter(group == "element") %>%
-                            dplyr::tally() %>% 
-                            dplyr::pull(n) 
+                            nrow()
+  
   number_mineral_nodes <- nodes %>% 
                             dplyr::filter(group == "mineral") %>% 
-                            dplyr::tally() %>% 
-                            dplyr::pull(n) 
+                            nrow() 
   
   if (number_element_nodes > baseline_num_elements) norm_element <- (number_element_nodes / baseline_num_elements) 
   if (number_mineral_nodes > baseline_num_minerals) norm_mineral <- (number_mineral_nodes / baseline_num_minerals) 

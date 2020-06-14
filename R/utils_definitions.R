@@ -10,26 +10,33 @@ future::plan(future::multiprocess)
 ## MED URLs --------------------------------------------------------------------------
 
 #' Lead portion of MED URL 
+#' @noRd
 med_exporting_url <- "http://rruff.info/mineral_list/MED/exporting/"
 #' URL of `tbl_mineral.csv` data from MED
+#' @noRd
 med_m1_url        <- paste0(med_exporting_url, "tbl_mineral.csv")
 #' URL of `tbl_locality_age_cache_alt.csv` data from MED
+#' @noRd
 med_m2_url        <- paste0(med_exporting_url, "tbl_locality_age_cache_alt.csv")
 
-## Explicit pipe definitions ---------------------------------------------------------
-`%>%`  <- magrittr::`%>%`
-`%<>%` <- magrittr::`%>%`
+## Explicit pipe and operator definitions ---------------------------------------------------------
+`%>%`    <- magrittr::`%>%`
+`%<>%`   <- magrittr::`%>%`
 `%...>%` <- promises::`%...>%`
+`:=`     <- rlang::`:=`
+`!!`     <- rlang::`!!`
 
 
 
 ## Enjoyable error messages ----------------------------------------------------------------
 #' Enjoyable error messages for randomized use in sweetAlerts
+#' @noRd
 error_choices <- c("Oh no!", "Sorry, that's not gonna work.", "Try again!", "Womp womp :(", "No dice!", "Uh oh!", "Woopsies!")
 
 
 ## Element information --------------------------------------------------------------------------
 #' Tibble of element metadata
+#' @noRd
 element_info <- tibble::tribble(
   ~element_name, ~element, ~element_hsab, ~atomic_mass, ~number_of_protons, ~table_period, ~table_group, ~atomic_radius, ~pauling, ~metal_type, ~element_density, ~element_specific_heat,
   "Silver", "Ag", "Soft acid", 107.868, 47, 5, 11, 1.80, 1.93, "Transition Metal", 1.05e+01, 0.235, 

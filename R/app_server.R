@@ -224,7 +224,7 @@ app_server <- function( input, output, session ) {
   output$choose_nodes <- renderUI({
     chemistry_network()$nodes %>%
       dplyr::select(id, group) %>%
-      dplyr::arrange(desc(group)) %>%
+      dplyr::arrange(dplyr::desc(group)) %>%
       dplyr::pull(id) -> ordered_ids
     
     ordered_ids <- c("All elements", "All minerals", ordered_ids)
@@ -448,8 +448,8 @@ app_server <- function( input, output, session ) {
     
   ## Download the network as PDF image -----------------------------------------------------
   output$downloadNetwork_pdf <- downloadHandler(
-    filename <- function() { paste0('dragon_network_', Sys.Date(), '.pdf') },
-    content <- function(outfile)
+    filename = function() { paste0('dragon_network_', Sys.Date(), '.pdf') },
+    content  = function(outfile)
     {
       igraph_version <- visnetwork_to_igraph(styled_nodes_with_positions(), 
                                              edge_styler()$styled_edges, 
@@ -472,8 +472,8 @@ app_server <- function( input, output, session ) {
   
   ## Download the legend as PDF image ------------------------------------------------------------
   output$download_legend <- downloadHandler(
-    filename <- function() { paste0('dragon_legend_', Sys.Date(), '.pdf') },
-    content <- function(outfile) 
+    filename = function() { paste0('dragon_legend_', Sys.Date(), '.pdf') },
+    content  = function(outfile) 
     {
       #save_plot(outfile,  ggdraw( final_legend() ) , base_width = input$output_legend_width, base_height = input$output_legend_height )
       cowplot::save_plot(outfile,  cowplot::ggdraw( final_legend() ) , base_width = 8 ) ## due to cowplot args, it's too easy to mess this up. we choose for users.
@@ -482,8 +482,8 @@ app_server <- function( input, output, session ) {
   
   ## Download the nodes as CSV ------------------------------------------------------------
   output$exportNodes <- downloadHandler(
-    filename <- function() { paste0('dragon_node_data_', Sys.Date(), '.csv') },
-    content <- function(outfile) 
+    filename = function() { paste0('dragon_node_data_', Sys.Date(), '.csv') },
+    content  = function(outfile) 
     {
       readr::write_csv(node_styler()$styled_nodes, outfile)
     })
@@ -491,8 +491,8 @@ app_server <- function( input, output, session ) {
   
   ## Download the edges as CSV ------------------------------------------------------------
   output$exportEdges <- downloadHandler(
-    filename <- function() { paste0('dragon_edge_data_', Sys.Date(), '.csv') },
-    content <- function(outfile) 
+    filename = function() { paste0('dragon_edge_data_', Sys.Date(), '.csv') },
+    content  = function(outfile) 
     {
       readr::write_csv(edge_styler()$styled_edges, outfile)
     })
@@ -520,13 +520,13 @@ app_server <- function( input, output, session ) {
   
   ## Define the download button for network_table() reactive ---------------------------------------------
   output$download_networkTable <- downloadHandler(
-    filename <- function() { paste0('dragon_network_information_', Sys.Date(), '.csv') },
-    content <- function(file) 
+    filename = function() { paste0('dragon_network_information_', Sys.Date(), '.csv') },
+    content  = function(file) 
     {
       readr::write_csv(network_table(), file)
     })
   
-  # OH SHIT SEGFAULT. seriously why the fuck does this segf
+  # TODO: THIS NEEDS DOING!
   raw_node_table <- reactive({
     prepare_selected_node_table(chemistry_network()$nodes, chemistry_network()$edges, chemistry_network()$locality_info)
   })
@@ -726,8 +726,8 @@ app_server <- function( input, output, session ) {
     if (input$predictor == cluster_ID_str)
     {
       chemistry_network()$mineral_nodes %>%
-        dplyr::count(cluster_ID) %>% 
-        dplyr::filter(n >= 3) %>% ## Only keep clusters with >=3 members 
+        dplyr::count(cluster_ID, name = "num") %>% 
+        dplyr::filter(num >= 3) %>% ## Only keep clusters with >=3 members 
         dplyr::select(cluster_ID) %>%
         dplyr::distinct() %>%
         nrow() -> n_clusters ## Need at least two to compare, see the if below.
@@ -799,7 +799,7 @@ app_server <- function( input, output, session ) {
     filename = function() {
       paste("dragon_model_plot-", Sys.Date(), ".pdf", sep="")
     },
-    content = function(file) {
+    content  = function(file) {
       ggplot2::ggsave(file, linear_model_plot())
   })        
 
