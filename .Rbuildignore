@@ -13,3 +13,5 @@
 ^rsconnect$
 ^dev$
 ^data-raw$
+^doc$
+^Meta$
