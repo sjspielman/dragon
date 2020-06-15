@@ -183,14 +183,16 @@ Finally, you can export the network image itself. On one hand, it is possible to
 
 Under the tab "Analyze Network Minerals," `dragon` will construct simple linear regressions to analyze the relationships among mineral properties in the network you have built. Note that this tab is also responsive to the inputs in the sidebar panel. If you change the network fundamentals (e.g. focal elements or age range), the analysis will change as well.
 
-To perform a linear regression, specify a *predictor* (aka "explanatory" or "independent") variable and a *response* (aka "dependent") variable. The modeling results will be reported on the left side of the left side of the screen. A visualization of your variables will appear on the right side of the screen, which can be styled according to various options that appear below the visualization. You can also export this image using the "Download Plot" button. Importantly, if you select "Community cluster" as the predictor variable, a Tukey test will also be performed to perform pairwise comparisons of all clusters considered. 
+To perform a linear regression, specify a *predictor* (aka "explanatory" or "independent") variable and a *response* (aka "dependent") variable. The modeling results will be reported on the right side of the screen. If you select "Community cluster" as the predictor variable, a Tukey test will also be performed to perform pairwise comparisons of all clusters considered, so you will see two tables of results. A visualization of your model will appear below the table(s), and you can use style the plot according to various options that appear left of the visualization. You can also export this image using the "Download Plot" button. 
 
 There are several caveats to be aware of when conducting analyses in this tab:
+
 + Hiding the sidebar panel can result in a better view. Click the "hamburger" button to the right of the app title will collapse the sidebar.
-+ Any network with fewer than three minerals cannot be analyzed. `dragon` will issue a warning prompt if there are too few data points for statistical analysis.
++ Any network with fewer than three minerals cannot be analyzed. `dragon` will issue a warning if there are too few data points for statistical analysis.
 + `dragon` will _not_ check if the relationship between your numeric variables is indeed linear. You will need to gauge this for yourself in the resulting image.
-+ `dragon` will _not_ transform the data in any way. 
-+ For analyses which consider Community Cluster as the predictor variable, only those clusters that contain at least 3 minerals will be analyzed. *Please interpret these results with caution.*
++ `dragon` will _not_ transform the data in any way. You will need to gauge for yourself whether the data is appropriate for a linear model analysis.
++ For analyses which consider Community cluster as the predictor variable, only those clusters that contain at least 3 minerals will be analyzed. `dragon` will also display a warning if the variance is not equal among clusters being compared, which can result in imprecise modeling results.
++ *Overall, please interpret these results with caution.* We do your models, but not your science!
 
 
 
