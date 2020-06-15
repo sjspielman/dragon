@@ -254,16 +254,16 @@ app_ui <- function(request) {
                 ## ANALYZE NETWORK PANEL ---------------------------------------------------------------------------------------------                   
                 shiny::tabPanel("Analyze Network Minerals",
                   #helpText("In this tab, you can construct a linear regression model to analyze properties of minerals in the specified network."),
-                  # TODO: put this into boxes?
+                  br(),
+                  br(),
+                  br(),
                   fluidRow(
                     column(4, 
                       shinyWidgets::pickerInput("response", 
                                                  tags$b("Select the response (dependent) variable:"), 
                                                  choices = model_response_choices, 
                                                  selected=max_age_str
-                      )
-                    ), ## END column
-                    column(4,
+                      ),
                       shinyWidgets::pickerInput("predictor", 
                                   tags$b("Select the predictor (independent) variable:"), 
                                   choices = model_predictor_choices, 
@@ -272,25 +272,27 @@ app_ui <- function(request) {
                       conditionalPanel('input.predictor == "Community cluster"',{ 
                         shiny::textOutput("cluster_fyi")
                       })
-                    ) ## END column
-                  ), ## END fluidRow
-                  
-                  fluidRow(
-                    column(6,
+                    ), ## END column
+                    column(8,
                       DT::dataTableOutput("fitted_model"),
                       br(),br(),
                       conditionalPanel( condition = 'input.predictor == "Community cluster"', {
                         DT::dataTableOutput("fitted_tukey")
                       })
-                    ), ## END column
-                    column(6,
-                      shiny::plotOutput("fitted_model_plot"),
+                    ) ## END column
+                  ), ## END fluidRow
+                  fluidRow(
+                    column(4,
                       p(tags$b("Plot styling options:")),                      
-                      shiny::uiOutput("model_plot_options"),
-                      
+                      shiny::uiOutput("model_plot_options")
+                    ), ## END column
+                    column(8,
+                      div(style="float:center;width:600px;height:400px;",
+                        shiny::plotOutput("fitted_model_plot", height = "100%", width = "100%")
+                      ),
                       div(style="display:inline-block; float:right;",
                         shinyWidgets::downloadBttn("download_model_plot", "Download Plot", size = "sm", style = "minimal", color = "danger")
-                      )                                
+                      ) ## END div                                
                     ) ## END column
                   ) ## END fluidRow
                  ) ## END "Analyze Network Minerals" tabPanel  

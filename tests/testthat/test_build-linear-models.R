@@ -3,9 +3,12 @@ test_that("fct_run_linear_models::fit_linear_model() with numeric predictor", {
   response <- variable_to_title[["num_localities"]]
   test_fitted <- fit_linear_model(response, predictor, true_mineral_nodes)
 
-  expect_equal(sort(names(test_fitted)), sort(c("keep_clusters", "model_fit", "tukey_fit", "tukey_ok_variance"))  )
+  expect_equal(sort(names(test_fitted)), sort(c("keep_clusters", "model_fit", "tukey_fit", "rsquared", "tukey_ok_variance"))  )
   expect_true(test_fitted$tukey_ok_variance)
-  expect_true(is.null(test_fitted$tukey_table))
+  expect_true(is.null(test_fitted$tukey_fit))
+  expect_true(is.numeric(test_fitted$rsquared[[1]]))
+  expect_true(is.numeric(test_fitted$rsquared[[2]]))
+  
   
   model_fit_table <- test_fitted$model_fit
   expect_equal(sort(names(model_fit_table)), sort(c("Coefficient", "Coefficient estimate", "Standard error", "t-statistic", "P-value")))
@@ -19,9 +22,11 @@ test_that("fct_run_linear_models::fit_linear_model() with cluster predictor", {
   response <- variable_to_title[["num_localities"]]
   test_fitted <- fit_linear_model(response, predictor, true_mineral_nodes)
 
-  expect_equal(sort(names(test_fitted)), sort(c("keep_clusters", "model_fit", "tukey_fit", "tukey_ok_variance"))  )
+  expect_equal(sort(names(test_fitted)), sort(c("keep_clusters", "model_fit", "tukey_fit", "rsquared", "tukey_ok_variance"))  )
   expect_true(is.logical(test_fitted$tukey_ok_variance))
-  expect_true(is.null(test_fitted$tukey_table))
+  expect_true(!(is.null(test_fitted$tukey_fit)))
+  expect_true(is.na(test_fitted$rsquared[[1]]))
+  expect_true(is.na(test_fitted$rsquared[[2]]))
   
   true_mineral_nodes %>% 
     dplyr::count(cluster_ID) %>% 
@@ -47,6 +52,7 @@ test_that("fct_run_linear_models::plot_linear_model_scatter()", {
 
   test_plotted <- plot_linear_model_scatter(response, 
                                             predictor, 
+                                            c(0.5, 0.01),
                                             true_mineral_nodes, 
                                             FALSE, ## logx
                                             FALSE, ## logy

@@ -764,7 +764,7 @@ app_server <- function( input, output, session ) {
         text = "Community clusters have unequal variances and modeling results may not be precise."
       )
     }
-    fitted_linear_model ## a list itself: $mineral_nodes, $model_fit, $tukey_fit, $tukey_ok_variance (only used above)
+    fitted_linear_model ## a list itself: $mineral_nodes, $model_fit, $rsquared, $tukey_fit, $tukey_ok_variance (only used above)
   })  ## END linear_model_output reactive
   
   
@@ -773,7 +773,7 @@ app_server <- function( input, output, session ) {
     {
       p <- plot_linear_model_cluster(input$response, linear_model_output()$keep_clusters, chemistry_network()$mineral_nodes, chemistry_network()$cluster_colors, input$plot_type, input$flip_coord, input$show_mean_se, input$show_legend, input$point_size_cluster, input$grid_cluster)
     } else  {
-      p <- plot_linear_model_scatter(input$response, input$predictor, chemistry_network()$mineral_nodes, input$logx, input$logy, input$point_color, input$point_size_scatter, input$bestfit, input$bestfit_color, input$grid_scatter)
+      p <- plot_linear_model_scatter(input$response, input$predictor, linear_model_output()$rsquared, chemistry_network()$mineral_nodes, input$logx, input$logy, input$point_color, input$point_size_scatter, input$bestfit, input$bestfit_color, input$grid_scatter)
     }    
     p
   })  ## END linear_model_plot reactive
@@ -800,7 +800,7 @@ app_server <- function( input, output, session ) {
   
   ## FYI text for cluster analysis -----------------------------------------------------
   output$cluster_fyi <- renderText({
-    "Note: Community clusters with fewer than three minerals are excluded from analysis.\n\n"
+    "Note: Clusters with fewer than three minerals are excluded from analysis.\n\n"
   })
 
       

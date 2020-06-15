@@ -63,7 +63,15 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
                     "95% CI Lower bound" = conf.low,
                     "95% CI Upper bound" = conf.high,
                     "Adjusted P-value" = adj.p.value) -> tukey_fit_table
+    rsquared <- NA
+    rsquared.pvalue <- NA
+  } else {
+    
+    broom::glance(model_fit) -> glanced
+    rsquared <- glanced$r.squared
+    rsquared.pvalue <- glanced$p.value
   }
+  
   broom::tidy(model_fit) %>%
     dplyr::mutate(term  = stringr::str_replace(term, "cluster_ID", paste0(cluster_ID_str, " ")),
                   term  = stringr::str_replace_all(term, "`", ""),
@@ -78,8 +86,10 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
                   "Standard error"       = std.error,
                   "t-statistic"          = statistic,
                   "P-value"              = p.value) -> model_fit_table
+
   return(list("keep_clusters" = keep_clusters, 
               "model_fit" = model_fit_table,  ## tibble
+              "rsquared" = c(rsquared, rsquared.pvalue), # array
               "tukey_fit" = tukey_fit_table,  ## tibble
               "tukey_ok_variance" = tukey_ok_variance ## logical
              )
@@ -177,7 +187,8 @@ plot_linear_model_cluster <- function(response, keep_clusters, mineral_nodes, cl
 #' Plot results from linear regression as a scatterplot
 #' 
 #' @param response   Variable used as regression response
-#' @param response   Variable used as regression predictor
+#' @param predictor   Variable used as regression predictor
+#' @param rsquared_info   Array containing the regression's R^2 and p-value (in that order)
 #' @param mineral_nodes  Tibble containing data to visualize
 #' @param logx Logical indicating if x-axis should be displayed on log10-scale 
 #' @param logy Logical indicating if y-axis should be displayed on log10-scale 
@@ -189,18 +200,22 @@ plot_linear_model_cluster <- function(response, keep_clusters, mineral_nodes, cl
 #'
 #' @returns ggplot object to be displayed
 #' @noRd
-plot_linear_model_scatter <- function(response, predictor, mineral_nodes, logx, logy, point_color, point_size, bestfit, bestfit_color, show_grid)
+plot_linear_model_scatter <- function(response, predictor, rsquared_info, mineral_nodes, logx, logy, point_color, point_size, bestfit, bestfit_color, show_grid)
 {
 
   resp <- as.symbol(response)
   pred <- as.symbol(predictor)
-  
+  rsq <- round(rsquared_info[[1]], 3)
+  rsqp <- round(rsquared_info[[2]], 3)
+
   ## Build the scatterplot for models that do NOT HAVE cluster as predictor ------------------------------------
   ggplot2::ggplot(mineral_nodes) + 
     ggplot2::aes(x = {{pred}}, y = {{resp}}) +
     ggplot2::xlab(predictor) + 
     ggplot2::ylab(response) + 
-    ggplot2::geom_point(size = point_size, color = point_color) -> fitted_model_plot
+    ggplot2::geom_point(size = point_size, color = point_color) +
+    ggplot2::labs(subtitle = bquote(R^2 == .(rsq) ~ "(P = " ~ .(rsqp) ~ ")" )) +
+    ggplot2::theme(plot.subtitle = ggplot2::element_text(hjust = 1)) -> fitted_model_plot
 
   if (logx)      fitted_model_plot <- fitted_model_plot + ggplot2::scale_x_log10()
   if (logy)      fitted_model_plot <- fitted_model_plot + ggplot2::scale_y_log10()
