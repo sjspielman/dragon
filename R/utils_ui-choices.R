@@ -116,7 +116,7 @@ categorical_plot_choices <- c("Strip chart" = "strip",
 #' @noRd
 network_layout_choices <- list(`Force-directed` = c("Fruchterman Reingold"   = "layout_with_fr",
                                                    "GEM force-directed"      = "layout_with_gem"),
-                                Other           = c("Dynamic physics layout (WARNING: Do not use if photosensitive)" = "physics",
+                                Other           = c("Dynamic physics layout" = "physics",
                                                     "Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
                                                     "Layout in circle"            = "layout_in_circle",
                                                     "Layout in sphere"            = "layout_on_sphere"))

@@ -20,6 +20,8 @@ app_server <- function( input, output, session ) {
         "use_med_cache",
         title = "Welcome to dragon!",
         text = tags$span(
+                "dragon is GPL-3 and by clicking this you acknowledge to agree to terms. Please cite DRAGON AND MED in your papers.",
+                br(),
                 "We use MED data, cached from the MED update on", 
                 tags$b(med_cache_date), ". MED was mostly recently updated on ",  
                 tags$b(find_most_recent_date()), 
@@ -37,7 +39,7 @@ app_server <- function( input, output, session ) {
     } else {
       shinyWidgets::sendSweetAlert(
          session = session, title = "Welcome to dragon!", type = "info",
-        text = paste0("We're using the most up to date MED data, which was released on ", med_cache_date, ".")
+        text = paste0("We're using the most up to date MED data, which was released on ", med_cache_date, ". dragon is GPL-3 and by clicking this you acknowledge to agree to terms. Please cite DRAGON AND MED in your papers.")
       )
       med(list("med_data"           = med_data_cache, 
                  "element_redox_states" = element_redox_states_cache,

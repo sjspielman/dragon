@@ -1,8 +1,9 @@
 ---
-title: "Introduction to dragon"
+title: "Introduction to mineral-chemistry network analysis in `dragon`"
 author: "Stephanie J. Spielman"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
+bibliography: dragon.bib
 vignette: >
   %\VignetteIndexEntry{Introduction to dragon}
   %\VignetteEngine{knitr::rmarkdown}
@@ -12,22 +13,104 @@ vignette: >
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  eval = FALSE
 )
 ```
 
-The `dragon` (**D**eep time **R**edox **A**nalysis of the **G**eobiology **O**ntology **N**etwork) package provides a Shiny Application for examining mineral-chemistry networks over deep time on Earth, with a specific application of investigating biologically-relevant evolution of element redox states. `dragon` uses the `visNetwork` library (an R wrapper for `vis.js`) to construct user-friendly interactive networks. 
+The `dragon` (**D**eep-time **R**edox **A**nalysis of the **G**eobiology **O**ntology **N**etwork) library provides a Shiny Application [@shiny] for examining mineral-chemistry networks over deep time on Earth, with a specific application of investigating biologically-relevant evolution of element redox states as recorded in the mineral record. These networks are built using open-source data from the [Mineral Evolution Database](https://rruff.info/ima/) [@med]. `dragon` uses the `igraph` [@igraph] and `visNetwork` [@visnetwork] libraries to construct user-friendly interactive networks that can be manipulated and explored in the browser and exported as publication-ready figures. 
 
-This package was written by Stephanie J. Spielman, Ph.D. at Rowan University for collaborative research with Eli K. Moore, Ph.D. at Rowan University and is lisenced under GPL-3.
+# Citing `dragon` 
 
-To run `dragon` locally, simply run the command `rundragon()`:
-```{r, eval = FALSE}
-## Launch application
-library(dragon)
-rundragon()
+If you use dragon, please cite the following publications:
+
++ The `dragon` library
+  + Forthcoming
++ The MED database
+  + Golden, Joshua J., Downs, Robert T., Hazen, Robert M., Pires, Alexander J., Ralph, Jolyon. 2019. Mineral Evolution Database: Data-Driven Age Assignment, How Does a Mineral Get an Age?” In GSA Annual Meeting. Phoenix, Arizona. https://doi.org/10.1130/abs/2019AM-334056.
+
+
+Or, in LaTeX:
+```
+# dragon preprint forthcoming
+
+# MED 
+@inproceedings{med,
+	location = {Phoenix, Arizona},
+	title = {Mineral Evolution Database: Data-Driven Age Assignment, How Does a Mineral Get an Age?},
+	doi = {10.1130/abs/2019AM-334056},
+	booktitle = {{GSA} Annual Meeting},
+	year = 2019,
+	author = {Golden, Joshua J. and Downs, Robert T. and Hazen, Robert M. and Pires, Alexander J. and Ralph, Jolyon}
+}
 ```
 
-Additional documentation for `dragon` use is forthcoming.
+# Obtaining `dragon` 
+
+`dragon` can be used freely online. Please visit the `dragon` github page at [https://github.com/spielmanlab/dragon](https://github.com/spielmanlab/dragon), which will contain the current link to the free online `dragon` server without any download. <!-- spielmanlab.github.io/dragon -->. 
+
+Alternatively, the current release of `dragon` can be installed from CRAN, or the bleeding edge version can be installed using the `remotes` library:
+```{r}
+## Install from CRAN:
+install.packages("dragon")
+
+## Install from github:
+library(remotes)
+remotes::install_github("spielmanlab/dragon")
+```
+
+To run `dragon` locally on your computer after installing the package, simply load the library and issue either command, `run_dragon()` or `run_app()`:
+```{r}
+## Launch application
+library(dragon)
+run_dragon() ## run_app() also works!
+```
 
 
 
+# Using `dragon`
+
+By default `dragon` will used a cached and pre-processed version of the MED data. Upon launch, you will be greeted with a prompt indicating the status of the MED data used, with an option to update to the most recent MED data if the cache is out of date. *If you elect to update the data, please be patient!! The download will take several minutes or more depending on your internet connection.*
+
+## Building your network
+
+Once you acknowledge the prompt, you can proceed to build your network using the sidebar panel. Options and specifications for network construction are described below: 
+
+### Network construction specifications
+
+These input options are used to specify which elements and minerals will be included in the constructed network. **Once you have set these options, click the "Initialize Network" button.** When clicked, `dragon` will build and display your network (unless you turned the display off per settings below). You can change your network settings at any time, including changing the focal elements, without having to click this button again during a given `dragon` session.
+
+#### Select focal element(s)
+Use this dropdown menu to select one or more focal elements for your network. `dragon` will construct its network from all minerals that contain your selected elements. To build the full mineral network, simply click the "Select All" button in the dropdown - this will automatically selected all elements to be included.
+
+#### Age (Ga) range of minerals
+`dragon` will include only those minerals whose oldest-known-age is within the specified range, in billion years. For example. The range selection is *inclusive*. For example, if you select a range of 3-5 Ga, all minerals observed to have first formed 3 billion years ago or more will be included. By contrast, if you select a range of 2-3 Ga, all minerals whose *oldest recorded* formation is within the 2-3 Ga range will be included. The dates used in these calculations are based on mineral discovery dates as recorded in MED.
+
+#### Use maximum or minimum age of minerals
+The MED reports, for each mineral, a maximum and a minimum bound for its estimated age. When determining the oldest-known-age of minerals from MED, `dragon` will by default use the maximum recorded age bounds. This option can be used to instead specify that `dragon` uses the minimum age bounds. Changing this option will change your network, so we recommend using the maximum age bound unless you have a specific reason not to. 
+
+#### Use separate nodes for each element redox
+When turned on, `dragon` will divide element nodes in the network by redox state, rather than considering a single node for each element. For example, consider the element Fe (Iron), which can take on several redox states (2+ or 3+) depending on the mineral. When this option is turned *off*, there will be a single node "Fe."  When this option is turned *on*, there will be a separate node for each redox state present in the network, e.g. Fe2+ and Fe3+ will be separate nodes. Note that for many minerals, the precise redox states of its constituent elements cannot be determined with confidence. For these circumstances, there will be a separate element node for unknown redox states. 
+
+#### Force element intersection in minerals
+When more than one element is selected as focal, `dragon` will by default include all minerals (at the selected age range) which contain *any of* ("unity") the focal elements. When turning this option *on*, `dragon` will instead include only those minerals which contain *all of* ("intersection") the focal elements. 
+
+
+#### Build network without display
+For extremely large networks (such as the full mineral network), the interactive rendering performed by `visNetwork` can take a very long time (several minutes) and exhibit overall slower behavior. By turning this option on, `dragon` will build the network in the background but will not display an interactive network. This option should be used when you wish to explore information about a network, but do not specifically need to visualize it. 
+
+
+
+### Network styling specifications
+
+`dragon` contains extremely flexibility functionality for styling your network to your liking, as follows. You can change these settings at any time while using `dragon`, and the updated settings will be automatically applied to your network.
+
+#### Network layout and clustering options
+
++ **Network layout**: Use this menu to select an initial layout for the network. The "Force-directed" layout algorithms are stochastic, so you can also specify a **Seed** for reproducibility purposes. 
+  + **CAUTION!** The "Dynamic physics layout" option can, for larger networks, produce substantial amounts of visual noise which may trigger photosensitive users.
++ **Network community detection (clustering) algorithm:** You can select one of the two approaches "Louvain" [@louvain] or "Leading eigenvector" [@eigen] to perform community clustering on your network, which Louvan community clustering as the default. 
+
+#### Node colors
+
+Here you can select color schemes for element and mineral nodes. Most simply, you can choose a single color for all nodes of a given group, or you can choose a data attribute according to which nodes of a given group will be colored. When an attribute is selected ("Color elements/minerals based on:"), you will have the choice of several *colorblind-friendly* palettes offered by the RColorBrewer package [@brewer].

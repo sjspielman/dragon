@@ -17,12 +17,12 @@ app_ui <- function(request) {
                      icon = shiny::icon("question-circle"),
                      badgeStatus = NULL,
                      headerText = "Information:",
-                     notificationItem("You are using dragon version 0.1", icon = icon("box-open")),
+                     notificationItem("You are using dragon version 0.3.0", icon = icon("box-open")),
                      notificationItem("Source Code", icon = icon("github"), href = "http://github.com/spielmanlab/dragon"),
                      notificationItem("IMA Database of Mineral Properties", icon = icon("globe"), href =  "http://rruff.info/ima/")
                     )
         ), ## END dashboardHeader
-        dashboardSidebar(width = 350,
+        dashboardSidebar(width = 330,
           sidebarMenu(id = "thismusttakeanidapparently", chooseSliderSkin(skin = "Flat"),
             ## NETWORK DATA SELECTION ---------------------------------------------------------------------------------------------
             shinyWidgets::pickerInput("elements_of_interest", tags$span(style="font-weight:400", "Select focal element(s):"),
@@ -35,29 +35,16 @@ app_ui <- function(request) {
                         multiple = TRUE
             ), ## END pickerInput
             
-            ## shinyBS does not work with golem. 
-            #shinyBS::tipify( 
-              shiny::sliderInput("age_range", "Age (Ga) for the youngest minerals:", min = 0, max = 5, step = 0.1, value = c(0,5)), 
-            #  title = "Based on mineral discovery dates as recorded in MED"
-            #), ## END tipify
-            #shinyBS::tipify(
+              shiny::sliderInput("age_range", "Age (Ga) range of minerals:", min = 0, max = 5, step = 0.1, value = c(0,5)), 
               shinyWidgets::prettyRadioButtons("max_age_type", "Use maximum or minimum age of minerals", inline = TRUE, choices = c("Maximum", "Minimum"), selected="Maximum", status="danger"),
-            #  title = "Determines which recorded date (maximum or minimum) is considered for including minerals in the network."
-            #), ## END tipify
-            #shinyBS::tipify(
               shinyWidgets::prettySwitch("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger"),
-            #  title = "Separate element nodes into one per redox state, e.g. rather than one node for Iron (Fe) there may be several nodes such as Fe3+ and Fe2+, etc."
-            #), ## END tipify        
-            #shinyBS::tipify(
               shinyWidgets::prettySwitch("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
-            #  title = "When multiple elements are selected, this option ensures that only minerals containing all elements appear in the network."
-            #), ## END tipify
-            #shinyBS::tipify(
               shinyWidgets::prettySwitch("build_only","Build network without display",value = FALSE, status="danger"),
-            #  title = "When checked, you will be able to build export the specified network but it will not be displayed. Useful for extremely large networks."
-            #), ## END tipify
-            
-            
+              fluidRow(
+                column(12, align="center",
+                       shinyWidgets::actionBttn("go", "Initialize Network", size="md", color = "danger", style = "fill")
+                )
+              ),
             
             ## NETWORK LAYOUT AND CLUSTERING ---------------------------------------------------------------------------------------------
             menuItem("Network layout and clustering options",
@@ -91,17 +78,6 @@ app_ui <- function(request) {
             
             ## NETWORK VISUAL STYLE MENUS ---------------------------------------------------------------------------------------------
             menuItem(text = "Node Colors",
-                     ##### DO NOT REMOVE THIS TAG #####
-                    # tags$head(tags$style("
-                    #   .palette-style{ 
-                    #   display: inline;
-                    #   vertical-align: middle;
-                    #   color: black;
-                    #   font-weight: 600;
-                    #   padding-left: 7px;
-                    #   }")),
-                     ##### SERIOUSLY DONT DO IT ######
-                     
               mod_ui_choose_color_sd_palette("mod_element_colors", 
                                              "Color elements based on:",
                                               element_color_by_choices,
@@ -218,9 +194,8 @@ app_ui <- function(request) {
                      shinyWidgets::prettySwitch("drag_view", "Drag network in frame",value = TRUE, status = "danger"),
                      shinyWidgets::prettySwitch("zoom_view","Scroll in network frame to zoom", value = TRUE, status = "danger"),
                      shinyWidgets::prettySwitch("nav_buttons","Show navigation buttons", value = FALSE, status = "danger")        
-            ), ## END "Network interaction options" menuItem
+            )#, ## END "Network interaction options" menuItem
 
-            shinyWidgets::actionBttn("go", "Initialize Network", size="md", color = "danger", style = "fill")
           ) ## END sidebarMenu
         ), ## END dashboardSidebar
 
@@ -279,7 +254,7 @@ app_ui <- function(request) {
                 ## ANALYZE NETWORK PANEL ---------------------------------------------------------------------------------------------                   
                 shiny::tabPanel("Analyze Network Minerals",
                   #helpText("In this tab, you can construct a linear regression model to analyze properties of minerals in the specified network."),
-                  
+                  # TODO: put this into boxes?
                   fluidRow(
                     column(4, 
                       shinyWidgets::pickerInput("response", 
