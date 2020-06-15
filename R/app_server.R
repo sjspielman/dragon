@@ -205,17 +205,25 @@ app_server <- function( input, output, session ) {
   ## UI component for highlighting a specified set of elements------------------------------------------
   # NOTE: In server since this relies on knowing which elements are actually present in the network
   output$choose_custom_elements_color <- renderUI({
+    ## NOT separating by redox
+    #chemistry_network()$nodes %>%
+    #  dplyr::filter(group == "element") %>%
+    #  dplyr::select(id) %>% 
+    #  tidyr::separate(id, c("base_element", "blah"), sep = "[\\s\\+\\-]") %>%
+    #  dplyr::arrange(base_element) %>%
+    #  dplyr::pull(base_element)-> available_base_elements
+    
+    # YES separating by redox
     chemistry_network()$nodes %>%
       dplyr::filter(group == "element") %>%
-      dplyr::select(id) %>% 
-      tidyr::separate(id, c("base_element", "blah"), sep = "[\\s\\+\\-]") %>%
-      dplyr::arrange(base_element) %>%
-      dplyr::pull(base_element)-> available_base_elements
+      dplyr::select(id) %>%
+      dplyr::arrange(id) %>%
+      dplyr::pull(id) -> available
     
     shinyWidgets::pickerInput("custom_selection_element", 
                               "Highlight a set of elements",             
-                              choices = unique(available_base_elements),
-                              options = list(`actions-box` = TRUE, size = 4), 
+                              choices = unique(available),
+                              options = list(`actions-box` = TRUE, size = 6), 
                               multiple = TRUE
     )
   })

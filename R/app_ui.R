@@ -22,7 +22,7 @@ app_ui <- function(request) {
                      notificationItem("IMA Database of Mineral Properties", icon = icon("globe"), href =  "http://rruff.info/ima/")
                     )
         ), ## END dashboardHeader
-        dashboardSidebar(width = 330,
+        dashboardSidebar(width = 340,
           sidebarMenu(id = "thismusttakeanidapparently", chooseSliderSkin(skin = "Flat"),
             ## NETWORK DATA SELECTION ---------------------------------------------------------------------------------------------
             shinyWidgets::pickerInput("elements_of_interest", tags$span(style="font-weight:400", "Select focal element(s):"),
@@ -89,7 +89,8 @@ app_ui <- function(request) {
                                               mineral_color_by_choices,
                                               "singlecolor",
                                               default_mineral_color,
-                                              default_mineral_palette),                     
+                                              default_mineral_palette),       
+              colourpicker::colourInput("na_color", "Color to use for missing for unknown values:", value = default_na_color),
               shinyWidgets::prettySwitch("color_by_cluster", "Color all nodes by community cluster", value = FALSE, status = "danger"), 
               conditionalPanel(condition = "input.color_by_cluster == true",{
                 pickerInput("cluster_palette", 
@@ -97,8 +98,7 @@ app_ui <- function(request) {
                             choices = qual_palettes_ui$name,
                             choicesOpt = list(content = qual_palettes_ui$img)
                 )
-              }), ## END conditionalPanel 
-              colourpicker::colourInput("na_color", "Color to use for missing for unknown values:", value = default_na_color)
+              }) ## END conditionalPanel 
             ), ## END "Node Colors" menuItem
             
             

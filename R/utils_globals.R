@@ -13,7 +13,7 @@ mean_font_size <- mean_size <- rescale_cex <- rescale_size <- NULL
 element <- element_name <- chemistry_elements <- element_as_redox <- NULL
 to <- from <- id <- label <- title <- group <- type <- NULL
 element_redox_mineral <- has_element <- element_redox_mineral_sign <- element_redox_network <- NULL
-base_element <- num <- num_nodes <- NULL
+available <- num <- num_nodes <- NULL   # base_element
 rd <- ers <- redox <- thesign <- X2 <- X3 <- X4 <- NULL
 V1 <- V2 <- x <- y <- NULL
 
