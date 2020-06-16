@@ -1,13 +1,11 @@
 ---
-title: "Introduction to mineral-chemistry network analysis in `dragon`"
+title: "Mineral-chemistry network analysis in `dragon`"
 author: "Stephanie J. Spielman"
 date: "`r Sys.Date()`"
-output: 
-  rmarkdown::html_vignette:
-    css: custom.css
+output: rmarkdown::html_vignette
 bibliography: dragon.bib
 vignette: >
-  %\VignetteIndexEntry{Introduction to mineral-chemistry network analysis in `dragon`}
+  %\VignetteIndexEntry{Mineral-chemistry network analysis in `dragon`}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
