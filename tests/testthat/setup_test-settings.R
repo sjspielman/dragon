@@ -12,6 +12,15 @@ true_edges <- readr::read_csv(file.path(testdata_path, "edges_by_redox.csv"), co
 true_mineral_nodes <- readr::read_csv(file.path(testdata_path, "true_mineral_nodes.csv"), col_types = readr::cols(cluster_ID = readr::col_factor()))
 true_styled_nodes  <- readr::read_csv(file.path(testdata_path, "styled_nodes.csv"), col_types = readr::cols())
 true_styled_edges  <- readr::read_csv(file.path(testdata_path, "styled_edges.csv"), col_types = readr::cols())
+true_locality_info <- readr::read_csv(file.path(testdata_path, "locality_info.csv"), col_types = readr::cols())
+
+true_node_names <- sort(names(true_nodes))
+true_node_names_precluster <- true_node_names[true_node_names != "cluster_ID" & true_node_names != "cluster_algorithm"]
+true_edge_names <- sort(names(true_edges))
+true_styled_node_names <- sort(names(true_styled_nodes))
+true_styled_edge_names <- sort(names(true_styled_edges))
+true_locality_names <- sort(names(true_locality_info))
+true_mineral_node_names <- sort(names(true_mineral_nodes))
 
 ## Variables about the graph to be tested --------------------------------
 true_modularity      <- 0.4432351 

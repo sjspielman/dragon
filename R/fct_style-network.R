@@ -331,8 +331,8 @@ obtain_dynamic_colors_legend <- function(dat, color_variable, variable_type, col
     ggplot2::ggplot(dat2) + 
       ggplot2::aes(x = x, y = factor(!!cvar), color = factor(!!cvar)) + 
       ggplot2::geom_point(size = geom.point.size) + 
-      ggplot2::guides(colour = ggplot2::guide_legend(title.position="top",  
-                                                     title.hjust = 0.5,
+      ggplot2::guides(colour = ggplot2::guide_legend(title.position="left",  
+                                                     #title.hjust = 0.5,
                                                      byrow=TRUE, 
                                                      nrow = 2)
                       )  -> p

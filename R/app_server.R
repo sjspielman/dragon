@@ -13,43 +13,58 @@ app_server <- function( input, output, session ) {
   
   ## Prompt for MED data to use -------------------------------------------------------------
   observe({
-    if (find_most_recent_date() != med_cache_date) ## SHOULD BE != 
-    { 
-      shinyWidgets::confirmSweetAlert(
-        session,
-        "use_med_cache",
-        title = "Welcome to dragon!",
-        text = tags$span(
-                "dragon is GPL-3 and by clicking this you acknowledge to agree to terms. Please cite DRAGON AND MED in your papers.",
-                br(),
-                "We use MED data, cached from the MED update on", 
-                tags$b(med_cache_date), ". MED was mostly recently updated on ",  
-                tags$b(find_most_recent_date()), 
-                ". Do you want to used the cached data, or re-download right now?",
-                br(),br(),
-                tags$b("CAUTION: Downloading will take several minutes!")
-              ),                                     
-        type = "info",
-        btn_labels = c("Download data", "Use data cache"), # FALSE, TRUE
-        btn_colors = c("#FE642E", "#04B404"),
-        closeOnClickOutside = FALSE, 
-        showCloseButton = FALSE, 
-        html = TRUE
-      )
-    } else {
-      shinyWidgets::sendSweetAlert(
-         session = session, title = "Welcome to dragon!", type = "info",
-        text = paste0("We're using the most up to date MED data, which was released on ", med_cache_date, ". dragon is GPL-3 and by clicking this you acknowledge to agree to terms. Please cite DRAGON AND MED in your papers.")
-      )
-      med(list("med_data"           = med_data_cache, 
+    
+    most_recent_date <- find_most_recent_date()
+    
+    if (most_recent_date != FALSE) {
+      # SUCCESSFULLY CURLED
+      if (most_recent_date != med_cache_date) ## !! SHOULD BE != 
+      { 
+        shinyWidgets::confirmSweetAlert(
+          session,
+          "use_med_cache",
+          title = "Welcome to dragon!",
+          text = tags$span(
+            "dragon is GPL-3 and by clicking this you acknowledge to agree to terms. Please cite DRAGON AND MED in your papers.",
+            br(),
+            "We use MED data, cached from the MED update on", 
+            tags$b(med_cache_date), ". MED was mostly recently updated on ",  
+            tags$b(most_recent_date), 
+            ". Do you want to used the cached data, or re-download right now?",
+            br(),br(),
+            tags$b("CAUTION: Downloading will take several minutes!")
+          ),                                     
+          type = "info",
+          btn_labels = c("Download data", "Use data cache"), # FALSE, TRUE
+          btn_colors = c("#FE642E", "#04B404"),
+          closeOnClickOutside = FALSE, 
+          showCloseButton = FALSE, 
+          html = TRUE
+        )
+      } else {
+        shinyWidgets::sendSweetAlert(
+          session = session, title = "Welcome to dragon!", type = "info",
+          text = paste0("We're using the most up to date MED data, which was released on ", med_cache_date, ". dragon is GPL-3 and by clicking this you acknowledge to agree to terms. Please cite DRAGON AND MED in your papers.")
+        )
+        med(list("med_data"            = med_data_cache, 
                  "element_redox_states" = element_redox_states_cache,
                  "cache"                = TRUE))
+      }
+    } else {
+      ## this is for most_recent_date == FALSE
+      shinyWidgets::sendSweetAlert(
+        session = session, title = "Welcome to dragon!", type = "info",
+        text = paste0("We're MED data, which was released on ", med_cache_date, ". dragon is GPL-3 and by clicking this you acknowledge to agree to terms. Please cite DRAGON AND MED in your papers. YOU ARE NOT CONNECTED TO THE INTERNET!")
+      )
+      med(list("med_data"            = med_data_cache, 
+               "element_redox_states" = element_redox_states_cache,
+               "cache"                = TRUE))
     }
-  })
-
-
+  }) ## END observe
+  
     
   observeEvent(input$use_med_cache, {
+    ## This observer will only be triggered if there is internet and MED website is responsive.
     if (!(input$use_med_cache))
     {
       shinyWidgets::sendSweetAlert(
@@ -61,13 +76,14 @@ app_server <- function( input, output, session ) {
                         "You can close this message any time."),
           html = TRUE
       )
+      ## Download from MED
       future::future({
         prepare_med_data()
       }) %...>% med()
     } else {
       med(list("med_data"           = med_data_cache, 
-                 "element_redox_states" = element_redox_states_cache,
-                 "cache"                = TRUE))
+               "element_redox_states" = element_redox_states_cache,
+               "cache"                = TRUE))
     }
   })
 
@@ -175,14 +191,8 @@ app_server <- function( input, output, session ) {
     }
   
     ## Subset mineral nodes, used in modeling --------------------------------------------
-    clustered$nodes %>%
-      dplyr::filter(group == "mineral") %>%
-      dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% 
-      rename_for_ui() %>%
-      ## EXCEPT cluster_ID
-      dplyr::rename(cluster_ID = cluster_ID_str) %>%
-      dplyr::mutate(cluster_ID = factor(cluster_ID)) -> mineral_nodes
-    print(head(mineral_nodes))
+    mineral_nodes <- subset_mineral_nodes(clustered$nodes)
+    
     return (list("nodes" = clustered$nodes, 
                  "edges" = network$edges, 
                  "graph" = graph, 
@@ -191,7 +201,7 @@ app_server <- function( input, output, session ) {
                  "age_ub" = age_range[2],
                  "mineral_nodes" = mineral_nodes,
                  "locality_info" =  initialized$locality_info, 
-                 "raw_node_table" = prepare_raw_node_table(network$edges, clustered$nodes, initialized$locality_info),
+                 "raw_node_table" = prepare_raw_node_table(network$edges, clustered$nodes),
                  "clustering"     = clustered$clustered_net, 
                  "cluster_colors" = cluster_colors))
   
@@ -342,7 +352,11 @@ app_server <- function( input, output, session ) {
                                   ) %>%
             visNetwork::visEdges(color = network_style_options()[["edge_color"]],
                                  width = input$edge_weight,
-                                 smooth = FALSE) ## smooth=FALSE has no visual effect that I can perceive, and improves speed. Cool.
+                                 ## smooth=FALSE has no visual effect that I can perceive, and improves speed. Cool.
+                                 smooth = FALSE) %>% 
+            visNetwork::visEvents(select = "function(nodes) {
+                                    Shiny.onInputChange('current_node_id', nodes.nodes);
+                                    ;}")
         } ## END if(build_only == FALSE)
       })  ## END isolate()        
     }) ## END renderVisNetwork({})
@@ -471,35 +485,6 @@ app_server <- function( input, output, session ) {
       readr::write_csv(edge_styler()$styled_edges, outfile)
     })
 
-
-  ## RENDER THE "Network Information" tabPanel --------------------------------------------------------------------------------
-  
-  ## Define the table used in "Network Information" tabPanel ------------------------------------------------------------------
-  network_table <- reactive({
-    build_network_information_table(chemistry_network()$nodes)
-  })
-  
-  ## Define the DT to display network_table() reactive ---------------------------------------------
-  output$networkTable <- DT::renderDataTable(rownames= FALSE,   
-                                             network_table(),
-                                             extensions = c('ColReorder', 'Responsive', 'Buttons'),
-                                             options = list(
-                                               dom = 'Bfrtip',
-                                               buttons = c('copy', 'csv', 'excel'),
-                                               colReorder = TRUE
-                                             )
-  ) 
-  
-
-  
-  ## Define the download button for network_table() reactive ---------------------------------------------
-  output$download_networkTable <- downloadHandler(
-    filename = function() { paste0('dragon_network_information_', Sys.Date(), '.csv') },
-    content  = function(file) 
-    {
-      readr::write_csv(network_table(), file)
-    })
-
   
   ## Construction of the edge table (Node Selection) ------------------------------------------------------
   
@@ -514,8 +499,7 @@ app_server <- function( input, output, session ) {
                                        sort(unique(chemistry_network()$nodes$cluster_ID)), 
                                        paste)
     cluster_sel     <- purrr::map2_chr(raw_cluster_sel,"elements", paste)
-    ordered_ids <- c("All elements", cluster_sel, ordered_ids) ## All nodes is the SAME as the focal elements given that this is edges.
-    
+    ordered_ids <- c(cluster_sel, ordered_ids) ## don't need "All elements" since there is a "select all" button
     
     shinyWidgets::pickerInput("selected_nodes_custom", 
                               "Choose element nodes to view relationships with connected minerals:",             
@@ -526,15 +510,23 @@ app_server <- function( input, output, session ) {
     )
   })
 
+  #user_nodes_clicked <- reactiveVal(FALSE)
+  observeEvent(input$current_node_id, {
+   # user_nodes_clicked(input$current_node_id)
+    shinyWidgets::updatePickerInput(session = session,
+                                    "selected_nodes_custom", 
+                                    selected = c(input$selected_nodes_custom, input$current_node_id)
+    ) 
+  })
   
   ## RENDER THE "Selected Node Information" BOX --------------------------------------------------------------------------------
   node_table <- reactive({
-    selected_nodes <- c(input$selected_nodes_custom)# NOT WORKING anymore and no clue why., input$networkplot_selectedNodes)
+    selected_nodes <- unique(input$selected_nodes_custom)
     columns_to_display <- c(selected_node_table_constant, ## mineral, element, element's redox in that mineral
                             input$columns_selectednode_mineral, 
                             input$columns_selectednode_element, 
-                            input$columns_selectednode_network, 
-                            input$columns_selectednode_locality) 
+                            input$columns_selectednode_network) #, 
+                            #input$columns_selectednode_locality) 
     
     if (is.null(selected_nodes))
     {
@@ -560,12 +552,8 @@ app_server <- function( input, output, session ) {
   
   output$show_nodeTable <- renderUI({
     box(width=12,status = "primary", 
-        title = "Selected Node Information", collapsible = TRUE,
-        div(style="display:inline-block;vertical-align:top;",
-          shiny::uiOutput("choose_nodes"),
-          shiny::actionButton("include_all_selectednodes", label="Include all variables"),
-          shiny::actionButton("clear_all_selectednodes", label="Clear variable selection")
-        ),
+        title = "Examine individual nodes", collapsible = TRUE,
+        shiny::uiOutput("choose_nodes"),
         br(),br(),
         div(style="display:inline-block;vertical-align:top;",
            shinyWidgets::prettyCheckboxGroup(
@@ -591,7 +579,9 @@ app_server <- function( input, output, session ) {
              label = tags$span(style="font-weight:700", "Network attributes:"),
              choices = selected_node_table_column_choices_network
            )),
-        
+        shiny::actionButton("include_all_selectednodes", label="Include all attributes"),
+        shiny::actionButton("clear_all_selectednodes", label="Clear attribute selection"),
+        br(),
         shiny::div(style="font-size:85%;", 
           DT::dataTableOutput("nodeTable")
         ),

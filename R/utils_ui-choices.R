@@ -19,7 +19,7 @@ element_color_by_choices <- setNames(c("singlecolor",
                                        num_localities_element_str,
                                        atomic_mass_str,
                                        element_density_str,
-                                       element_specificheat_str))
+                                       element_specific_heat_str))
 
 #' UI options for selecting a variable to color mineral nodes by
 #' @noRd
@@ -147,8 +147,8 @@ selected_node_table_column_choices_mineral   <- c(mineral_id_str,
                                                   mean_pauling_str,
                                                   cov_pauling_str)
 ## NOT CURRENTLY USED
-#' Variables choices for mineral locality attributes to appear in the selected node table
-#' @noRd
+# Variables choices for mineral locality attributes to appear in the selected node table
+# @noRd
 #selected_node_table_column_choices_locality  <- c(mindat_id_str,
 #                                                  locality_longname_str,
 #                                                  age_type_str,
@@ -160,7 +160,8 @@ selected_node_table_column_choices_mineral   <- c(mineral_id_str,
 selected_node_table_column_choices_element   <- c(pauling_str,
                                                   element_redox_network_str,
                                                   element_redox_mineral_str,
-                                                  element_hsab_str) 
+                                                  element_hsab_str, 
+                                                  element_metal_type_str) 
 
 ## BOTH ELEMENT AND MINERAL COLUMNS HAVE TO APPEAR WHEN SELECTED
 #' Variables choices for network-level node attributes to appear in the selected node table

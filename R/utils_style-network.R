@@ -66,4 +66,4 @@ element_size_max <- 4
 lighten_darken_factor <- 0.3
 #' All variable options for coloring nodes by which are discrete ordinal rather than numeric continuous 
 #' @noRd
-ordinal_color_variables <- c("element_hsab") #,  "table_period", "table_group") # WE HAVE TURNED OFF TABLEPERIOD AND GROUP FOR COLORING SINCE TOO MANY COLORS.
+ordinal_color_variables <- c("element_hsab") # the rest have too many categories, but keep variable in case.

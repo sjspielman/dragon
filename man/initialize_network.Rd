@@ -44,7 +44,7 @@ internet connection and will take several minutes to update.}
 \value{
 Named list containing an igraph-formatted network (`network'), an 
 igraph::communities object giving node cluster memberships (`clustering'), a tibble of nodes
-associated metadata (`nodes'), and a tibble of edges and associated metadata (`edges')
+associated metadata (`nodes'), and a tibble of edges and associated metadata (`edges'), and a tibble of mineral locality information (`locality_info`)
 }
 \description{
 Initialize a mineral-chemistry network as stand-alone network rather than for embedding 

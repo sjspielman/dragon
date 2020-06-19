@@ -215,7 +215,7 @@ plot_linear_model_scatter <- function(response, predictor, rsquared_info, minera
     ggplot2::ylab(response) + 
     ggplot2::geom_point(size = point_size, color = point_color) +
     ggplot2::labs(subtitle = bquote(R^2 == .(rsq) ~ "(P = " ~ .(rsqp) ~ ")" )) +
-    ggplot2::theme(plot.subtitle = ggplot2::element_text(hjust = 1)) -> fitted_model_plot
+    ggplot2::theme(plot.subtitle = ggplot2::element_text(hjust = 0)) -> fitted_model_plot
 
   if (logx)      fitted_model_plot <- fitted_model_plot + ggplot2::scale_x_log10()
   if (logy)      fitted_model_plot <- fitted_model_plot + ggplot2::scale_y_log10()

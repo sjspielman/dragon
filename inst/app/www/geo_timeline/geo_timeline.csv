@@ -1,0 +1,15 @@
+type,name,early_age,late_age
+eon,Phanerozoic,541,0
+era,Cenozoic,66,0
+era,Mesozoic,252,66
+era,Paleozoic,541,252
+eon,Proterozoic,2500,541
+era,Neoproterozoic,1000,541
+era,Mesoproterozoic,1600,1000
+era,Paleoproterozoic,2500,1600
+eon,Archean,4000,2500
+era,Neoarchean,2800,2500
+era,Mesoarchean,3200,2800
+era,Paleoarchean,3600,3200
+era,Eoarchean,4000,3600
+eon,Hadean,4600,4000

@@ -22,7 +22,7 @@
 #' 
 #' @returns Named list containing an igraph-formatted network (`network'), an 
 #' igraph::communities object giving node cluster memberships (`clustering'), a tibble of nodes
-#' associated metadata (`nodes'), and a tibble of edges and associated metadata (`edges')
+#' associated metadata (`nodes'), and a tibble of edges and associated metadata (`edges'), and a tibble of mineral locality information (`locality_info`)
 #' 
 #' @examples
 #' \dontrun{
@@ -58,9 +58,14 @@ initialize_network <- function(elements_of_interest,
   } else
   {
     print("ALERT:  Downloading data from Mineral Evolution Database. Please be patient! This may/will take several minutes, or longer depending on your internet connection.")
-    rmed_data <- fetch_med_data()
-    element_redox_states <- calculate_element_redox_states(med_data)
-    print("....Done! Building your network now.")
+    med_data <- fetch_med_data()
+    if(med_data == FALSE){
+      print("WARNING: Could not connect to the Mineral Evolution Database. Using the cached data.")
+      element_redox_states <- element_redox_states_cache
+    } else {
+      element_redox_states <- calculate_element_redox_states(med_data)
+      print("....Done downloading! Building network now.")
+    }
   }
   
   if(stringr::str_to_lower(elements_of_interest) == "all"){
@@ -82,6 +87,7 @@ initialize_network <- function(elements_of_interest,
   return(list("network" = network_raw$network,
                "nodes"  =  clustered$nodes,
                "edges"  =  network_raw$edges,
+               "locality_info" = age_data$locality_info,
                "clustering" = clustered$clustered
               )
         )
@@ -201,8 +207,8 @@ construct_network   <- function(elements_only_age, elements_by_redox, element_re
     dplyr::left_join(element_info, by = "element") %>%
     ## Factor some of the joined in columns from element_info
     dplyr::mutate(element_hsab = factor(element_hsab, levels = c("Hard acid", "Int. acid", "Soft acid", "Soft base", "Int. base", "Hard base")),
-                  table_period  = factor(table_period),
-                  table_group   = factor(table_group)) %>%
+                  element_table_period  = factor(element_table_period),
+                  element_table_group   = factor(element_table_group)) %>%
     ## Calculate electronegativity quantities - so we need to merge in element_info at this time
     dplyr::group_by(mineral_name) %>%
     dplyr::mutate(mean_pauling = mean(pauling),
@@ -250,7 +256,7 @@ construct_network   <- function(elements_only_age, elements_by_redox, element_re
   
   ## names to, element_redox_network
   network_information %>% 
-    dplyr::select(to, element_name, from, num_localities_mineral, element_hsab, atomic_mass, number_of_protons, table_period, table_group, atomic_radius, pauling, metal_type, element_density, element_specific_heat) %>%
+    dplyr::select(to, element_name, from, num_localities_mineral, element_hsab, atomic_mass, number_of_protons, element_table_period, element_table_group, atomic_radius, pauling, element_metal_type, element_density, element_specific_heat) %>%
     dplyr::distinct() %>% ## this line was causing bugs in element localities. FIXED BY SELECTING FROM ABOVE!
     dplyr::group_by(to) %>%
     dplyr::mutate(num_localities_element = sum(num_localities_mineral)) %>% 
@@ -401,3 +407,20 @@ add_shiny_node_titles <- function(nodes, elements_by_redox)
   
 }
 
+
+
+#' Subset nodes to mineral nodes used in linear modeling, and rename all columns _except_ community cluster
+#'
+#' @param nodes   A tibble containing all node information and metadata
+#' @returns An tibble of mineral node data used in linear models
+#' @noRd
+subset_mineral_nodes <- function(nodes)
+{
+  nodes %>%
+    dplyr::filter(group == "mineral") %>%
+    dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% 
+    rename_for_ui() %>%
+    ## rename for UI **EXCEPT** cluster_ID
+    dplyr::rename(cluster_ID = cluster_ID_str) %>%
+    dplyr::mutate(cluster_ID = factor(cluster_ID)) 
+}

@@ -87,21 +87,13 @@ network_by_redox <- dragon::initialize_network(focal,
                                                age_range         = c(4, 5),
                                                max_age_type      = "Maximum",
                                                cluster_algorithm = "Louvain")
+outpath <- system.file("testdata", package="dragon")
+readr::write_csv(network_by_redox$locality_info, file.path(outpath, "locality_info.csv"))
 readr::write_csv(network_by_redox$edges, file.path(outpath, "edges_by_redox.csv"))
 readr::write_csv(network_by_redox$nodes, file.path(outpath, "nodes_by_redox.csv"))
-igraph::write_graph(network_by_redox$network, "graph_by_redox.igraph", format="ncol")
+igraph::write_graph(network_by_redox$network, file.path(outpath,"graph_by_redox.igraph"), format="ncol")
 
-network_by_redox$nodes %>%
-   dplyr::filter(group == "mineral") %>%
-   dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>%
-   dplyr::mutate(cluster_ID = factor(cluster_ID)) %>%
-   dplyr::rename(!! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
-                 !! variable_to_title[["closeness"]] := closeness,
-                 !! variable_to_title[["mean_pauling"]] := mean_pauling,
-                 !! variable_to_title[["cov_pauling"]] := cov_pauling,
-                 !! variable_to_title[["num_localities"]] := num_localities,
-                 !! variable_to_title[["max_age"]] := max_age) %>%
-   readr::write_csv(file.path(outpath, "true_mineral_nodes.csv"))
+subset_mineral_nodes(network_by_redox$nodes) %>% readr::write_csv(file.path(outpath, "true_mineral_nodes.csv"))
 
 true_styled_nodes <- style_nodes(network_by_redox$nodes, true_style_options)
 true_styled_edges <- style_edges(network_by_redox$edges, true_style_options)

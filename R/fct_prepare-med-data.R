@@ -2,47 +2,61 @@
 #'
 #' @param cache A logical to indicate if the dragon cache of Mineral Evolution Database (MED) data should be used (Default:FALSE). If TRUE, will fetch the most up-to-date data from MED.
 #'
-#' @return A named list of processed data: "med_data", "element_redox_states", and "cache" (same logical as the input)
+#' @return A named list of processed data: "med_data", "element_redox_states", and "cache" 
 #' @noRd
 prepare_med_data <- function(cache = FALSE)
 {
-  md <- fetch_med_data()
-  ers <- calculate_element_redox_states(rd)
-  return( list("med_data" = rd, "element_redox_states" = ers, "cache" = cache) )
+  md <- fetch_med_data() ## FALSE if no internet
+  if (md$success == FALSE){
+    md <- med_data_cache
+    ers <- element_redox_states_cache
+    cache <- TRUE
+  } else {
+    ers <- calculate_element_redox_states(md)
+  }
+  return( list("med_data" = md, "element_redox_states" = ers, "cache" = cache) )
 }
 
 #' Download and process information from Mineral Evolution Database data for use in dragon
 #'
-#' @return A tibble of relevant information from MED
+#' @return A tibble of relevant information from MED. Return FALSE if no internet.
 #' @noRd
 fetch_med_data <- function()
 {
-  ## Download MED tables-------------------------------------------
-  m1 <- readr::read_tsv(med_m1_url, guess_max=10000)
-  m2 <- readr::read_tsv(med_m2_url, guess_max=10000)
+
   
-  dplyr::left_join(m1, m2) %>% 
-    dplyr::filter(at_locality == 1) %>%
-    dplyr::select(mineral_name, 
-                  mineral_id, 
-                  mindat_id,    ### locality id  
-                  locality_longname, 
-                  age_type,
-                  rruff_chemistry, 
-                  ima_chemistry,
-                  min_age,
-                  max_age, 
-                  chemistry_elements) %>% 
-    ## there are no NA's that I see, but hey
-    tidyr::drop_na() %>%
-    ## MY -> GY
-    dplyr::mutate(max_age = max_age/1000, min_age = min_age/1000) %>%
-    ## ima_chemistry formula to HTML
-    dplyr::rowwise() %>%
-    dplyr::mutate(ima_chemistry = stringr::str_replace_all(ima_chemistry, 
-                                                           "_(\\d+\\.*\\d*)_", 
-                                                           "<sub>\\1</sub>")) %>%
-    dplyr::ungroup() 
+  ## TRY to Download MED tables-------------------------------------------
+  m1 <- try_url( readr::read_tsv(med_m1_url, guess_max=10000) )
+  m2 <- try_url( readr::read_tsv(med_m2_url, guess_max=10000) )
+  
+  if (!(m1$success & m2$success))
+  {
+    output <- FALSE
+  } else {
+    dplyr::left_join(m1$html, m2$html) %>% 
+      dplyr::filter(at_locality == 1) %>%
+      dplyr::select(mineral_name, 
+                    mineral_id, 
+                    mindat_id,    ### locality id  
+                    locality_longname, 
+                    age_type,
+                    rruff_chemistry, 
+                    ima_chemistry,
+                    min_age,
+                    max_age, 
+                    chemistry_elements) %>% 
+      ## there are no NA's that I see, but hey
+      tidyr::drop_na() %>%
+      ## MY -> GY
+      dplyr::mutate(max_age = max_age/1000, min_age = min_age/1000) %>%
+      ## ima_chemistry formula to HTML
+      dplyr::rowwise() %>%
+      dplyr::mutate(ima_chemistry = stringr::str_replace_all(ima_chemistry, 
+                                                             "_(\\d+\\.*\\d*)_", 
+                                                             "<sub>\\1</sub>")) %>%
+      dplyr::ungroup() -> output
+  }
+  return(output)
 }
 
 
@@ -120,27 +134,68 @@ calculate_element_redox_states <- function(med_data)
 
 #' Query the MED to determine the most recent date the data used by dragon was updated
 #' 
-#' @return Stamp date of most recent MED update
+#' @return Stamp date of most recent MED update. Return FALSE if no internet.
 #' @noRd
 find_most_recent_date <- function()
 {
-  xml2::read_html(med_exporting_url) %>%
-    rvest::html_node("table") %>% 
-    rvest::html_table(fill=TRUE) %>% 
-    as.data.frame() -> raw_html
-  names(raw_html)[1] <- "blank"
-  raw_html %>%
-    dplyr::filter(Name == "tbl_mineral.csv") %>% 
-    dplyr::pull(`Last modified`) -> last_date
-    
-  stringr::str_split(last_date, " ")[[1]][1] %>% 
-    lubridate::as_date() -> update_date
+  med_html <- try_url(med_exporting_url)
   
-  suppressMessages(lubridate::stamp("March 1, 1999")(update_date))
+  if (med_html$success)
+  {
+    med_html$html %>%
+      rvest::html_node("table") %>% 
+      rvest::html_table(fill=TRUE) %>% 
+      as.data.frame() -> raw_html
+    names(raw_html)[1] <- "blank"
+    raw_html %>%
+      dplyr::filter(Name == "tbl_mineral.csv") %>% 
+      dplyr::pull(`Last modified`) -> last_date
+    
+    stringr::str_split(last_date, " ")[[1]][1] %>% 
+      lubridate::as_date() -> update_date
+    
+    suppressMessages(lubridate::stamp("March 1, 1999")(update_date))
+  } else {
+    return(FALSE)
+  }
+  
 
 }
 
+#' Function to check for internet and read a specified html
+#' @param url The URL to read
+#' @return Website read with `xml2::read_html`, or FALSE if could not reach internet/website
+try_url <- function(url)
+{
+  
+  ## Check for internet
+  internet <- TRUE
+  yesh <- curl::has_internet()
+  if (!yesh) internet <- FALSE
+  
+  if (internet)
+  {
+    ## TRY to curl
+    tryCatch(
+      xml2::read_html(url) ,
+      error=function(e) {
+        return(FALSE)
+      },
+      warning=function(e) {
+        return(FALSE)
+      }
+    )  -> final_url    
+  } else {
+    final_url <- FALSE
+  }
+  if (typeof(final_url) == "list")
+  {
+    output <- list("success" = TRUE, "html" = final_url)  
+  } else if (final_url == FALSE){
+    output <- list("success" = FALSE, "html" = FALSE)  
+  }
 
-
+  return(output)
+}
 
 

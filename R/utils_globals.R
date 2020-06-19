@@ -4,9 +4,9 @@ adj.p.value <- p.value <- comparison <- conf.high <- conf.low <- estimate <- sta
 age_check <- overall_max <- max_age <- min_age <- max_age_locality <- min_age_locality <- NULL
 age_type <- at_locality <- locality_longname <- mindat_id <- NULL
 num_localities <- num_localities_element <- num_localities_mineral <- mineral_id <- mineral_name <- NULL
-atomic_mass <- atomic_radius <- pauling <- table_group <- table_period <- number_of_protons <-  metal_type <- element_density <- element_specific_heat <- element_hsab <- NULL
+atomic_mass <- atomic_radius <- pauling <- element_table_group <- element_table_period <- number_of_protons <-  element_metal_type <- element_density <- element_specific_heat <- element_hsab <- NULL
 closeness <- network_degree <- network_degree_norm <- cov_pauling <- mean_pauling <- cluster_ID <- NULL
-ima_chemistry <- rruff_chemistry <- NULL
+Element <- Mineral <- ima_chemistry <- rruff_chemistry <- NULL
 color <- color.background <- color.border <- colour <- shape <- size <- NULL
 font.color <- font.face <- font.size <- frame.color <- label.cex <- NULL
 mean_font_size <- mean_size <- rescale_cex <- rescale_size <- NULL
@@ -16,6 +16,5 @@ element_redox_mineral <- has_element <- element_redox_mineral_sign <- element_re
 available <- num <- num_nodes <- NULL   # base_element
 rd <- ers <- redox <- thesign <- X2 <- X3 <- X4 <- NULL
 V1 <- V2 <- x <- y <- NULL
-
 
 

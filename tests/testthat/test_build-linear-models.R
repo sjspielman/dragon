@@ -20,6 +20,7 @@ test_that("fct_run_linear_models::fit_linear_model() with numeric predictor", {
 test_that("fct_run_linear_models::fit_linear_model() with cluster predictor", {
   predictor <- variable_to_title[["cluster_ID"]]
   response <- variable_to_title[["num_localities"]]
+  
   test_fitted <- fit_linear_model(response, predictor, true_mineral_nodes)
 
   expect_equal(sort(names(test_fitted)), sort(c("keep_clusters", "model_fit", "tukey_fit", "rsquared", "tukey_ok_variance"))  )

@@ -37,7 +37,7 @@ error_choices <- c("Oh no!", "Sorry, that's not gonna work.", "Try again!", "Wom
 #' Tibble of element metadata
 #' @noRd
 element_info <- tibble::tribble(
-  ~element_name, ~element, ~element_hsab, ~atomic_mass, ~number_of_protons, ~table_period, ~table_group, ~atomic_radius, ~pauling, ~metal_type, ~element_density, ~element_specific_heat,
+  ~element_name, ~element, ~element_hsab, ~atomic_mass, ~number_of_protons, ~element_table_period, ~element_table_group, ~atomic_radius, ~pauling, ~element_metal_type, ~element_density, ~element_specific_heat,
   "Silver", "Ag", "Soft acid", 107.868, 47, 5, 11, 1.80, 1.93, "Transition Metal", 1.05e+01, 0.235, 
   "Aluminum", "Al", "Hard acid", 26.982, 13, 3, 13, 1.80, 1.61, "Metal", 2.70e+00, 0.897, 
   "Arsenic", "As", "Hard acid", 74.922, 33, 4, 15, 1.30, 2.18, "Metalloid", 5.78e+00, 0.329, 

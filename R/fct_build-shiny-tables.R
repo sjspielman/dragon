@@ -17,17 +17,17 @@ build_element_exploration_table <- function(nodes)
                   element_redox_network,
                   num_localities,
                   element_hsab, 
-                  metal_type,
+                  element_metal_type,
                   atomic_mass, 
                   number_of_protons, 
-                  table_period,
-                  table_group, 
+                  element_table_period,
+                  element_table_group, 
                   atomic_radius, 
                   element_specific_heat, 
                   element_density) %>%
     dplyr::distinct() %>%
     dplyr::arrange(element) %>%
-    dplyr::mutate(dplyr::across(where(is.numeric), round, 3)) %>%
+    dplyr::mutate(dplyr::across(tidyselect::vars_select_helpers$where(is.numeric), round, 3)) %>%
     rename_for_ui()
   
 }
@@ -57,8 +57,8 @@ build_mineral_exploration_table <- function(nodes, locality_info)
     dplyr::left_join(locality_info) %>%
     dplyr::distinct() %>%
     dplyr::arrange(mineral_name) %>%
-    dplyr::select(mineral_name, mineral_id, ima_chemistry, rruff_chemistry, max_age, mean_pauling, cov_pauling, cluster_ID, closeness, network_degree_norm, everything()) %>%
-    dplyr::mutate(dplyr::across(where(is.numeric), round, 3)) %>%
+    dplyr::select(mineral_name, mineral_id, ima_chemistry, rruff_chemistry, max_age, mean_pauling, cov_pauling, cluster_ID, closeness, network_degree_norm, dplyr::everything()) %>%
+    dplyr::mutate(dplyr::across(tidyselect::vars_select_helpers$where(is.numeric), round, 3)) %>%
     rename_for_ui() 
     
 }
@@ -69,17 +69,15 @@ build_mineral_exploration_table <- function(nodes, locality_info)
 #' Prepare baseline table to display for "Selected Node Table" that includes all edges in the network
 #' @param edges Tibble of network edges
 #' @param nodes Tibble of network nodes
-#' @param locality_info Tibble of locality information for all network minerals
 #' @return Baseline tibble
 #' @noRd
-prepare_raw_node_table <- function(edges, nodes, locality_info)
+prepare_raw_node_table <- function(edges, nodes)
 {
   edges %>% 
     dplyr::select(to,  ## element
                   mineral_name,  ## mineral
                   element_redox_mineral) %>% 
-    dplyr::rename(element = to) %>%
-    dplyr::left_join(locality_info, by = "mineral_name")-> sel_edges
+    dplyr::rename(element = to) -> sel_edges
 
   # Columns that apply to both minerals and elements, will need to be "duplicated"
   nodes %>%
@@ -102,7 +100,7 @@ prepare_raw_node_table <- function(edges, nodes, locality_info)
   # Element-only columns
   nodes %>%
     dplyr::filter(group == "element") %>%
-    dplyr::select(id, pauling, element_hsab, element_redox_network) %>%
+    dplyr::select(id, pauling, element_hsab, element_metal_type, element_redox_network) %>%
     dplyr::right_join(sel_both_element) %>%
     dplyr::rename(element = id) %>%
     dplyr::select(-group) -> sel_element
@@ -111,7 +109,7 @@ prepare_raw_node_table <- function(edges, nodes, locality_info)
   # Mineral-only columns
   nodes %>%
     dplyr::filter(group == "mineral") %>%
-    dplyr::select(id, max_age, mean_pauling, cov_pauling, ima_chemistry, rruff_chemistry) %>%
+    dplyr::select(id, mineral_id, max_age, mean_pauling, cov_pauling, ima_chemistry, rruff_chemistry) %>%
     dplyr::right_join(sel_both_mineral)  %>%
     dplyr::rename(mineral_name = id) %>%
     dplyr::select(-group) -> sel_mineral
@@ -121,35 +119,30 @@ prepare_raw_node_table <- function(edges, nodes, locality_info)
     dplyr::left_join(sel_mineral, by = "mineral_name") %>%
     dplyr::left_join(sel_element, by = "element") %>%
     dplyr::select(element, mineral_name, dplyr::everything()) %>% 
-    dplyr::mutate(dplyr::across(where(is.numeric), round, 3)) %>% ## ROUND NUMERIC TO 3
-    rename_for_ui()
+    dplyr::mutate(dplyr::across(tidyselect::vars_select_helpers$where(is.numeric), round, 3)) %>% ## ROUND NUMERIC TO 3
+    rename_for_ui() 
 }
 
 build_final_node_table <- function(raw_node_table, selected_nodes, columns_to_display)
 {
 
-  
   ## Subset raw_node_table to only the elements of interest --------------------------------
-  if ("All elements" %in% selected_nodes)
-  {
-    subsetted_node_table <- raw_node_table
-  } else {
-    ## Add the specified cluster elements to `selected_nodes`
-    selected_clusters <- stringr::str_match(selected_nodes, "All cluster ([0-9]+) elements")[,2]
-    selected_clusters <- selected_clusters[!is.na(selected_clusters)] ## "5", "6"
-    cluster_col <- as.symbol(eval(parse(text = "element_cluster_ID_str")))
-    raw_node_table %>% 
-      dplyr::filter(!!cluster_col %in% selected_clusters) %>%
-      dplyr::pull(Element) -> selected_cluster_elements
-    selected_nodes <- unique( c(selected_nodes, selected_cluster_elements) )
-    selected_nodes <- selected_nodes[!(stringr::str_detect(selected_nodes, "All"))]
-    
-    ## Subset the specified elements
-    raw_node_table %>%
-      dplyr::filter(Element %in% selected_nodes) %>%
-      dplyr::distinct() -> subsetted_node_table
-  }
   
+  ## Add the specified cluster elements to `selected_nodes` ----------------------------
+  selected_clusters <- stringr::str_match(selected_nodes, "All cluster ([0-9]+) elements")[,2]
+  selected_clusters <- selected_clusters[!is.na(selected_clusters)] ## "5", "6"
+  cluster_col <- as.symbol(eval(parse(text = "element_cluster_ID_str")))
+  raw_node_table %>% 
+    dplyr::filter(!!cluster_col %in% selected_clusters) %>%
+    dplyr::pull(Element) -> selected_cluster_elements
+  selected_nodes <- unique( c(selected_nodes, selected_cluster_elements) )
+  selected_nodes <- selected_nodes[!(stringr::str_detect(selected_nodes, "All"))]
+  
+  ## Subset the specified elements
+  raw_node_table %>%
+    dplyr::filter(Element %in% selected_nodes) %>%
+    dplyr::distinct() -> subsetted_node_table
+
   # Network metrics need to have SEPARATE mineral and element columns
   for (both_choice in selected_node_table_column_choices_network)
   {
@@ -168,6 +161,6 @@ build_final_node_table <- function(raw_node_table, selected_nodes, columns_to_di
     dplyr::arrange(Element) %>%
     dplyr::select(columns_to_display) %>%  ## this works!
     dplyr::distinct() %>% 
-    dplyr::select(Element, Mineral, everything()) ## just to order columns
+    dplyr::select(Element, Mineral, dplyr::everything()) ## just to order columns
 
 }

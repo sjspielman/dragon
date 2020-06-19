@@ -41,6 +41,8 @@ usethis::use_package("future")
 usethis::use_package("rvest")
 usethis::use_package("xml2")
 usethis::use_package("lubridate")
+usethis::use_package("curl")
+usethis::use_package("tidyselect")
 
 
 ## Add modules ----
