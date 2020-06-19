@@ -62,7 +62,7 @@ Collate:
     'fct_build-legend.R'
     'fct_build-linear-models.R'
     'fct_build-network.R'
-    'fct_build-node-table.R'
+    'fct_build-shiny-tables.R'
     'fct_calculate-network-info.R'
     'fct_export-network.R'
     'fct_style-network.R'

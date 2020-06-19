@@ -250,11 +250,11 @@ construct_network   <- function(elements_only_age, elements_by_redox, element_re
   
   ## names to, element_redox_network
   network_information %>% 
-    dplyr::select(to, element_name, num_localities_mineral, element_hsab, atomic_mass, number_of_protons, table_period, table_group, atomic_radius, pauling, metal_type, element_density, element_specific_heat) %>%
-    dplyr::distinct() %>%
+    dplyr::select(to, element_name, from, num_localities_mineral, element_hsab, atomic_mass, number_of_protons, table_period, table_group, atomic_radius, pauling, metal_type, element_density, element_specific_heat) %>%
+    dplyr::distinct() %>% ## this line was causing bugs in element localities. FIXED BY SELECTING FROM ABOVE!
     dplyr::group_by(to) %>%
     dplyr::mutate(num_localities_element = sum(num_localities_mineral)) %>% 
-    dplyr::select(-num_localities_mineral) %>%
+    dplyr::select(-num_localities_mineral, -from) %>% ## remove from as well!!
     dplyr::ungroup() %>%
     dplyr::left_join(element_redox_network_df) %>%
     dplyr::rename(id = to) %>% ## Will automatically be either element or element_as_redox due to first if/else in this function
@@ -351,7 +351,11 @@ add_shiny_node_titles <- function(nodes, elements_by_redox)
                   title = dplyr::case_when(group == "mineral"  ~ paste0("<p>", 
                                                                         id, "<br>", 
                                                                         ima_chemistry, "<br>", 
-                                                                        paste0("Maximum known age: ", max_age, " Ga"), "</p>"),
+                                                                        paste0("Maximum known age: ", max_age, " Ga"), "<br>",
+                                                                        paste0("Number of known localities: ", num_localities), "<br>",
+                                                                        paste0("Mean electronegativity: ", round(mean_pauling, 3)), "<br>",
+                                                                        paste0("COV electronegativity: ", round(cov_pauling, 3)), "<br>",
+                                                                        "</p>"),
                                           group == "element" & elements_by_redox == TRUE ~ paste0("<p>", 
                                                                                                    element_name, "<br>",
                                                                                                    ifelse(is.na(element_redox_network), 
@@ -363,20 +367,21 @@ add_shiny_node_titles <- function(nodes, elements_by_redox)
                                                                                                           paste0("Atomic mass: ", atomic_mass)), "<br>",  
                                                                                                    ifelse(is.na(pauling), 
                                                                                                           "", 
-                                                                                                          paste0("Electronegativity: ", pauling)), "</p>"),                                                        
+                                                                                                          paste0("Electronegativity: ", pauling)), "<br>",
+                                                                                                  paste0("Number of known localities: ", num_localities),  "</p>"),                                                        
                                             group == "element" & elements_by_redox == FALSE ~ paste0("<p>", 
                                                                                                      element_name, "<br>", 
                                                                                                      ifelse(is.na(element_redox_network), 
                                                                                                           "", 
-                                                                                                          paste0("Mean network redox state: ", element_redox_network)
-                                                                                                    ), "<br>",  
+                                                                                                          paste0("Mean network redox state: ", round(element_redox_network, 3))), "<br>",  
                                                                                                      ifelse(is.na(atomic_mass), 
                                                                                                             "", 
                                                                                                             paste0("Atomic mass: ", atomic_mass)), "<br>",  
                                                                                                      ifelse(is.na(pauling), 
                                                                                                             "", 
-                                                                                                            paste0("Electronegativity: ", pauling)), "</p>")
-                                          ), ## END title case_when                     
+                                                                                                            paste0("Electronegativity: ", pauling)), "<br>",
+                                                                                                    paste0("Number of known localities: ", num_localities),  "</p>")                                                        
+                  ), ## END title case_when                     
                  ) %>% ## END mutate
     dplyr::distinct() -> nodes_shinied
   

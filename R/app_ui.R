@@ -212,15 +212,9 @@ app_ui <- function(request) {
                 ## VISUALIZE NETWORK PANEL ---------------------------------------------------------------------------------------------
                 shiny::tabPanel("Visualize Network",      
                   div(style = "height:700px; overflow: hidden;",  ## div1
-                    #div(style = "float:left;font-weight:bold;", ## div2
-                      #div(style = "font-style:italic;",       ## div3
-                      # shiny::textOutput("connectivity")
-                      #), ## END div3
-                      #shiny::textOutput("modularity"),
-                      #shiny::textOutput("n_element_nodes"),
-                      #shiny::textOutput("n_mineral_nodes"),
-                      #shiny::textOutput("n_edges")
-                    #), ## END div2
+                    div(style = "font-style:italic;",       ## div2
+                      shiny::textOutput("connectivity")
+                    ), ## END div2
                     conditionalPanel('input.build_only == true', {
                       div(style = "text-align:center; font-weight:bold; color:red; font-size:1.25em;",
                         br(),br(),br(),br(),
@@ -228,23 +222,39 @@ app_ui <- function(request) {
                       )
                     }), ## END `true` conditionalPanel
                     
-                    visNetwork::visNetworkOutput("networkplot", height = "90%") #NOTE: this cannot be in a conditionalPanel; div1 gets ignored
+                    visNetwork::visNetworkOutput("networkplot", height = "100%") #NOTE: this cannot be in a conditionalPanel; div1 gets ignored
                   ), ## END div1
                    
                   conditionalPanel('input.build_only == false', {
-                    div(style = "height:90px;",
-                      shiny::plotOutput("networklegend", height = "90%", width = "100%")
+                    div(style = "height:75px;padding-left:20px;",
+                      shiny::plotOutput("networklegend", height = "95%", width = "100%")
                     )
                   }) ## END 2nd `false` conditionalPanel
                 ), ## END "Visualize Network" tabPanel
                  
                  
                 ## NETWORK INFORMATION PANEL ---------------------------------------------------------------------------------------------
-                shiny::tabPanel("Network Information",
+                shiny::tabPanel("Explore Network Attributes",
                   fluidRow(
                     column(width = 12,
+                      div(style = "float:left;font-weight:bold;",
+                        h3("Network contents:"),
+                        textOutput("modularity"),
+                        textOutput("n_element_nodes"),
+                        textOutput("n_mineral_nodes"),
+                        textOutput("n_edges")
+                      )
+                    ), ## END column
+                    br(),
+                    column(width = 12,
+                      h3("Explore Element Attributes:"),
                       div(style = "font-size:85%;", 
-                        DT::dataTableOutput("networkTable")
+                        DT::dataTableOutput("element_exploration_table")
+                      ),
+                      br(), br(),
+                      h3("Explore Mineral Attributes:"),
+                      div(style = "font-size:85%;", 
+                        DT::dataTableOutput("mineral_exploration_table")
                       )
                     ) ## END column
                   ) ## END fluidRow
@@ -300,14 +310,14 @@ app_ui <- function(request) {
                 
                 
                 ## CONDITIONAL BUTTON TO SHOW/HIDE NODE TABLE -----------------------------------------------
-                #br(),br(),br(),
-                #conditionalPanel('input.build_only == false', {
-                #  fluidRow(
-                #    column(width = 12,
-                #      shiny::uiOutput("show_nodeTable")
-                #    )
-                #  )
-                #}),
+                br(),br(),br(),
+                conditionalPanel('input.build_only == false', {
+                  fluidRow(
+                    column(width = 12,
+                      shiny::uiOutput("show_nodeTable")
+                    )
+                  )
+                }),
                 
                 
                 ## NETWORK EXPORT BOX -----------------------------------------------------------------------

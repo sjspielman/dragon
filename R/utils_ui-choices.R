@@ -111,7 +111,7 @@ categorical_plot_choices <- c("Strip chart" = "strip",
                               "Boxplot"     = "boxplot")
 
 
-## Network construction choices -------------------------------------------
+## Network construction choices -----------------------------------------------------------
 #' UI options for network layout
 #' @noRd
 network_layout_choices <- list(`Force-directed` = c("Fruchterman Reingold"   = "layout_with_fr",
@@ -120,52 +120,51 @@ network_layout_choices <- list(`Force-directed` = c("Fruchterman Reingold"   = "
                                                     "Sugiyama (bipartite) Layout" = "layout_with_sugiyama",
                                                     "Layout in circle"            = "layout_in_circle",
                                                     "Layout in sphere"            = "layout_on_sphere"))
-
 #' UI options for specifically physics (non-static) network layouts
 #' @noRd
 physics_choices <- c("forceAtlas2Based"       = "forceAtlas2Based",
                      "Barnes-Hut"             = "barnesHut",
                      "Repulsion"              = "repulsion", 
                      "Hierarchical repulsion" = "hierarchicalRepulsion")
-
 #' UI options for community clustering algorithms
 #' @noRd
 cluster_algorithm_choices <- c(cluster_alg_louvain_str, cluster_alg_eig_str)
 
 
+## Arrays used in selected_node_table drop-down menus --------------------------------------------------
 
+#' Variables to always appear in selected node table
+#' @noRd
+selected_node_table_constant <- c(element_str, mineral_name_str)
 
-# TODO THIS IS WRONG NOW
-## Arrays used in selected_node_table dropdown menus ---------------------------------
-# selected_node_table_column_choices_mineral   <- c(mineral_id_str, 
-#                                                   rruff_chemistry_str, 
-#                                                   ima_chemistry_str, 
-#                                                   max_age_str, 
-#                                                   num_localities_mineral_str,
-#                                                   mean_pauling_str, 
-#                                                   cov_pauling_str,
-#                                                   mineral_cluster_ID_str,
-#                                                   mineral_closeness_str,
-#                                                   mineral_network_degree_norm_str)
-# selected_node_table_column_choices_locality  <- c(mindat_id_str, 
-#                                                   locality_longname_str, 
-#                                                   age_type_str, 
-#                                                   max_age_locality_str, 
-#                                                   min_age_locality_str)
-# selected_node_table_column_choices_element   <- c(element_name_str, 
-#                                                   element_redox_network_str, 
-#                                                   pauling_str, 
-#                                                   element_hsab_str, 
-#                                                   element_group_str, 
-#                                                   element_period_str, 
-#                                                   element_metaltype_str, 
-#                                                   element_mass_str,
-#                                                   element_radius_str,
-#                                                   element_specificheat_str,
-#                                                   element_density_str,
-#                                                   num_localities_element_str, 
-#                                                   element_cluster_ID_str,
-#                                                   element_closeness_str,
-#                                                   element_network_degree_norm_str,
-#                                                   element_redox_mineral_str) ## THIS ONE WILL REQUIRE APPEARING THE MINERAL NAME
-# 
+#' Variables choices for mineral attributes to appear in the selected node table
+#' @noRd
+selected_node_table_column_choices_mineral   <- c(mineral_id_str,
+                                                  rruff_chemistry_str,
+                                                  ima_chemistry_str,
+                                                  max_age_str,
+                                                  num_localities_mineral_str,
+                                                  mean_pauling_str,
+                                                  cov_pauling_str)
+## NOT CURRENTLY USED
+#' Variables choices for mineral locality attributes to appear in the selected node table
+#' @noRd
+#selected_node_table_column_choices_locality  <- c(mindat_id_str,
+#                                                  locality_longname_str,
+#                                                  age_type_str,
+#                                                  max_age_locality_str,
+#                                                  min_age_locality_str)
+
+#' Variables choices for element attributes to appear in the selected node table
+#' @noRd
+selected_node_table_column_choices_element   <- c(pauling_str,
+                                                  element_redox_network_str,
+                                                  element_redox_mineral_str,
+                                                  element_hsab_str) 
+
+## BOTH ELEMENT AND MINERAL COLUMNS HAVE TO APPEAR WHEN SELECTED
+#' Variables choices for network-level node attributes to appear in the selected node table
+#' @noRd
+selected_node_table_column_choices_network <- c(cluster_ID_str,    
+                                                closeness_str,
+                                                network_degree_norm_str)

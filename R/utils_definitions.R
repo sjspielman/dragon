@@ -2,7 +2,7 @@
 original_options <- options(scipen=0, htmlwidgets.TOJSON_ARGS = NULL)
 options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Setting for DT to show NA cells as NA rather than blank
 options(scipen=3)                                      ## Sci when more than 3 digits
-on.exit(options(original_options), add=TRUE)
+#on.exit(options(original_options), add=TRUE)
 
 ## Future planning with RStudio check to avoid warning -------------------------------
 if (future::supportsMulticore()) future::plan(future::multiprocess) 
@@ -26,8 +26,6 @@ med_m2_url        <- paste0(med_exporting_url, "tbl_locality_age_cache_alt.csv")
 `%...>%` <- promises::`%...>%`
 `:=`     <- rlang::`:=`
 `!!`     <- rlang::`!!`
-
-
 
 ## Enjoyable error messages ----------------------------------------------------------------
 #' Enjoyable error messages for randomized use in sweetAlerts

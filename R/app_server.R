@@ -138,7 +138,6 @@ app_server <- function( input, output, session ) {
       shiny::validate( shiny::need(nrow(elements_only_age) > 0, ""))
     }
   
-    ## TODO: ASYNC
     network <- construct_network(elements_only_age, elements_by_redox, med()$element_redox_states)
     if (length(network) != 3 | nrow(network$nodes) == 0  | nrow(network$edges) == 0)
     {
@@ -179,14 +178,11 @@ app_server <- function( input, output, session ) {
     clustered$nodes %>%
       dplyr::filter(group == "mineral") %>%
       dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% 
-      dplyr::mutate(cluster_ID = factor(cluster_ID)) %>%
-      dplyr::rename(!! variable_to_title[["network_degree_norm"]]  := network_degree_norm,
-                    !! variable_to_title[["closeness"]] := closeness,
-                    !! variable_to_title[["mean_pauling"]] := mean_pauling,
-                    !! variable_to_title[["cov_pauling"]] := cov_pauling,
-                    !! variable_to_title[["num_localities"]] := num_localities,
-                    !! variable_to_title[["max_age"]] := max_age) -> mineral_nodes
-                    
+      rename_for_ui() %>%
+      ## EXCEPT cluster_ID
+      dplyr::rename(cluster_ID = cluster_ID_str) %>%
+      dplyr::mutate(cluster_ID = factor(cluster_ID)) -> mineral_nodes
+    print(head(mineral_nodes))
     return (list("nodes" = clustered$nodes, 
                  "edges" = network$edges, 
                  "graph" = graph, 
@@ -194,7 +190,8 @@ app_server <- function( input, output, session ) {
                  "age_lb" = age_range[1],
                  "age_ub" = age_range[2],
                  "mineral_nodes" = mineral_nodes,
-                 "locality_info" = initialized$locality_info,
+                 "locality_info" =  initialized$locality_info, 
+                 "raw_node_table" = prepare_raw_node_table(network$edges, clustered$nodes, initialized$locality_info),
                  "clustering"     = clustered$clustered_net, 
                  "cluster_colors" = cluster_colors))
   
@@ -205,15 +202,6 @@ app_server <- function( input, output, session ) {
   ## UI component for highlighting a specified set of elements------------------------------------------
   # NOTE: In server since this relies on knowing which elements are actually present in the network
   output$choose_custom_elements_color <- renderUI({
-    ## NOT separating by redox
-    #chemistry_network()$nodes %>%
-    #  dplyr::filter(group == "element") %>%
-    #  dplyr::select(id) %>% 
-    #  tidyr::separate(id, c("base_element", "blah"), sep = "[\\s\\+\\-]") %>%
-    #  dplyr::arrange(base_element) %>%
-    #  dplyr::pull(base_element)-> available_base_elements
-    
-    # YES separating by redox
     chemistry_network()$nodes %>%
       dplyr::filter(group == "element") %>%
       dplyr::select(id) %>%
@@ -229,27 +217,6 @@ app_server <- function( input, output, session ) {
   })
   
  
-  ## UI component for choosing nodes whole information should be displayed --------------------------
-  # NOTE: In server since this relies on knowing which elements are actually present in the network
-  output$choose_nodes <- renderUI({
-    chemistry_network()$nodes %>%
-      dplyr::select(id, group) %>%
-      dplyr::arrange(dplyr::desc(group)) %>%
-      dplyr::pull(id) -> ordered_ids
-    
-    ordered_ids <- c("All elements", "All minerals", ordered_ids)
-    
-    
-    shinyWidgets::pickerInput("selected_nodes_custom", 
-                              "Which additional nodes to select?",             
-                              choices = unique(ordered_ids),
-                              options = list(`actions-box` = TRUE, size = 6), 
-                              multiple = TRUE,
-                              selected = sort(input$elements_of_interest),
-                              width = "200px"
-    )
-  })
-   
 
   ## Calculate network quantities reactively
   network_quantities <- reactive({
@@ -401,15 +368,12 @@ app_server <- function( input, output, session ) {
       # DON'T BE TEMPTED TO GET RID OF THIS IF
       if (build_only ==  FALSE)
       {
-        node_styler()$styled_nodes$size
-        node_styler()$styled_nodes$font.size
         ## visGroups, visNodes, visEdges are global options shared among nodes/edges
         ## Need to use visUpdateNodes and visUpdateEdges for changing individually. This applies to color schemes.
         visNetwork::visNetworkProxy("networkplot") %>%
           visNetwork::visUpdateNodes(nodes = node_styler()$styled_nodes) %>%
           visNetwork::visUpdateEdges(edges = edge_styler()$styled_edges) %>%
           visNetwork::visEdges(width = input$edge_weight) %>%
-          visNetwork::visGetSelectedNodes() %>%
           visNetwork::visInteraction(dragView             = input$drag_view,  #dragNodes = input$drag_nodes, ## This option will reset all node positions to original layout. Not useful.
                                      hover                = input$hover,
                                      selectConnectedEdges = input$hover, ## shows edges vaguely bold in hover, so these are basically the same per user perspective.
@@ -417,7 +381,7 @@ app_server <- function( input, output, session ) {
                                      multiselect          = TRUE,
                                      hideEdgesOnDrag      = input$hide_edges_on_drag,
                                      navigationButtons    = input$nav_buttons) %>%
-          visNetwork::visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree)) 
+          visNetwork::visOptions(highlightNearest = list(enabled =TRUE, degree = input$selected_degree))
       }
     }) ## END observe
 
@@ -535,53 +499,54 @@ app_server <- function( input, output, session ) {
     {
       readr::write_csv(network_table(), file)
     })
+
   
-  # TODO: THIS NEEDS DOING!
-  raw_node_table <- reactive({
-    prepare_selected_node_table(chemistry_network()$nodes, chemistry_network()$edges, chemistry_network()$locality_info)
+  ## Construction of the edge table (Node Selection) ------------------------------------------------------
+  
+  ## UI component for choosing nodes whole information should be displayed --------------------------
+  # NOTE: In server since this relies on knowing which elements are actually present in the network
+  output$choose_nodes <- renderUI({
+    chemistry_network()$nodes %>%
+      dplyr::filter(group == "element") %>%
+      dplyr::arrange(id) %>%
+      dplyr::pull(id) -> ordered_ids
+    raw_cluster_sel <- purrr::map2_chr("All cluster",
+                                       sort(unique(chemistry_network()$nodes$cluster_ID)), 
+                                       paste)
+    cluster_sel     <- purrr::map2_chr(raw_cluster_sel,"elements", paste)
+    ordered_ids <- c("All elements", cluster_sel, ordered_ids) ## All nodes is the SAME as the focal elements given that this is edges.
+    
+    
+    shinyWidgets::pickerInput("selected_nodes_custom", 
+                              "Choose element nodes to view relationships with connected minerals:",             
+                              choices = unique(ordered_ids),
+                              options = list(`actions-box` = TRUE, size = 6), 
+                              multiple = TRUE,
+                              width = "300px"
+    )
   })
+
   
   ## RENDER THE "Selected Node Information" BOX --------------------------------------------------------------------------------
   node_table <- reactive({
-    ## Include dropdown selected nodes AND any node the user clicked
-    selected_nodes <- c(input$selected_nodes_custom, input$networkplot_selected)
-    list(input$columns_selectednode_mineral, 
-         input$columns_selectednode_element, 
-         #input$columns_selectednode_netinfo, 
-         input$columns_selectednode_locality) -> columns_to_display
-    if (!is.null(selected_nodes))
-    {
-      minerals <- chemistry_network()$nodes$id[chemistry_network()$nodes$group == "mineral"]
-      elements <- chemistry_network()$nodes$id[chemistry_network()$nodes$group == "element"]
+    selected_nodes <- c(input$selected_nodes_custom)# NOT WORKING anymore and no clue why., input$networkplot_selectedNodes)
+    columns_to_display <- c(selected_node_table_constant, ## mineral, element, element's redox in that mineral
+                            input$columns_selectednode_mineral, 
+                            input$columns_selectednode_element, 
+                            input$columns_selectednode_network, 
+                            input$columns_selectednode_locality) 
     
-      ## Replace all with actual ids
-      if ("All minerals" %in% selected_nodes){
-        selected_nodes <- selected_nodes[selected_nodes!= "All minerals"]
-        selected_nodes <- c(selected_nodes, minerals)
-      }
-      if ("All elements" %in% selected_nodes){
-        selected_nodes <- selected_nodes[selected_nodes!= "All elements"]
-        selected_nodes <- c(selected_nodes, elements)
-      } 
-      
-      ## Reveal table unless it is false
-      if(raw_node_table() == FALSE){
-        shinyWidgets::sendSweetAlert(
-          session = session, title = sample(error_choices)[[1]], type = "error",
-          text = "Error rendering node table. Please file an issue at https://github.com/spielmanlab/dragon/issues"
-        )    
-        shiny::validate( shiny::need(raw_node_table() != FALSE, ""))
-      }
-      ## TODO waiting on usability feedback here
-      raw_node_table()
-      #build_node_table( raw_node_table(), columns_to_display )
-    }  else {
+    if (is.null(selected_nodes))
+    {
       tibble::tibble()
+    }  else {
+      build_final_node_table(chemistry_network()$raw_node_table, selected_nodes, columns_to_display)
     } 
 
   })
   
 
+  # WE WANT TO KEEP COL NAMES WRAPPED. THIS UNWRAPS: https://stackoverflow.com/questions/31293506/prevent-column-name-wrap-in-shiny-datatable
   output$nodeTable <- DT::renderDataTable( rownames= FALSE, escape = FALSE,  ### escape=FALSE for HTML rendering, i.e. the IMA formula
                                 node_table(), 
                                 extensions = c('ColReorder', 'Responsive', 'Buttons'),
@@ -596,85 +561,101 @@ app_server <- function( input, output, session ) {
   output$show_nodeTable <- renderUI({
     box(width=12,status = "primary", 
         title = "Selected Node Information", collapsible = TRUE,
-        shiny::uiOutput("choose_nodes"),
-        shiny::br(),
-        shiny::tags$b("Choose which variables to include in table."),
-        shiny::br(),
-        #
-        ##div(style="display:inline-block;vertical-align:top;",
-        #shiny::actionButton("include_all_selectednodes", label="Include all variables"),
-        #shiny::actionButton("clear_all_selectednodes", label="Clear variable selection"),
-        ##),
-        #br(),br(),
-        #
-        #div(style="display:inline-block;vertical-align:top;",
-        #    shinyWidgets::prettyCheckboxGroup(
-        #      inputId = "columns_selectednode_mineral",
-        #      label = tags$span(style="font-weight:700", "Mineral variables:"), 
-        #      choices = selected_node_table_column_choices_mineral
-        #    )),
-        #div(style="display:inline-block;vertical-align:top;",
-        #    shinyWidgets::prettyCheckboxGroup(
-        #      inputId = "columns_selectednode_element",
-        #      label = tags$span(style="font-weight:700", "Element variables:"), 
-        #      choices = selected_node_table_column_choices_element
-        #    )),
-        #div(style="display:inline-block;vertical-align:top;",
-        #    prettyCheckboxGroup(
-        #      inputId = "columns_selectednode_netinfo",
-        #      label = tags$span(style="font-weight:700", "Network variables:"), 
-        #      choices = selected_node_table_column_choices_netinfo
-        #    )),
+        div(style="display:inline-block;vertical-align:top;",
+          shiny::uiOutput("choose_nodes"),
+          shiny::actionButton("include_all_selectednodes", label="Include all variables"),
+          shiny::actionButton("clear_all_selectednodes", label="Clear variable selection")
+        ),
+        br(),br(),
+        div(style="display:inline-block;vertical-align:top;",
+           shinyWidgets::prettyCheckboxGroup(
+             inputId = "columns_selectednode_mineral",
+             label = tags$span(style="font-weight:700", "Mineral attributes:"),
+             choices = selected_node_table_column_choices_mineral
+           )),
         #div(style="display:inline-block;vertical-align:top;",
         #    prettyCheckboxGroup(
         #      inputId = "columns_selectednode_locality",
-        #      label = tags$span(style="font-weight:700", "Locality variables:"), 
+        #      label = tags$span(style="font-weight:700", "Locality attributes:"),
         #      choices = selected_node_table_column_choices_locality
         #    )),
+        div(style="display:inline-block;vertical-align:top;",
+           shinyWidgets::prettyCheckboxGroup(
+             inputId = "columns_selectednode_element",
+             label = tags$span(style="font-weight:700", "Element attributes:"),
+             choices = selected_node_table_column_choices_element
+           )),
+        div(style="display:inline-block;vertical-align:top;",
+           prettyCheckboxGroup(
+             inputId = "columns_selectednode_network",
+             label = tags$span(style="font-weight:700", "Network attributes:"),
+             choices = selected_node_table_column_choices_network
+           )),
+        
         shiny::div(style="font-size:85%;", 
           DT::dataTableOutput("nodeTable")
         ),
         shiny::br()
     )
   })   
-  #observeEvent(input$include_all_selectednodes, {
-  #  updatePrettyCheckboxGroup(session=session, 
-  #                            inputId="columns_selectednode_mineral", 
-  #                            choices = selected_node_table_column_choices_mineral, 
-  #                            selected = selected_node_table_column_choices_mineral)
-  #  updatePrettyCheckboxGroup(session=session, 
-  #                            inputId="columns_selectednode_element", 
-  #                            choices = selected_node_table_column_choices_element, 
-  #                            selected = selected_node_table_column_choices_element)
-  #  #updatePrettyCheckboxGroup(session=session, 
-  #  #                          inputId="columns_selectednode_netinfo", 
-  #  #                          choices = selected_node_table_column_choices_netinfo, 
-  #  #                          selected = selected_node_table_column_choices_netinfo)
-  #  updatePrettyCheckboxGroup(session=session, 
-  #                            inputId="columns_selectednode_locality", 
-  #                            choices = selected_node_table_column_choices_locality, 
-  #                            selected = selected_node_table_column_choices_locality)
-  #})
+  observeEvent(input$include_all_selectednodes, {
+   updatePrettyCheckboxGroup(session=session,
+                             inputId="columns_selectednode_mineral",
+                             choices = selected_node_table_column_choices_mineral,
+                             selected = selected_node_table_column_choices_mineral)
+   updatePrettyCheckboxGroup(session=session,
+                             inputId="columns_selectednode_element",
+                             choices = selected_node_table_column_choices_element,
+                             selected = selected_node_table_column_choices_element)
+   updatePrettyCheckboxGroup(session=session,
+                             inputId="columns_selectednode_network",
+                             choices = selected_node_table_column_choices_network,
+                             selected = selected_node_table_column_choices_network)
+   #updatePrettyCheckboxGroup(session=session,
+   #                          inputId="columns_selectednode_locality",
+   #                          choices = selected_node_table_column_choices_locality,
+   #                          selected = selected_node_table_column_choices_locality)
+  })
   
-  #observeEvent(input$clear_all_selectednodes, {
-  #  updatePrettyCheckboxGroup(session=session, 
-  #                            inputId="columns_selectednode_mineral", 
-  #                            choices = selected_node_table_column_choices_mineral, 
-  #                            selected = NULL)
-  #  updatePrettyCheckboxGroup(session=session, 
-  #                            inputId="columns_selectednode_element", 
-  #                            choices = selected_node_table_column_choices_element, 
-  #                            selected = NULL)
-  #  #updatePrettyCheckboxGroup(session=session, 
-  #  #                          inputId="columns_selectednode_netinfo", 
-  #  #                          choices = selected_node_table_column_choices_netinfo, 
-  #  #                          selected = NULL)
-  #  updatePrettyCheckboxGroup(session=session, 
-  #                            inputId="columns_selectednode_locality", 
-  #                            choices = selected_node_table_column_choices_locality, 
-  #                            selected = NULL)
-  #})
+  observeEvent(input$clear_all_selectednodes, {
+   updatePrettyCheckboxGroup(session=session,
+                             inputId="columns_selectednode_mineral",
+                             choices = selected_node_table_column_choices_mineral,
+                             selected = NULL)
+   updatePrettyCheckboxGroup(session=session,
+                             inputId="columns_selectednode_element",
+                             choices = selected_node_table_column_choices_element,
+                             selected = NULL)
+   updatePrettyCheckboxGroup(session=session,
+                             inputId="columns_selectednode_network",
+                             choices = selected_node_table_column_choices_network,
+                             selected = NULL)
+   #updatePrettyCheckboxGroup(session=session,
+   #                          inputId="columns_selectednode_locality",
+   #                          choices = selected_node_table_column_choices_locality,
+   #                          selected = NULL)
+  })
   
+  ## Network information panel ---------------------------------------------------------------------------------
+  output$element_exploration_table <- DT::renderDataTable( rownames= FALSE, ## no IMA formulas for elements, dont need escape=F
+                                                           build_element_exploration_table(chemistry_network()$nodes), 
+                                                           extensions = c('ColReorder', 'Responsive', 'Buttons'),
+                                                           options = list(
+                                                             dom = 'Bfrtip',
+                                                             buttons = c('copy', 'csv', 'excel'),
+                                                             colReorder = TRUE
+                                                           ) 
+                  )
+  output$mineral_exploration_table <- DT::renderDataTable( rownames= FALSE, escape = FALSE,  ### escape=FALSE for HTML rendering, i.e. the IMA formula
+                                                           build_mineral_exploration_table(chemistry_network()$nodes, chemistry_network()$locality_info), 
+                                                           extensions = c('ColReorder', 'Responsive', 'Buttons'),
+                                                           options = list(
+                                                             dom = 'Bfrtip',
+                                                             buttons = c('copy', 'csv', 'excel'),
+                                                             colReorder = TRUE
+                                                           )
+  )  
+
   
   #################################################################################################################
   #################################################################################################################

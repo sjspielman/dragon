@@ -9,7 +9,7 @@ build_legend <- function(edge_styler, node_styler)
 {
   ## If logical, it's FALSE and there is no legend
   ## If list, there is a legend
-
+  legend_scale <- 0.5 # I'm fairly certain this does absolutely nothing.
   finallegend <- NULL
   if (typeof(node_styler$both_legend) == "logical")
   {   
@@ -18,10 +18,10 @@ build_legend <- function(edge_styler, node_styler)
     if (typeof(edge_styler$edge_legend) == "logical") 
     { 
       stopifnot(edge_styler$edge_legend == FALSE)
-      finallegend <- cowplot::plot_grid(node_styler$element_legend, node_styler$mineral_legend, nrow=1)
+      finallegend <- cowplot::plot_grid(node_styler$element_legend, node_styler$mineral_legend, nrow=1, scale=legend_scale)
     } else {
       ### mineral, element, edge
-      finallegend <- cowplot::plot_grid(node_styler$element_legend, node_styler$mineral_legend, edge_styler$edge_legend, nrow=1, scale=0.75)
+      finallegend <- cowplot::plot_grid(node_styler$element_legend, node_styler$mineral_legend, edge_styler$edge_legend, nrow=1, scale=legend_scale)
     }
   } else ## both_legend is NOT NA
   {
@@ -32,7 +32,7 @@ build_legend <- function(edge_styler, node_styler)
       finallegend <- node_styler$both_legend
     } else { ### BOTHNODES, EDGES
       ### both, edge
-      finallegend <- cowplot::plot_grid(node_styler$both_legend, edge_styler$edge_legend, nrow=1, scale=0.75)
+      finallegend <- cowplot::plot_grid(node_styler$both_legend, edge_styler$edge_legend, nrow=1, scale=legend_scale)
     }
   }   
   return(finallegend)
