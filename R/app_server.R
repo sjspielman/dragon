@@ -192,7 +192,7 @@ app_server <- function( input, output, session ) {
   
     ## Subset mineral nodes, used in modeling --------------------------------------------
     mineral_nodes <- subset_mineral_nodes(clustered$nodes)
-    
+
     return (list("nodes" = clustered$nodes, 
                  "edges" = network$edges, 
                  "graph" = graph, 
@@ -201,6 +201,7 @@ app_server <- function( input, output, session ) {
                  "age_ub" = age_range[2],
                  "mineral_nodes" = mineral_nodes,
                  "locality_info" =  initialized$locality_info, 
+                 "timeline_data" = prepare_timeline_data(elements_only, age_range, max_age_type),
                  "raw_node_table" = prepare_raw_node_table(network$edges, clustered$nodes),
                  "clustering"     = clustered$clustered_net, 
                  "cluster_colors" = cluster_colors))
@@ -784,7 +785,24 @@ app_server <- function( input, output, session ) {
       ggplot2::ggsave(file, linear_model_plot())
   })        
 
-
+  
+  ## Renderings for the timeline tabPanel ------------------------------------------------------------
+  output$timeline_plot <- renderPlot({
+    build_current_timeline(chemistry_network()$timeline_data, 
+                           input$within_range_color, 
+                           input$outside_range_color)
+  })
+  output$download_timeline <- shiny::downloadHandler(
+    filename = function() {
+      paste("dragon_mineral_timeline-", Sys.Date(), ".pdf", sep="")
+    },
+    content  = function(file) {
+      p <- build_current_timeline(chemistry_network()$timeline_data, 
+                                  input$within_range_color, 
+                                  input$outside_range_color)
+      ggplot2::ggsave(file, p, width = 13, height = 6)
+    })        
+  
 
   #################################################################################################################
   #################################################################################################################

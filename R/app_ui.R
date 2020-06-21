@@ -305,48 +305,66 @@ app_ui <- function(request) {
                       ) ## END div                                
                     ) ## END column
                   ) ## END fluidRow
-                 ) ## END "Analyze Network Minerals" tabPanel  
-                ), ## END TOP tabBox
+                 ), ## END "Analyze Network Minerals" tabPanel  
                 
-                
-                ## CONDITIONAL BUTTON TO SHOW/HIDE NODE TABLE -----------------------------------------------
-                br(),br(),br(),
-                conditionalPanel('input.build_only == false', {
+                shiny::tabPanel("Mineral formation timeline",
+                  div(style="float:center;width:100%;height:500px;",
+                    plotOutput("timeline_plot", height = "100%", width = "100%")
+                  ),
                   fluidRow(
-                    column(width = 12,
-                      shiny::uiOutput("show_nodeTable")
+                    column(4, 
+                      colourpicker::colourInput("within_range_color", label = "Color for minerals within selected time range:", value="#68340e") 
+                    ),
+                    column(4, 
+                      colourpicker::colourInput("outside_range_color", label = "Color for minerals outside selected time range:", value="#fae9dd")
+                    ),
+                    column(4, 
+                      br(),
+                      shinyWidgets::downloadBttn("download_timeline", "Download Timeline Plot", size = "sm", style = "minimal", color = "danger")
                     )
-                  )
-                }),
-                
-                
-                ## NETWORK EXPORT BOX -----------------------------------------------------------------------
-                box(width = 12, status = "primary", title = "Network Export", collapsible = TRUE,
-                  shinyWidgets::actionBttn("store_position", 
-                                     "Click to prepare network for export to PDF.", 
-                                     color = "danger", 
-                                     style = "fill", 
-                                     block = TRUE),            
-                  div(style = "float:left;margin-top:20px;",
-                    shinyWidgets::dropdownButton(circle =FALSE, up=TRUE, label  = "PDF options", icon = icon("cogs", lib = "font-awesome"), status = "info", width = "250px", size = "default",
-                      shiny::numericInput("baseline_output_element_size", "Scale element node size", value = 1, max=5, step = 0.5),
-                      shiny::numericInput("baseline_output_element_label_size", "Scale element node label size", value = 1, max=5, step = 0.5),
-                      shiny::numericInput("baseline_output_mineral_size", "Scale mineral node size",  value = 1, max=5, step = 0.5),
-                      shiny::numericInput("output_pdf_width", "Width of network PDF", min=1, max=20, 10),
-                      shiny::numericInput("output_pdf_height", "Height of network PDF", min=1, max=20, 6),
-                      shinyWidgets::prettySwitch("output_pdf_node_frame","Show node outlines in PDF?",value = FALSE, status="danger")
-                    )
-                  ), ## END div
-                    
-                  br(),br(),br(),br(),
-                  
-                  fluidRow(
-                    column(3, shinyWidgets::downloadBttn("downloadNetwork_pdf", "Export network as PDF", size = "sm", style = "bordered", color = "danger")),
-                    column(3, shinyWidgets::downloadBttn("download_legend", "Export legend as PDF", size = "sm", style = "bordered", color = "danger")),                            
-                    column(3, shinyWidgets::downloadBttn("exportNodes", "Export nodes as CSV", size = "sm", style = "bordered", color = "danger")),
-                    column(3, shinyWidgets::downloadBttn("exportEdges", "Export edges as CSV", size = "sm", style = "bordered", color = "danger"))
                   ) ## END fluidRow
-                ) ## END box
+                ) ## END timeline tabPanel
+              ), ## END TOP tabBox
+                
+                
+              ## CONDITIONAL BUTTON TO SHOW/HIDE NODE TABLE -----------------------------------------------
+              br(),br(),br(),
+              #conditionalPanel('input.build_only == false', {
+                fluidRow(
+                  column(width = 12,
+                    shiny::uiOutput("show_nodeTable")
+                  )
+                ),
+              #}),
+              
+              
+              ## NETWORK EXPORT BOX -----------------------------------------------------------------------
+              box(width = 12, status = "primary", title = "Network Export", collapsible = TRUE,
+                shinyWidgets::actionBttn("store_position", 
+                                   "Click to prepare network for export to PDF.", 
+                                   color = "danger", 
+                                   style = "fill", 
+                                   block = TRUE),            
+                div(style = "float:left;margin-top:20px;",
+                  shinyWidgets::dropdownButton(circle =FALSE, up=TRUE, label  = "PDF options", icon = icon("cogs", lib = "font-awesome"), status = "info", width = "250px", size = "default",
+                    shiny::numericInput("baseline_output_element_size", "Scale element node size", value = 1, max=5, step = 0.5),
+                    shiny::numericInput("baseline_output_element_label_size", "Scale element node label size", value = 1, max=5, step = 0.5),
+                    shiny::numericInput("baseline_output_mineral_size", "Scale mineral node size",  value = 1, max=5, step = 0.5),
+                    shiny::numericInput("output_pdf_width", "Width of network PDF", min=1, max=20, 10),
+                    shiny::numericInput("output_pdf_height", "Height of network PDF", min=1, max=20, 6),
+                    shinyWidgets::prettySwitch("output_pdf_node_frame","Show node outlines in PDF?",value = FALSE, status="danger")
+                  )
+                ), ## END div
+                  
+                br(),br(),br(),br(),
+                
+                fluidRow(
+                  column(3, shinyWidgets::downloadBttn("downloadNetwork_pdf", "Export network as PDF", size = "sm", style = "bordered", color = "danger")),
+                  column(3, shinyWidgets::downloadBttn("download_legend", "Export legend as PDF", size = "sm", style = "bordered", color = "danger")),                            
+                  column(3, shinyWidgets::downloadBttn("exportNodes", "Export nodes as CSV", size = "sm", style = "bordered", color = "danger")),
+                  column(3, shinyWidgets::downloadBttn("exportEdges", "Export edges as CSV", size = "sm", style = "bordered", color = "danger"))
+                ) ## END fluidRow
+              ) ## END box
                 
             ) ## END div0
           ) ## END fluidRow

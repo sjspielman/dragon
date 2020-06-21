@@ -33,7 +33,7 @@ med_m2_url        <- paste0(med_exporting_url, "tbl_locality_age_cache_alt.csv")
 error_choices <- c("Oh no!", "Sorry, that's not gonna work.", "Try again!", "Womp womp :(", "No dice!", "Uh oh!", "Woopsies!")
 
 
-## Element information --------------------------------------------------------------------------
+
 #' Tibble of element metadata
 #' @noRd
 element_info <- tibble::tribble(
@@ -112,3 +112,5 @@ element_info <- tibble::tribble(
   "Ytterbium", "Yb", "Hard acid", 173.054, 70, 6, NA, 2.40, 1.10, "Lanthanide", 6.97e+00, 0.155, 
   "Zinc", "Zn", "Int. acid", 65.380, 30, 4, 12, 1.50, 1.65, "Transition Metal", 7.13e+00, 0.388, 
   "Zirconium", "Zr", "Hard acid", 91.224, 40, 5, 4, 2.20, 1.33, "Transition Metal", 6.51e+00, 0.278)
+
+
