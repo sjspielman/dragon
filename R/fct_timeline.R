@@ -42,11 +42,9 @@ goe_color <- "dodgerblue"
 #' @noR
 selected_time_frame_levels <- c("Selected time range", "Other time range")
 
-
 #' Timeplot bands alpha
 #' @noRd
 band_alpha <- 0.02
-
 
 #' Function to build the baseline timeline plot, for any future minerals
 #' @return Named list: `plot` is the baseline plot, and `legend` is the band legend
@@ -63,12 +61,15 @@ baseline_timeline <- function()
     ggplot2::geom_rect( ggplot2::aes(xmin = late_age, 
                                      xmax = early_age, 
                                      ymin = ymin, 
-                                     ymax = ymax), fill = "burlywood3", color = "grey30") +
+                                     ymax = ymax,
+                                     fill = early_age), color = "grey30") +
     ggplot2::geom_text( ggplot2::aes(label = eon_era_name, 
                                      x = label_x, 
                                      y = label_y),
               angle = c(rep(0, 4), rep(90, 3), rep(0, 3), rep(0, 4)),
+              fontface = c(rep("bold", 4), rep("plain", 10)),
               size  = c(rep(4, 4), rep(3, 10))) +
+    colorspace::scale_fill_continuous_sequential(h1 = 57, c1 = 97, c2 = NA, cmax = NA, l1 = 35, l2 = 98, p1=1.1) +
     ggplot2::scale_x_reverse(limits = c(4700,0), 
                              position = "top", 
                              breaks = c(seq(0,4500,500), 4700),
@@ -80,12 +81,12 @@ baseline_timeline <- function()
   tibble::tibble(x = c(rep("a", 5), rep("b",5))) %>%
     ggplot2::ggplot() +
     ggplot2::aes(x = x, fill = x) + 
-    ggplot2::geom_bar(alpha = band_alpha*10, color = "black") +  ## legend alpha seems weaker?!
+    ggplot2::geom_bar(alpha = band_alpha*10, color = "black") +  ## legend alpha seems weaker so *10.
     ggplot2::scale_fill_manual(values = c(geochemical_evidence_color, goe_color),
                                labels = c("Earliest geochemical evidence of microbial metabolism",
                                           "Great Oxidation Events"),
-                               name   = "") -> timeline_base_legend_raw
-    #ggplot2::guides(fill = ggplot2::guide_legend(nrow=2))-> timeline_base_legend_raw
+                               name   = "") + 
+    ggplot2::guides(fill = ggplot2::guide_legend(nrow=2))-> timeline_base_legend_raw
   
   timeline_base_legend <- cowplot::get_legend(timeline_base_legend_raw)
   
@@ -95,14 +96,16 @@ baseline_timeline <- function()
 }
 
 
-prepare_timeline_data <- function(elements_only, age_range, max_age_type)
+
+prepare_timeline_data <- function(df, age_range, max_age_type)
 {
+  
   age_lb <- age_range[1]
   age_ub <- age_range[2]
-  if (max_age_type == "Minimum") elements_only %<>% dplyr::mutate(age_check = min_age) 
-  if (max_age_type == "Maximum") elements_only %<>% dplyr::mutate(age_check = max_age) 
+  if (max_age_type == "Minimum") df %<>% dplyr::mutate(age_check = min_age) 
+  if (max_age_type == "Maximum") df %<>% dplyr::mutate(age_check = max_age) 
   
-  elements_only %>%
+  df %>%
     dplyr::mutate(selected_time_frame = ifelse(age_check >= age_lb & age_check <= age_ub, 
                                                selected_time_frame_levels[[1]], 
                                                selected_time_frame_levels[[2]])) %>%
@@ -111,17 +114,34 @@ prepare_timeline_data <- function(elements_only, age_range, max_age_type)
     dplyr::arrange(dplyr::desc(age_check)) %>%
     dplyr::rename(x = age_check) %>%
     dplyr::mutate(x = x * 1000, ## age to GA
-                  yend = y_fudge + seq(0, 1, 1/(dplyr::n()))[1:dplyr::n()] * timeline_upper, ##  THIS?
-                  selected_time_frame = factor(selected_time_frame, levels = selected_time_frame_levels)) 
+                  selected_time_frame = factor(selected_time_frame, levels = selected_time_frame_levels)) %>%
+    dplyr::distinct() -> all_minerals
+  
+  all_minerals %>%
+    dplyr::group_by(mineral_name) %>%
+    dplyr::filter(x == max(x)) %>%
+    dplyr::distinct() %>%
+    dplyr::ungroup() -> oldest_minerals
+  
+  return(list("all" = all_minerals, 
+              "maxage" = oldest_minerals))
 }
 
 build_current_timeline <- function(timeline_minerals, within_range_color, outside_range_color)
 {
-  ## Set up breaks -----------------------------------------------------
+  ## Add yend HERE (causes bugs above since mucks w/ distinct())
   total <- nrow(timeline_minerals)
+  yend_raw <-  (seq(0, 1, (1/total))[1:total])  * timeline_upper
+  stopifnot(total == length(yend_raw))
+  timeline_minerals %<>% dplyr::mutate(yend = y_fudge + yend_raw)
+  
+  ## Set up breaks -----------------------------------------------------
   if (total <= 100){
     break_chunk <- 10
-  } else{
+  } else if (total > 100 & total < 250) {
+    break_chunk <- 25
+  } else {
+    # must be >= 250
     break_chunk <- round((total/9)/50,0) * 50 ## we want 10 breaks (hence 9!) along the y axis, where the labels are at a multiple of 50
   }
   break_labels <- seq(0, total, break_chunk)
@@ -140,7 +160,7 @@ build_current_timeline <- function(timeline_minerals, within_range_color, outsid
                                        color = selected_time_frame)) +
     
     ggplot2::scale_y_continuous(expand=c(0, y_fudge), 
-                                limits=c(timeline_lower, y_fudge + timeline_upper + 0.2),
+                                limits=c(timeline_lower, y_fudge + max(break_points) + 0.2),
                                 breaks = break_points,
                                 labels = break_labels, 
                                 position = "right") +

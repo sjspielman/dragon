@@ -8,11 +8,10 @@
 #' @param input_element_size_scale A user-inputted numeric to scale up/down (multiply) the final element node sizes
 #' @param input_element_size_scale A user-inputted numeric to scale up/down (multiply) the final element node sizes
 #' @param input_mineral_size_scale A user-inputted numeric to scale up/down (multiply) the final mineral node sizes
-#' @param show_node_frame A logical indicating if nodes should be outlined in the final image
 #'
 #' @return Named list of the styled igraph object ("igraph_network"), a matrix of layout coordinates to use in exported image ("coords"), and a numeric for the output network's aspect ratio ("vis_aspect_ratio")
 #' @noRd
-visnetwork_to_igraph <- function(nodes, edges, input_element_size_scale, input_element_label_scale, input_mineral_size_scale, show_node_frame)
+visnetwork_to_igraph <- function(nodes, edges, input_element_size_scale, input_element_label_scale, input_mineral_size_scale)
 {
   
   ####################### BASELINES ###########################
@@ -69,7 +68,7 @@ visnetwork_to_igraph <- function(nodes, edges, input_element_size_scale, input_e
       label.color  = font.color,
       label.font   = 1, 
       label.family = "mono",## courier in visNetwork, this is equivalent
-      frame.color  = ifelse(show_node_frame == TRUE, color.border, NA) ) %>%  ## borders in igraph are overly thick, user can choose
+      frame.color  = color.border) %>%
       # UNGROUP UNGROUP UNGROUP
       dplyr::ungroup() -> nodes_igraph   
   
@@ -133,7 +132,7 @@ visnetwork_to_igraph <- function(nodes, edges, input_element_size_scale, input_e
   
   y_size <- abs( max(coords$y) - min(coords$y) ) 
   x_size <- abs( max(coords$x) - min(coords$x) ) 
-  vis_aspect_ratio <- y_size / x_size  ## >1 is wide. x goes on denom.
+  vis_aspect_ratio <- y_size / x_size
   
   return (list("igraph_network" = inet, "coords" = as.matrix(coords), "vis_aspect_ratio" = vis_aspect_ratio))
 }

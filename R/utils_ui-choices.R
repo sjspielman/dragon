@@ -169,3 +169,13 @@ selected_node_table_column_choices_element   <- c(pauling_str,
 selected_node_table_column_choices_network <- c(cluster_ID_str,    
                                                 closeness_str,
                                                 network_degree_norm_str)
+#' List of choices for how igraph can format the output network
+#' @noRd
+igraph_output_format_choices <- c("GraphML"                       = "graphml", 
+                                  "GML (Graph Modeling Language)" = "gml", 
+                                  "DOT"                           = "dot",
+                                  "Pajek"                         = "pajek", 
+                                  "ncol"                          = "ncol", 
+                                  "Large Graph Layout (LGL)"      = "lgl",
+                                  "LEDA"                          = "leda",
+                                  "Edge list"                     = "edgelist")

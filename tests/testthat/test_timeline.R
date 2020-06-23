@@ -12,13 +12,17 @@ test_that("fct_timeline::prepare_timeline_data() works", {
   max_age_type <- "Maximum"
   elements_only <- initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
   test_prepare <- prepare_timeline_data(elements_only, age_range, max_age_type)
-  expected_names <- sort(c("mineral_name", "x", "yend", "selected_time_frame"))
-  expect_equal(sort(names(test_prepare)), expected_names)
-  expect_equal(sort(unique(test_prepare$mineral_name)), sort(unique(elements_only$mineral_name)))
+  expect_equal(sort(names(test_prepare)), sort(c("all", "maxage")))
   
-  test_prepare %>%
+  expected_names_each <- sort(c("mineral_name", "x", "selected_time_frame"))
+  expect_equal(sort(names(test_prepare$all)), expected_names_each)
+  expect_equal(sort(names(test_prepare$maxage)), expected_names_each)
+  expect_equal(sort(unique(test_prepare$maxage$mineral_name)), sort(unique(elements_only$mineral_name)))
+  expect_equal(sort(unique(test_prepare$all$mineral_name)), sort(unique(elements_only$mineral_name)))
+  
+  test_prepare$all %>%
     dplyr::filter(selected_time_frame == selected_time_frame_levels[1]) -> within_time
-  outside_time <- dplyr::anti_join(test_prepare, within_time)
+  outside_time <- dplyr::anti_join(test_prepare$all, within_time)
   ## must be WITHIN
   expect_true(all( (within_time$x / 1000) >= age_range[1] & (within_time$x / 1000) <= age_range[2]) )
   # EITHER above or below
@@ -35,9 +39,10 @@ test_that("fct_timeline::build_current_timeline() works", {
   within_range_color <- "red"
   outside_range_color <- "blue"
   
-  p <- build_current_timeline(timeline_minerals, within_range_color, outside_range_color)
+  p <- build_current_timeline(timeline_minerals$all, within_range_color, outside_range_color)
   expect_true(all(class(p) == c("gg", "ggplot")))
-  
+  p <- build_current_timeline(timeline_minerals$maxage, within_range_color, outside_range_color)
+  expect_true(all(class(p) == c("gg", "ggplot"))) 
   
 })
 

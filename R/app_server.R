@@ -358,6 +358,8 @@ app_server <- function( input, output, session ) {
             visNetwork::visEvents(select = "function(nodes) {
                                     Shiny.onInputChange('current_node_id', nodes.nodes);
                                     ;}")
+                                    #dragEnd = "function(nodes) {
+                                    #  Shiny.onInputChange('dragged_id', nodes.nodes);}")
         } ## END if(build_only == FALSE)
       })  ## END isolate()        
     }) ## END renderVisNetwork({})
@@ -367,16 +369,7 @@ app_server <- function( input, output, session ) {
     output$networklegend <- renderPlot({
       cowplot::ggdraw(final_legend())
     })    
-    
-    
-    ## Observer for storing positions when. ---------------------------------------------------------------
-    ## NOTE: *must* remain within observeEvent(input$go, 
-    ## NOTE: input$store_position is the "Click to prepare network for export to PDF." button
-    observeEvent(input$store_position, {
-      # TODO does this need a build_only == F?
-      #if (build_only == FALSE) visNetworkProxy("networkplot") %>% visGetPositions()
-      visNetwork::visNetworkProxy("networkplot") %>% visNetwork::visGetPositions()
-    })  ## END observeEvent
+  
     
     ## visNetworkProxy observer to perform *all network updates* ---------------------------------------
     observe({
@@ -401,66 +394,72 @@ app_server <- function( input, output, session ) {
     }) ## END observe
 
   }) ## END observeEvent(input$go,
-  
-  
 
   
   ## DOWNLOAD LINKS ------------------------------------------------------------------------
-
-    ## Prepare the nodes for download based on current positions -------------------------------------------
-    styled_nodes_with_positions <- reactive({
-      output_layout <- isolate(input$network_layout)
-      seed          <- isolate(input$network_layout_seed)
-      
-      if(output_layout == "physics")
-      {
-        shinyWidgets::sendSweetAlert(
-          session = session, title = "Warning!", type = "warning",
-          text = "Dynamic physics layouts cannot be exported to PDF. Preparing export with Fruchterman-Reingold layout."
-        )    
-        output_layout <- "layout_with_fr"
-      }
-      calculate_output_node_positions(node_styler()$styled_nodes, 
-                                      input$networkplot_positions, 
-                                      chemistry_network()$graph,
-                                      output_layout,
-                                      seed)
-    })
+  observeEvent(input$store_position,{
+    visNetwork::visNetworkProxy("networkplot") %>% visNetwork::visGetPositions()
+  })
+  
+  styled_nodes_with_positions <- reactive({
+    output_layout <- isolate(input$network_layout)
+    seed          <- isolate(input$network_layout_seed)
     
-    
-    
+    if(output_layout == "physics")
+    {
+      shinyWidgets::sendSweetAlert(
+        session = session, title = "Warning!", type = "warning",
+        text = "Dynamic physics layouts cannot be exported to PDF. Preparing export with Fruchterman-Reingold layout."
+      )    
+      output_layout <- "layout_with_fr"
+    }
+    calculate_output_node_positions(node_styler()$styled_nodes, 
+                                    input$networkplot_positions, 
+                                    chemistry_network()$graph,
+                                    output_layout,
+                                    seed)
+  })
+  
+  
+  
   ## Build the final legend image ---------------------------------------------------------------------
   final_legend <- reactive({
     build_legend(edge_styler(), node_styler())
   })  ## END final_legend reactive
     
     
+  network_as_igraph <- reactive({
+    visnetwork_to_igraph(styled_nodes_with_positions(), 
+                         edge_styler()$styled_edges, 
+                         input$baseline_output_element_size,
+                         input$baseline_output_element_label_size,
+                         input$baseline_output_mineral_size)   
+  })
+  
+  
+  
+  
   ## Download the network as PDF image -----------------------------------------------------
-  output$downloadNetwork_pdf <- downloadHandler(
+  output$export_network_pdf <- downloadHandler(
     filename = function() { paste0('dragon_network_', Sys.Date(), '.pdf') },
     content  = function(outfile)
     {
-      igraph_version <- visnetwork_to_igraph(styled_nodes_with_positions(), 
-                                             edge_styler()$styled_edges, 
-                                             input$baseline_output_element_size,
-                                             input$baseline_output_element_label_size,
-                                             input$baseline_output_mineral_size,
-                                             input$output_pdf_node_frame)      
       
       grDevices::pdf(outfile, 
                      useDingbats = FALSE, 
-                     width = input$output_pdf_width, 
-                     height = input$output_pdf_height)
-      igraph::plot.igraph(igraph_version$igraph_network, 
-                          layout = igraph_version$coords, 
-                          asp    = igraph_version$vis_aspect_ratio)
+                     width = 10, ## ??
+                     height = 8) ## ??
+      igraph::plot.igraph(network_as_igraph()$igraph_network, 
+                          layout = network_as_igraph()$coords, 
+                          asp    = network_as_igraph()$vis_aspect_ratio)
       grDevices::dev.off()
     }
   )
+  
 
   
   ## Download the legend as PDF image ------------------------------------------------------------
-  output$download_legend <- downloadHandler(
+  output$export_legend_pdf <- downloadHandler(
     filename = function() { paste0('dragon_legend_', Sys.Date(), '.pdf') },
     content  = function(outfile) 
     {
@@ -470,22 +469,29 @@ app_server <- function( input, output, session ) {
     })
   
   ## Download the nodes as CSV ------------------------------------------------------------
-  output$exportNodes <- downloadHandler(
+  output$export_nodes_csv <- downloadHandler(
     filename = function() { paste0('dragon_node_data_', Sys.Date(), '.csv') },
     content  = function(outfile) 
     {
       readr::write_csv(node_styler()$styled_nodes, outfile)
     })
   
-  
   ## Download the edges as CSV ------------------------------------------------------------
-  output$exportEdges <- downloadHandler(
+  output$export_edges_csv <- downloadHandler(
     filename = function() { paste0('dragon_edge_data_', Sys.Date(), '.csv') },
     content  = function(outfile) 
     {
       readr::write_csv(edge_styler()$styled_edges, outfile)
     })
 
+  ## Download the network in a specified iGraph text format ------------------------------------------------------------
+  output$export_network_igraph <- downloadHandler(
+    filename = function() { paste0('dragon_network_', Sys.Date(), '.', input$igraph_output_format) },
+    content  = function(outfile) 
+    {
+      igraph::write_graph(network_as_igraph()$igraph_network, outfile, format = input$igraph_output_format)
+    })
+  
   
   ## Construction of the edge table (Node Selection) ------------------------------------------------------
   
@@ -511,23 +517,23 @@ app_server <- function( input, output, session ) {
     )
   })
 
-  #user_nodes_clicked <- reactiveVal(FALSE)
+
+
+  
+  ## RENDER THE "Selected Node Information" BOX --------------------------------------------------------------------------------
   observeEvent(input$current_node_id, {
-   # user_nodes_clicked(input$current_node_id)
     shinyWidgets::updatePickerInput(session = session,
                                     "selected_nodes_custom", 
                                     selected = c(input$selected_nodes_custom, input$current_node_id)
     ) 
   })
   
-  ## RENDER THE "Selected Node Information" BOX --------------------------------------------------------------------------------
   node_table <- reactive({
     selected_nodes <- unique(input$selected_nodes_custom)
     columns_to_display <- c(selected_node_table_constant, ## mineral, element, element's redox in that mineral
                             input$columns_selectednode_mineral, 
                             input$columns_selectednode_element, 
-                            input$columns_selectednode_network) #, 
-                            #input$columns_selectednode_locality) 
+                            input$columns_selectednode_network) 
     
     if (is.null(selected_nodes))
     {
@@ -562,12 +568,6 @@ app_server <- function( input, output, session ) {
              label = tags$span(style="font-weight:700", "Mineral attributes:"),
              choices = selected_node_table_column_choices_mineral
            )),
-        #div(style="display:inline-block;vertical-align:top;",
-        #    prettyCheckboxGroup(
-        #      inputId = "columns_selectednode_locality",
-        #      label = tags$span(style="font-weight:700", "Locality attributes:"),
-        #      choices = selected_node_table_column_choices_locality
-        #    )),
         div(style="display:inline-block;vertical-align:top;",
            shinyWidgets::prettyCheckboxGroup(
              inputId = "columns_selectednode_element",
@@ -580,9 +580,13 @@ app_server <- function( input, output, session ) {
              label = tags$span(style="font-weight:700", "Network attributes:"),
              choices = selected_node_table_column_choices_network
            )),
-        shiny::actionButton("include_all_selectednodes", label="Include all attributes"),
-        shiny::actionButton("clear_all_selectednodes", label="Clear attribute selection"),
         br(),
+        div(style="display:inline-block;vertical-align:top;",
+          shiny::actionButton("include_all_selectednodes", label="Include all attributes")
+        ),
+        div(style="display:inline-block;vertical-align:top;",
+          shiny::actionButton("clear_all_selectednodes", label="Clear attribute selection")
+        ), br(),
         shiny::div(style="font-size:85%;", 
           DT::dataTableOutput("nodeTable")
         ),
@@ -602,10 +606,6 @@ app_server <- function( input, output, session ) {
                              inputId="columns_selectednode_network",
                              choices = selected_node_table_column_choices_network,
                              selected = selected_node_table_column_choices_network)
-   #updatePrettyCheckboxGroup(session=session,
-   #                          inputId="columns_selectednode_locality",
-   #                          choices = selected_node_table_column_choices_locality,
-   #                          selected = selected_node_table_column_choices_locality)
   })
   
   observeEvent(input$clear_all_selectednodes, {
@@ -621,10 +621,6 @@ app_server <- function( input, output, session ) {
                              inputId="columns_selectednode_network",
                              choices = selected_node_table_column_choices_network,
                              selected = NULL)
-   #updatePrettyCheckboxGroup(session=session,
-   #                          inputId="columns_selectednode_locality",
-   #                          choices = selected_node_table_column_choices_locality,
-   #                          selected = NULL)
   })
   
   ## Network information panel ---------------------------------------------------------------------------------
@@ -788,10 +784,16 @@ app_server <- function( input, output, session ) {
   
   ## Renderings for the timeline tabPanel ------------------------------------------------------------
   output$timeline_plot <- renderPlot({
-    build_current_timeline(chemistry_network()$timeline_data, 
+    
+    if (input$timeline_view)    data <- chemistry_network()$timeline_data$maxage
+    if (!(input$timeline_view)) data <- chemistry_network()$timeline_data$all
+  
+    build_current_timeline(data, 
                            input$within_range_color, 
                            input$outside_range_color)
   })
+  
+  
   output$download_timeline <- shiny::downloadHandler(
     filename = function() {
       paste("dragon_mineral_timeline-", Sys.Date(), ".pdf", sep="")

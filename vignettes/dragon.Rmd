@@ -2,7 +2,9 @@
 title: "Mineral-chemistry network analysis in `dragon`"
 author: "Stephanie J. Spielman"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: 
+  html_document:
+    theme: cerulean
 bibliography: dragon.bib
 vignette: >
   %\VignetteIndexEntry{Mineral-chemistry network analysis in `dragon`}

@@ -16,8 +16,7 @@ test_that("fct_export_network::* works ", {
                                          true_styled_edges, 
                                          1, ## baseline_output_element_size
                                          1, ## baseline_output_element_label_size
-                                         1, ## baseline_output_mineral_size
-                                         FALSE) # frame nodes
+                                         1) ## baseline_output_mineral_size
   
   # check names
   expect_equal(sort(names(igraph_version)), sort(c("igraph_network", "coords", "vis_aspect_ratio")))
@@ -47,8 +46,8 @@ test_that("fct_export_network::* works ", {
   expect_true(all(igraph::V(graph)$color[igraph::V(graph)$name == focal] == true_highlight_color))
   expect_true(all(igraph::V(graph)$color[igraph::V(graph)$group =="mineral"] == true_mineral_color))
   
-  # frame should be NA
-  expect_true(all(is.na(igraph::V(graph)$frame.color)))
+  # frame should NOT be NA
+  expect_true(all(!(is.na(igraph::V(graph)$frame.color))))
   
   # edge color
   expect_true(all(igraph::E(graph)$color == true_edge_color))
