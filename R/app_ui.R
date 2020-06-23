@@ -90,7 +90,7 @@ app_ui <- function(request) {
                                               "singlecolor",
                                               default_mineral_color,
                                               default_mineral_palette),       
-              colourpicker::colourInput("na_color", "Color to use for missing for unknown values:", value = default_na_color),
+              colourpicker::colourInput("na_color", "Color to use for missing or unknown values:", value = default_na_color),
               shinyWidgets::prettySwitch("color_by_cluster", "Color all nodes by community cluster", value = FALSE, status = "danger"), 
               conditionalPanel(condition = "input.color_by_cluster == true",{
                 pickerInput("cluster_palette", 
@@ -309,27 +309,48 @@ app_ui <- function(request) {
                 
                 shiny::tabPanel("Mineral formation timeline",
                   div(style="float:center;width:100%;height:700px;",
-                    plotOutput("timeline_plot", height = "100%", width = "100%")
+                    plotOutput("timeline_plot_output", height = "100%", width = "100%")
                   ),
                   br(),
                   shinyWidgets::prettySwitch("timeline_view","Display minerals discovered at their oldest known age only. Turn off to display all discovered minerals.", value = TRUE, status="danger"),
                   fluidRow(
+                    ## can't use the module here due to sizing 
+                    column(4,
+                      div(style="display:inline-block;vertical-align:top;",
+                        shinyWidgets::pickerInput("color_timeline_by", 
+                                                  "Color minerals inside the selected age range based on:", 
+                                                  mineral_timeline_color_by_choices, 
+                                                  selected = "singlecolor", width = "100%")
+                      ),
+                      div(style="display:inline-block;vertical-align:top;",
+                        conditionalPanel(condition = "input.color_timeline_by == 'singlecolor'", 
+                        {
+                            colourpicker::colourInput("timeline_color", "Color:", value = "#68340e")
+                        }),
+                        conditionalPanel(condition = "input.color_timeline_by != 'singlecolor'", 
+                        {
+                            shinyWidgets::pickerInput("timeline_palette", 
+                                                        label = "Mineral color palette:",
+                                                        choices = sd_palettes_timeline_ui$name,
+                                                        options = list( size = 6),
+                                                        choicesOpt = list(content = sd_palettes_timeline_ui$img),
+                                                        selected = "YlOrBr", width = "100%")
+                        })
+                      )
+                    ), 
                     column(4, 
-                      colourpicker::colourInput("within_range_color", label = "Color for minerals within selected time range:", value="#68340e") 
-                    ),
-                    column(4, 
-                      colourpicker::colourInput("outside_range_color", label = "Color for minerals outside selected time range:", value="#fae9dd")
+                      colourpicker::colourInput("outside_range_color", label = "Color for minerals outside the selected age range:", value="#fae9dd")
                     ),
                     column(4, 
                       br(),
-                      shinyWidgets::downloadBttn("download_timeline", "Download Timeline Plot", size = "sm", style = "minimal", color = "danger")
-                    )
+                      shinyWidgets::downloadBttn("download_timeline", "Download Timeline Plot", size = "md", style = "minimal", color = "danger")
+                    ) ## END column 3
                   ) ## END fluidRow
                 ) ## END timeline tabPanel
               ), ## END TOP tabBox
                 
                 
-              ## CONDITIONAL BUTTON TO SHOW/HIDE NODE TABLE -----------------------------------------------
+              ## Render the node table ---------------------------------------------------------
               br(),br(),br(),
               fluidRow(
                 column(width = 12,
@@ -342,111 +363,30 @@ app_ui <- function(request) {
                                    "Click to prepare network for export to PDF.", 
                                    color = "danger", 
                                    style = "fill", 
-                                   block = TRUE),            
-                div(style = "float:left;margin-top:20px;",
-                  shinyWidgets::dropdownButton(circle =FALSE, up=TRUE, label  = "PDF options", icon = icon("cogs", lib = "font-awesome"), status = "info", width = "250px", size = "default",
-                    shiny::numericInput("baseline_output_element_size", "Scale element node size", value = 1, max=5, step = 0.5),
-                    shiny::numericInput("baseline_output_element_label_size", "Scale element node label size", value = 1, max=5, step = 0.5),
-                    shiny::numericInput("baseline_output_mineral_size", "Scale mineral node size",  value = 1, max=5, step = 0.5)
-                  ),
-                  shinyWidgets::pickerInput("igraph_output_format", label = "Choose text format for network export:", choices = igraph_output_format_choices, width = "300px")
-                ), ## END div
-                  
-                br(),br(),br(),br(),
-                
+                                   block = TRUE),      
+                br(),br(),
                 fluidRow(
-                  column(3, shinyWidgets::downloadBttn("export_network_pdf", "Export network as PDF", size = "sm", style = "bordered", color = "danger")),
-                  column(3, shinyWidgets::downloadBttn("export_legend_pdf", "Export legend as PDF", size = "sm", style = "bordered", color = "danger")),                            
-                  column(3, shinyWidgets::downloadBttn("export_nodes_csv", "Export nodes as CSV", size = "sm", style = "bordered", color = "danger")),
-                  column(3, shinyWidgets::downloadBttn("export_edges_csv", "Export edges as CSV", size = "sm", style = "bordered", color = "danger")),
-                  column(3, shinyWidgets::downloadBttn("export_network_igraph", "Export network as text file", size = "sm", style = "bordered", color = "danger"))
-                ) ## END fluidRow
+                  column(3, br(), shinyWidgets::downloadBttn("export_network_pdf", "Export network as PDF", size = "sm", style = "minimal", color = "danger")),
+                  column(3, shiny::sliderInput("baseline_output_element_size", "Scale network PDF element node size", min = 0.1, max = 5, step = 0.1, value = 1)),
+                  column(3, shiny::sliderInput("baseline_output_element_label_size", "Scale network PDF element label size", min = 0.1, max = 5, step = 0.1, value = 1)),
+                  column(3, shiny::sliderInput("baseline_output_mineral_size", "Scale network PDF mineral node size", min = 0.1, max = 5, step = 0.1, value = 1))
+                ), ## END fluidRow
+                br(),br(),br(),
+                fluidRow(
+                  column(3, shinyWidgets::downloadBttn("export_nodes_csv", "Export nodes as CSV", size = "sm", style = "minimal", color = "danger")),
+                  column(3, shinyWidgets::downloadBttn("export_edges_csv", "Export edges as CSV", size = "sm", style = "minimal", color = "danger")),
+                  column(3, shinyWidgets::downloadBttn("export_network_igraph", "Export network as text file", size = "sm", style = "minimal", color = "danger")),
+                  column(3, shinyWidgets::pickerInput("igraph_output_format", label = "Choose network text file format:", choices = igraph_output_format_choices))
+                ), ## END fluidRow
+                br(),br(),
+                shinyWidgets::downloadBttn("export_legend_pdf", "Export legend as PDF", size = "sm", style = "minimal", color = "danger")
               ) ## END box
-                
             ) ## END div0
           ) ## END fluidRow
         ) ## END dashboardBody
     ) ## END dashboardPage
-    
-  
-    
   ) ## END tagList
 } ## END app_ui
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #' Add external Resources to the Application

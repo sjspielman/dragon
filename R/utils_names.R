@@ -7,12 +7,16 @@ cluster_alg_louvain_str <- "Louvain"
 #' @noRd
 cluster_alg_eig_str <- "Leading eigenvector"
 
-#' UI display string for selected a single color for node or edge color
+#' UI display string for specifying "selected time frame" color scheme for mineral timeline
 #' @noRd
-singlecolor_str <- "Single color"
-#' UI display string for selected a single size for node 
+selected_age_range_str <- "Selected age range"
+
+#' UI display string for selecting a single color for node or edge color
 #' @noRd
-singlesize_str <- "Single size"
+singlecolor_str <- "Use a single color"
+#' UI display string for selecting a single size for node 
+#' @noRd
+singlesize_str <- "Use a single size"
 
 #' UI display string for element_redox_mineral variable 
 #' @noRd

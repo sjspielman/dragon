@@ -1,5 +1,19 @@
 
 ## Style UI choices ------------------------------------------------------------
+
+#' UI options for selecting a color scheme for minerals in the TIMELINE
+#' @noRd
+mineral_timeline_color_by_choices <- setNames(c("singlecolor",
+                                                "mean_pauling", 
+                                                "cov_pauling",
+                                                "num_localities", 
+                                                "max_age"),
+                                              c(singlecolor_str,
+                                                mean_pauling_str,
+                                                cov_pauling_str,
+                                                num_localities_str,
+                                                max_age_str))
+                                            
 #' UI options for selecting a variable to color element nodes by
 #' @noRd
 element_color_by_choices <- setNames(c("singlecolor",

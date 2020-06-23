@@ -102,8 +102,7 @@ app_server <- function( input, output, session ) {
   element_node_color <- callModule(mod_server_choose_color_sd_palette, id = "mod_element_colors")
   mineral_node_color <- callModule(mod_server_choose_color_sd_palette, id = "mod_mineral_colors")
   edge_color         <- callModule(mod_server_choose_color_sd_palette, id = "mod_edge_colors")
-
-
+  timeline_color     <- callModule(mod_server_choose_color_sd_palette, id = "mod_timeline_colors") 
 
   ################################# Build network ####################################
   ## Construct the network from user input ------------------------------------------
@@ -513,12 +512,10 @@ app_server <- function( input, output, session ) {
                               choices = unique(ordered_ids),
                               options = list(`actions-box` = TRUE, size = 6), 
                               multiple = TRUE,
-                              width = "300px"
+                              width = "425px"
     )
   })
-
-
-
+  
   
   ## RENDER THE "Selected Node Information" BOX --------------------------------------------------------------------------------
   observeEvent(input$current_node_id, {
@@ -561,6 +558,13 @@ app_server <- function( input, output, session ) {
     box(width=12,status = "primary", 
         title = "Examine individual nodes", collapsible = TRUE,
         shiny::uiOutput("choose_nodes"),
+        br(),
+        div(style="display:inline-block;vertical-align:top;",
+            shiny::actionButton("include_all_selectednodes", label="Include all attributes")
+        ),
+        div(style="display:inline-block;vertical-align:top;",
+            shiny::actionButton("clear_all_selectednodes", label="Clear attribute selection")
+        ), 
         br(),br(),
         div(style="display:inline-block;vertical-align:top;",
            shinyWidgets::prettyCheckboxGroup(
@@ -581,12 +585,7 @@ app_server <- function( input, output, session ) {
              choices = selected_node_table_column_choices_network
            )),
         br(),
-        div(style="display:inline-block;vertical-align:top;",
-          shiny::actionButton("include_all_selectednodes", label="Include all attributes")
-        ),
-        div(style="display:inline-block;vertical-align:top;",
-          shiny::actionButton("clear_all_selectednodes", label="Clear attribute selection")
-        ), br(),
+        br(),
         shiny::div(style="font-size:85%;", 
           DT::dataTableOutput("nodeTable")
         ),
@@ -783,26 +782,62 @@ app_server <- function( input, output, session ) {
 
   
   ## Renderings for the timeline tabPanel ------------------------------------------------------------
-  output$timeline_plot <- renderPlot({
-    
+  
+  ## Choose timeline mineral colors for age range selection
+  #output$timeline_range_color <- renderUI({
+  #  list(
+  #    colourpicker::colourInput("within_range_color", label = "Color within selected time range:", value="#68340e"),
+  #    colourpicker::colourInput("outside_range_color", label = "Color outside selected time range:", value="#fae9dd")
+  #  )
+  #})                 
+  #
+  ### Choose timeline mineral palette
+  #output$timeline_palette_ui <- renderUI({
+  #  list(
+  #    shinyWidgets::pickerInput("timeline_mineral_palette", 
+  #                              label = "Mineral palette:", 
+  #                              choices = sd_palettes_timeline_ui$name,
+  #                              choicesOpt = list(content = sd_palettes_timeline_ui$img),
+  #                              options = list( size = 6 ),
+  #                              selected = "YlOrBr"),
+  #    colourpicker::colourInput("timeline_na", label = "Color for missing information:", value=default_na_color)
+  #  )
+  # })
+  
+  
+  ## Build the timeline plot
+  timeline_plot <- reactive({
     if (input$timeline_view)    data <- chemistry_network()$timeline_data$maxage
     if (!(input$timeline_view)) data <- chemistry_network()$timeline_data$all
-  
+    
+    if (input$color_timeline_by == "singlecolor"){
+      mineral_color_palette <- input$timeline_color
+    } else {
+      mineral_color_palette <- input$timeline_palette
+    }
+
+    print(input$color_timeline_by)
+    print(mineral_color_palette)
+    print(input$outside_range_color)
     build_current_timeline(data, 
-                           input$within_range_color, 
-                           input$outside_range_color)
+                           chemistry_network()$nodes,
+                           input$color_timeline_by, # "singlecolor" or a variable 
+                           mineral_color_palette, ## either color or the palette for inside the range
+                           input$outside_range_color)  ## color for outside the range
   })
   
+  ## Render the timeline plot
+  output$timeline_plot_output <- renderPlot({
+    timeline_plot()
+  })
   
+  ## Handler for timeline pdf download
   output$download_timeline <- shiny::downloadHandler(
     filename = function() {
       paste("dragon_mineral_timeline-", Sys.Date(), ".pdf", sep="")
     },
     content  = function(file) {
-      p <- build_current_timeline(chemistry_network()$timeline_data, 
-                                  input$within_range_color, 
-                                  input$outside_range_color)
-      ggplot2::ggsave(file, p, width = 13, height = 6)
+      ggplot2::ggsave(file, timeline_plot(), width = 15, height = 7)
     })        
   
 

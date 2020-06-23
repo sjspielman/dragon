@@ -31,8 +31,8 @@ test_that("fct_timeline::prepare_timeline_data() works", {
 
 
 test_that("fct_timeline::build_current_timeline() works", {
-  elements_of_interest <- c("Cd")
-  age_range <- c(2, 4)
+  elements_of_interest <- c("As")
+  age_range <- c(0, 4)
   max_age_type <- "Maximum"
   elements_only <- initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, FALSE)
   timeline_minerals <- prepare_timeline_data(elements_only, age_range, max_age_type)

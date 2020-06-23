@@ -40,7 +40,7 @@ goe_color <- "dodgerblue"
 
 #' Timeplot plot labels for user colors
 #' @noR
-selected_time_frame_levels <- c("Selected time range", "Other time range")
+selected_age_range_levels <- c("Selected time range", "Other time range")
 
 #' Timeplot bands alpha
 #' @noRd
@@ -62,13 +62,13 @@ baseline_timeline <- function()
                                      xmax = early_age, 
                                      ymin = ymin, 
                                      ymax = ymax,
-                                     fill = early_age), color = "grey30") +
+                                     fill = early_age), color = "black") +
     ggplot2::geom_text( ggplot2::aes(label = eon_era_name, 
                                      x = label_x, 
                                      y = label_y),
               angle = c(rep(0, 4), rep(90, 3), rep(0, 3), rep(0, 4)),
               fontface = c(rep("bold", 4), rep("plain", 10)),
-              size  = c(rep(4, 4), rep(3, 10))) +
+              size  = c(rep(6, 4), rep(3, 3), rep(3.5, 7))) +
     colorspace::scale_fill_continuous_sequential(h1 = 57, c1 = 97, c2 = NA, cmax = NA, l1 = 35, l2 = 98, p1=1.1) +
     ggplot2::scale_x_reverse(limits = c(4700,0), 
                              position = "top", 
@@ -76,14 +76,15 @@ baseline_timeline <- function()
                              expand=c(0,100))+ 
     ggplot2::labs(x = "Millions of years ago",
                   y = "Number of minerals discovered") +
-    ggplot2::theme(legend.position = "none") -> timeline_base_plot
+    ggplot2::guides(fill = FALSE)-> timeline_base_plot
+    #ggplot2::theme(legend.position = "none") 
   
   tibble::tibble(x = c(rep("a", 5), rep("b",5))) %>%
     ggplot2::ggplot() +
     ggplot2::aes(x = x, fill = x) + 
     ggplot2::geom_bar(alpha = band_alpha*10, color = "black") +  ## legend alpha seems weaker so *10.
     ggplot2::scale_fill_manual(values = c(geochemical_evidence_color, goe_color),
-                               labels = c("Earliest geochemical evidence of microbial metabolism",
+                               labels = c("Early geochemical evidence of microbial metabolism",
                                           "Great Oxidation Events"),
                                name   = "") + 
     ggplot2::guides(fill = ggplot2::guide_legend(nrow=2))-> timeline_base_legend_raw
@@ -96,25 +97,23 @@ baseline_timeline <- function()
 }
 
 
-
 prepare_timeline_data <- function(df, age_range, max_age_type)
 {
-  
+
   age_lb <- age_range[1]
   age_ub <- age_range[2]
   if (max_age_type == "Minimum") df %<>% dplyr::mutate(age_check = min_age) 
   if (max_age_type == "Maximum") df %<>% dplyr::mutate(age_check = max_age) 
   
   df %>%
-    dplyr::mutate(selected_time_frame = ifelse(age_check >= age_lb & age_check <= age_ub, 
-                                               selected_time_frame_levels[[1]], 
-                                               selected_time_frame_levels[[2]])) %>%
-    dplyr::select(mineral_name, age_check, selected_time_frame) %>%
+    dplyr::mutate(selected_age_range = ifelse(age_check >= age_lb & age_check <= age_ub, 
+                                              selected_age_range_levels[[1]], 
+                                              selected_age_range_levels[[2]])) %>%
+    dplyr::select(mineral_name, age_check, selected_age_range) %>%
     dplyr::ungroup() %>%
-    dplyr::arrange(dplyr::desc(age_check)) %>%
     dplyr::rename(x = age_check) %>%
     dplyr::mutate(x = x * 1000, ## age to GA
-                  selected_time_frame = factor(selected_time_frame, levels = selected_time_frame_levels)) %>%
+                  selected_age_range = factor(selected_age_range, levels = selected_age_range_levels)) %>%
     dplyr::distinct() -> all_minerals
   
   all_minerals %>%
@@ -127,15 +126,55 @@ prepare_timeline_data <- function(df, age_range, max_age_type)
               "maxage" = oldest_minerals))
 }
 
-build_current_timeline <- function(timeline_minerals, within_range_color, outside_range_color)
+
+
+
+add_timeline_events <- function(p)
 {
-  ## Add yend HERE (causes bugs above since mucks w/ distinct())
-  total <- nrow(timeline_minerals)
-  yend_raw <-  (seq(0, 1, (1/total))[1:total])  * timeline_upper
-  stopifnot(total == length(yend_raw))
-  timeline_minerals %<>% dplyr::mutate(yend = y_fudge + yend_raw)
+  p + 
+    ggplot2::geom_rect(ggplot2::aes(xmin = 2400,  # x axis reverse!
+                                    xmax = 2300,
+                                    ymin = 0,
+                                    ymax = Inf),
+                       fill = goe_color, 
+                       alpha = band_alpha) + 
+      ## GOE 2
+      ggplot2::geom_rect(ggplot2::aes(xmin = 630, # x axis reverse!
+                                      xmax = 540,
+                                      ymin = 0, 
+                                      ymax = Inf),
+                         fill = goe_color, 
+                         alpha = band_alpha) + 
+      ## Geochemical evidence of microbial metabolism
+      ggplot2::geom_rect(ggplot2::aes(xmin = 3800, # x axis reverse!
+                                      xmax = 3400,
+                                      ymin = 0,
+                                      ymax = Inf),
+                         fill = geochemical_evidence_color, 
+                         alpha = band_alpha)
+}
+
+
+build_current_timeline <- function(timeline_minerals, nodes, mineral_color_by, mineral_color_palette, outside_range_color)
+{
   
-  ## Set up breaks -----------------------------------------------------
+  # Set up and check colors ---------------------------------------------------
+  use_palette <- ifelse(mineral_color_by == "singlecolor", FALSE, TRUE)
+  color_by <- as.symbol(mineral_color_by)
+
+  ## Merge timeline_minerals with node information, and add yend --------------
+  total <- nrow(timeline_minerals)
+  nodes %>%
+    dplyr::filter(group == "mineral") %>%
+    dplyr::select(id, mean_pauling, cov_pauling, num_localities, max_age) %>%
+    dplyr::rename(mineral_name = id) %>%
+    dplyr::right_join(timeline_minerals) %>% 
+    dplyr::distinct() %>%
+    dplyr::arrange(dplyr::desc(x)) %>%
+    dplyr::mutate(yend = y_fudge + (seq(0, 1, (1/total))[1:total])  * timeline_upper) -> timeline_minerals_ready
+  stopifnot(nrow(timeline_minerals_ready) == total)
+
+  ## Set up breaks -----------------------------------------------------------
   if (total <= 100){
     break_chunk <- 10
   } else if (total > 100 & total < 250) {
@@ -148,48 +187,61 @@ build_current_timeline <- function(timeline_minerals, within_range_color, outsid
   if (max(break_labels) < total) break_labels <- c(break_labels, max(break_labels) + break_chunk)
   break_points <- break_labels * timeline_upper/total
 
-  ## Plot -------------------------------------------------------------
+  ## Plot ------------------------------------------------------------------
+  timeline_minerals_ready %>% dplyr::filter(selected_age_range == selected_age_range_levels[1]) -> timeline_minerals_inside
+  timeline_minerals_ready %>% dplyr::filter(selected_age_range == selected_age_range_levels[2]) -> timeline_minerals_outside
+  readr::write_csv(timeline_minerals_inside, "timeline_minerals_inside.csv")
+  readr::write_csv(timeline_minerals_outside, "timeline_minerals_outside.csv")
+
+  
   baseline_timeline()$plot +
-    ggplot2::geom_point(data = timeline_minerals, 
+    ######## outside the age range: A single color #########
+    ggplot2::geom_point(data = timeline_minerals_outside, 
+                        color = outside_range_color, 
                         ggplot2::aes(x = x,
-                                     y = yend,
-                                     color = selected_time_frame)) +
-    ggplot2::geom_segment(data = timeline_minerals, 
+                                     y = yend)) +
+    ggplot2::geom_segment(data = timeline_minerals_outside, 
+                          color = outside_range_color, 
                           ggplot2::aes(x = x, xend = x,
-                                       y = 0, yend = yend, 
-                                       color = selected_time_frame)) +
-    
+                                       y = 0, yend = yend)) +   
+    ########################################################
     ggplot2::scale_y_continuous(expand=c(0, y_fudge), 
                                 limits=c(timeline_lower, y_fudge + max(break_points) + 0.2),
                                 breaks = break_points,
                                 labels = break_labels, 
                                 position = "right") +
-    #ggplot2::theme(axis.line.y = element_blank()) + 
-    #ggplot2::geom_segment(x = -4827, xend = -4827, y = 0, yend = Inf) + ## yend will automatically end at limit
-    ggplot2::scale_color_manual(values=c(within_range_color, outside_range_color), name = "") +
-    ggplot2::geom_hline(yintercept=0) +
-    ## GOE 1
-    ggplot2::geom_rect(ggplot2::aes(xmin = 2400,  # x axis reverse!
-                                    xmax = 2300,
-                                    ymin = 0,
-                                    ymax = Inf),
-                       fill = goe_color, 
-                       alpha = band_alpha) + 
-    ## GOE 2
-    ggplot2::geom_rect(ggplot2::aes(xmin = 630, # x axis reverse!
-                                    xmax = 540,
-                                    ymin = 0, 
-                                    ymax = Inf),
-                       fill = goe_color, 
-                       alpha = band_alpha) + 
-    ## Geochemical evidence of microbial metabolism
-    ggplot2::geom_rect(ggplot2::aes(xmin = 3800, # x axis reverse!
-                                    xmax = 3400,
-                                    ymin = 0,
-                                    ymax = Inf),
-                       fill = geochemical_evidence_color, 
-                       alpha = band_alpha) -> final_nolegend
-
-  cowplot::plot_grid(final_nolegend, baseline_timeline()$legend, nrow = 2, rel_heights=c(1, 0.1))
+    ggplot2::geom_hline(yintercept=0)  -> raw_plot
   
+  ### To avoid very irritating warnings, we need to entirely set inside range colors within ifs:
+  if (!(use_palette)) {
+    raw_plot_colored <- raw_plot + 
+                          ggplot2::geom_point(data  = timeline_minerals_inside, 
+                                              color = mineral_color_palette,
+                                              ggplot2::aes(x = x, y = yend)) +
+                          ggplot2::geom_segment(data  = timeline_minerals_inside, 
+                                                color = mineral_color_palette,
+                                                ggplot2::aes(x = x, xend = x, y = 0, yend = yend))
+    legend_grid <- cowplot::plot_grid(baseline_timeline()$legend)
+  } else {
+    raw_plot_colored <- raw_plot + 
+      ggplot2::geom_point(data  = timeline_minerals_inside, 
+                          ggplot2::aes(x = x,
+                                       y = yend,
+                                       color = {{color_by}})) +
+      ggplot2::geom_segment(data  = timeline_minerals_inside, 
+                            ggplot2::aes(x = x, xend = x, y = 0, yend = yend,
+                                         color = {{color_by}})) +
+      ggplot2::scale_color_distiller(palette  = mineral_color_palette, 
+                                     name     = variable_to_title[[color_by]]) + ## TODO: do we need an na_value?
+      ggplot2::theme(legend.position = "none")
+      legend_grid <- cowplot::plot_grid(baseline_timeline()$legend, 
+                                        raw_plot_colored + ggplot2::theme(legend.position = "bottom"), nrow = 1, scale = 0.8)
+    
+    
+  }
+    
+  ## Add GOEs and metabolism bars
+  final_plot <- add_timeline_events(raw_plot_colored)
+
+  cowplot::plot_grid(final_plot, legend_grid, nrow = 2, rel_heights=c(1, 0.1), scale=c(1, 0.9))
 }

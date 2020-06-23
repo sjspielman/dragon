@@ -52,7 +52,6 @@ initialize_network <- function(elements_of_interest,
   
   if (use_data_cache)
   {
-    ## TODO: does this need to be dragon:::med_data_cache?
     med_data <- med_data_cache
     element_redox_states <- element_redox_states_cache
   } else
