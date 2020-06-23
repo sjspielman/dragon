@@ -39,7 +39,7 @@ geochemical_evidence_color <- "forestgreen"
 goe_color <- "dodgerblue"
 
 #' Timeplot plot labels for user colors
-#' @noR
+#' @noRd
 selected_age_range_levels <- c("Selected time range", "Other time range")
 
 #' Timeplot bands alpha
@@ -83,7 +83,7 @@ baseline_timeline <- function()
     ggplot2::aes(x = x, fill = x) + 
     ggplot2::geom_bar(alpha = band_alpha*10, color = "black") +  ## legend alpha seems weaker so *10.
     ggplot2::scale_fill_manual(values = c(geochemical_evidence_color, goe_color),
-                               labels = c("Early geochemical evidence of microbial metabolism",
+                               labels = c("Geochemical evidence of early microbial metabolism",
                                           "Great Oxidation Events"),
                                name   = "") + 
     ggplot2::guides(fill = ggplot2::guide_legend(nrow=2)) + 
@@ -96,12 +96,19 @@ baseline_timeline <- function()
     
 }
 
-
+#' Function to prepare data for use in timeline plot
+#' 
+#' @param df Mineral data to plot
+#' @param age_range Array of ages (low, high) of minerals in the selected age range
+#' @param max_age_type "Maximum" or "Minimum" indicating how to select minerals in age range
+#' 
+#' @return Named list of two tibbles: `all` is minerals to plot from all localities plot, and `maxage` is the minerals to plot ONLY at their max age
+#' @noRd
 prepare_timeline_data <- function(df, age_range, max_age_type)
 {
 
-  age_lb <- age_range[1]
-  age_ub <- age_range[2]
+  age_lb <- min(age_range)
+  age_ub <- max(age_range)
   if (max_age_type == "Minimum") df %<>% dplyr::mutate(age_check = min_age) 
   if (max_age_type == "Maximum") df %<>% dplyr::mutate(age_check = max_age) 
   
@@ -128,7 +135,11 @@ prepare_timeline_data <- function(df, age_range, max_age_type)
 
 
 
-
+#' Build GOE1, GOE2, and microbial metabolism bands to timeline plot
+#' 
+#' @param p ggplot that these bands should be added to
+#' @return ggplot containing bands
+#' @noRd
 add_timeline_events <- function(p)
 {
   p + 
@@ -154,7 +165,15 @@ add_timeline_events <- function(p)
                          alpha = band_alpha)
 }
 
-
+#' Build final timeline plot for display
+#' 
+#' @param timeline_minerals Tibble of minerals to plot created by `prepare_timeline_data()`
+#' @param nodes Tibble of network nodes
+#' @param mineral_color_by Which variable should we colors the nodes in the selected age range, or "singlecolor"
+#' @param mineral_color_palette Either a hex color or RColorBrewer palette string to use to color the nodes in the selected age range
+#' @param outside_range_color Color to use for minerals outside age range
+#' @return timeline plot with associated legend(s)
+#' @noRd
 build_current_timeline <- function(timeline_minerals, nodes, mineral_color_by, mineral_color_palette, outside_range_color)
 {
   color_by <- as.symbol(mineral_color_by)
@@ -187,9 +206,6 @@ build_current_timeline <- function(timeline_minerals, nodes, mineral_color_by, m
   ## Plot ------------------------------------------------------------------
   timeline_minerals_ready %>% dplyr::filter(selected_age_range == selected_age_range_levels[1]) -> timeline_minerals_inside
   timeline_minerals_ready %>% dplyr::filter(selected_age_range == selected_age_range_levels[2]) -> timeline_minerals_outside
-  readr::write_csv(timeline_minerals_inside, "timeline_minerals_inside.csv")
-  readr::write_csv(timeline_minerals_outside, "timeline_minerals_outside.csv")
-
 
   ######### Set the baseline ######  
   baseline_timeline()$plot +
@@ -235,8 +251,7 @@ build_current_timeline <- function(timeline_minerals, nodes, mineral_color_by, m
                             ggplot2::aes(x = x, xend = x, y = 0, yend = yend,
                                          color = {{color_by}})) +
       ggplot2::scale_color_distiller(palette   = mineral_color_palette, 
-                                     name      = variable_to_title[[color_by]], 
-                                     direction = -1) + ## TODO: do we need an na_value?
+                                     name      = variable_to_title[[color_by]]) + ## TODO: do we need an na_value?
       ggplot2::theme(legend.position = "none")
       legend_grid <- cowplot::plot_grid(baseline_timeline()$legend, 
                                         cowplot::get_legend(raw_plot_colored + ggplot2::theme(legend.position = "bottom")), 

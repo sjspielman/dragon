@@ -341,7 +341,7 @@ obtain_dynamic_colors_legend <- function(dat, color_variable, variable_type, col
     {   ## cluster, colors already given
       p <- p + ggplot2::scale_color_manual(name = legendtitle, na.value = na_color, values = colors_or_palette) ## NO DIRECTION HERE
     } else {
-      p <- p + ggplot2::scale_color_brewer(palette = colors_or_palette, name = legendtitle, na.value = na_color, direction = -1)
+      p <- p + ggplot2::scale_color_brewer(palette = colors_or_palette, name = legendtitle, na.value = na_color) #, direction = -1)
     } 
   }
   
@@ -350,7 +350,7 @@ obtain_dynamic_colors_legend <- function(dat, color_variable, variable_type, col
     ggplot2::ggplot(dat2) + 
       ggplot2::aes(x = x, y = !!cvar, color = !!cvar) + 
       ggplot2::geom_point() + 
-      ggplot2::scale_color_distiller(name = legendtitle, palette = colors_or_palette, direction = -1, na.value = na_color) + 
+      ggplot2::scale_color_distiller(name = legendtitle, palette = colors_or_palette, na.value = na_color) + #direction = -1,
       ggplot2::guides(colour = ggplot2::guide_colourbar(barheight = ggplot2::unit(1, "cm"),
                                                         title.position="top", 
                                                         frame.colour = "black", 

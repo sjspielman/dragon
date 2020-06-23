@@ -35,7 +35,7 @@ app_ui <- function(request) {
                         multiple = TRUE
             ), ## END pickerInput
             
-              shiny::sliderInput("age_range", "Age (Ga) range of minerals:", min = 0, max = 5, step = 0.1, value = c(0,5)), 
+              shinyWidgets::sliderTextInput("age_range","Age (Ga) range of minerals:", choices = rev(seq(0, max(med_data_cache$max_age), 0.1)), grid=T, selected=c(max(med_data_cache$max_age),0)),
               shinyWidgets::prettyRadioButtons("max_age_type", "Use maximum or minimum age of minerals", inline = TRUE, choices = c("Maximum", "Minimum"), selected="Maximum", status="danger"),
               shinyWidgets::prettySwitch("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger"),
               shinyWidgets::prettySwitch("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
@@ -312,7 +312,7 @@ app_ui <- function(request) {
                     plotOutput("timeline_plot_output", height = "100%", width = "100%")
                   ),
                   br(),
-                  shinyWidgets::prettySwitch("timeline_view","Display minerals discovered at their oldest known age only. Turn off to display all discovered minerals.", value = TRUE, status="danger"),
+                  shinyWidgets::prettySwitch("timeline_view","Display minerals discovered at their oldest known age only. Turn off to display minerals discovered at any age.", value = TRUE, status="danger"),
                   fluidRow(
                     ## can't use the module here due to sizing 
                     column(4,
@@ -331,9 +331,9 @@ app_ui <- function(request) {
                         {
                             shinyWidgets::pickerInput("timeline_palette", 
                                                         label = "Mineral color palette:",
-                                                        choices = sd_palettes_timeline_ui$name,
+                                                        choices = sd_palettes_ui$name,
                                                         options = list( size = 6),
-                                                        choicesOpt = list(content = sd_palettes_timeline_ui$img),
+                                                        choicesOpt = list(content = sd_palettes_ui$img),
                                                         selected = "YlOrBr", width = "100%")
                         })
                       )

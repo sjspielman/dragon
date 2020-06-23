@@ -26,12 +26,6 @@ for (this_pal in palettes_of_interest$name){
     ggplot2::theme_void() + 
     ggplot2::theme(legend.position = "none") -> p
   ggplot2::ggsave(paste0(this_pal, ".png"), p, width=3, height=0.39)
-  
-  ## Make palette images for timeline: sequential with a POSITIVE 1 direction
-  if (direction == -1){
-    p + ggplot2::scale_fill_brewer(palette=this_pal, name = "", direction = 1) -> p
 
-    ggplot2::ggsave(paste0(this_pal, "_timeline.png"), p, width=3, height=0.39)
-  }
 }
 

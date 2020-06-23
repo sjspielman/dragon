@@ -81,7 +81,7 @@ app_server <- function( input, output, session ) {
         prepare_med_data()
       }) %...>% med()
     } else {
-      med(list("med_data"           = med_data_cache, 
+      med(list("med_data"             = med_data_cache, 
                "element_redox_states" = element_redox_states_cache,
                "cache"                = TRUE))
     }
@@ -102,13 +102,13 @@ app_server <- function( input, output, session ) {
   element_node_color <- callModule(mod_server_choose_color_sd_palette, id = "mod_element_colors")
   mineral_node_color <- callModule(mod_server_choose_color_sd_palette, id = "mod_mineral_colors")
   edge_color         <- callModule(mod_server_choose_color_sd_palette, id = "mod_edge_colors")
-  timeline_color     <- callModule(mod_server_choose_color_sd_palette, id = "mod_timeline_colors") 
 
+  
+  
   ################################# Build network ####################################
   ## Construct the network from user input ------------------------------------------
   chemistry_network <- reactive({
   
-
     req(med()$med_data)
     req(med()$element_redox_states)
     #req(med()$cache) # THIS IS YOUR REMINDER TO NOT REQ THIS SINCE FALSE IS NOT TRUTHY
@@ -116,10 +116,11 @@ app_server <- function( input, output, session ) {
     
     elements_of_interest <- input$elements_of_interest
     force_all_elements   <- input$force_all_elements
-    age_range            <- input$age_range
+    age_range            <- as.numeric(sort(input$age_range))  ## REVERSED, so sort here
     max_age_type         <- input$max_age_type
     elements_by_redox    <- input$elements_by_redox
     build_only           <- input$build_only
+
     
     ## We want to trigger a re-build if layout changes as well:
     input$network_layout
@@ -195,9 +196,7 @@ app_server <- function( input, output, session ) {
     return (list("nodes" = clustered$nodes, 
                  "edges" = network$edges, 
                  "graph" = graph, 
-                 "elements_of_interest" = elements_of_interest, 
-                 "age_lb" = age_range[1],
-                 "age_ub" = age_range[2],
+                 "elements_of_interest" = elements_of_interest,
                  "mineral_nodes" = mineral_nodes,
                  "locality_info" =  initialized$locality_info, 
                  "timeline_data" = prepare_timeline_data(elements_only, age_range, max_age_type),
@@ -782,29 +781,6 @@ app_server <- function( input, output, session ) {
 
   
   ## Renderings for the timeline tabPanel ------------------------------------------------------------
-  
-  ## Choose timeline mineral colors for age range selection
-  #output$timeline_range_color <- renderUI({
-  #  list(
-  #    colourpicker::colourInput("within_range_color", label = "Color within selected time range:", value="#68340e"),
-  #    colourpicker::colourInput("outside_range_color", label = "Color outside selected time range:", value="#fae9dd")
-  #  )
-  #})                 
-  #
-  ### Choose timeline mineral palette
-  #output$timeline_palette_ui <- renderUI({
-  #  list(
-  #    shinyWidgets::pickerInput("timeline_mineral_palette", 
-  #                              label = "Mineral palette:", 
-  #                              choices = sd_palettes_timeline_ui$name,
-  #                              choicesOpt = list(content = sd_palettes_timeline_ui$img),
-  #                              options = list( size = 6 ),
-  #                              selected = "YlOrBr"),
-  #    colourpicker::colourInput("timeline_na", label = "Color for missing information:", value=default_na_color)
-  #  )
-  # })
-  
-  
   ## Build the timeline plot
   timeline_plot <- reactive({
     if (input$timeline_view)    data <- chemistry_network()$timeline_data$maxage

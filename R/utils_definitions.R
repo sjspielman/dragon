@@ -8,14 +8,16 @@ options(scipen=3)                                      ## Sci when more than 3 d
 if (future::supportsMulticore()) future::plan(future::multiprocess) 
 if (future::supportsMulticore() == FALSE) future::plan(future::multisession) 
 
-## MED URLs --------------------------------------------------------------------------
+## MED URLs and similar --------------------------------------------------------------------------
 
 #' Lead portion of MED URL 
 #' @noRd
 med_exporting_url <- "http://rruff.info/mineral_list/MED/exporting/"
+
 #' URL of `tbl_mineral.csv` data from MED
 #' @noRd
 med_m1_url        <- paste0(med_exporting_url, "tbl_mineral.csv")
+
 #' URL of `tbl_locality_age_cache_alt.csv` data from MED
 #' @noRd
 med_m2_url        <- paste0(med_exporting_url, "tbl_locality_age_cache_alt.csv")
