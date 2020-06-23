@@ -77,8 +77,7 @@ baseline_timeline <- function()
     ggplot2::labs(x = "Millions of years ago",
                   y = "Number of minerals discovered") +
     ggplot2::guides(fill = FALSE)-> timeline_base_plot
-    #ggplot2::theme(legend.position = "none") 
-  
+
   tibble::tibble(x = c(rep("a", 5), rep("b",5))) %>%
     ggplot2::ggplot() +
     ggplot2::aes(x = x, fill = x) + 
@@ -87,7 +86,8 @@ baseline_timeline <- function()
                                labels = c("Early geochemical evidence of microbial metabolism",
                                           "Great Oxidation Events"),
                                name   = "") + 
-    ggplot2::guides(fill = ggplot2::guide_legend(nrow=2))-> timeline_base_legend_raw
+    ggplot2::guides(fill = ggplot2::guide_legend(nrow=2)) + 
+    ggplot2::theme(legend.text = ggplot2::element_text(size=12)) -> timeline_base_legend_raw
   
   timeline_base_legend <- cowplot::get_legend(timeline_base_legend_raw)
   
@@ -157,9 +157,6 @@ add_timeline_events <- function(p)
 
 build_current_timeline <- function(timeline_minerals, nodes, mineral_color_by, mineral_color_palette, outside_range_color)
 {
-  
-  # Set up and check colors ---------------------------------------------------
-  use_palette <- ifelse(mineral_color_by == "singlecolor", FALSE, TRUE)
   color_by <- as.symbol(mineral_color_by)
 
   ## Merge timeline_minerals with node information, and add yend --------------
@@ -193,18 +190,9 @@ build_current_timeline <- function(timeline_minerals, nodes, mineral_color_by, m
   readr::write_csv(timeline_minerals_inside, "timeline_minerals_inside.csv")
   readr::write_csv(timeline_minerals_outside, "timeline_minerals_outside.csv")
 
-  
+
+  ######### Set the baseline ######  
   baseline_timeline()$plot +
-    ######## outside the age range: A single color #########
-    ggplot2::geom_point(data = timeline_minerals_outside, 
-                        color = outside_range_color, 
-                        ggplot2::aes(x = x,
-                                     y = yend)) +
-    ggplot2::geom_segment(data = timeline_minerals_outside, 
-                          color = outside_range_color, 
-                          ggplot2::aes(x = x, xend = x,
-                                       y = 0, yend = yend)) +   
-    ########################################################
     ggplot2::scale_y_continuous(expand=c(0, y_fudge), 
                                 limits=c(timeline_lower, y_fudge + max(break_points) + 0.2),
                                 breaks = break_points,
@@ -212,8 +200,23 @@ build_current_timeline <- function(timeline_minerals, nodes, mineral_color_by, m
                                 position = "right") +
     ggplot2::geom_hline(yintercept=0)  -> raw_plot
   
+  ##### Add in outside minerals, if any ######
+  if (nrow(timeline_minerals_outside) > 0)
+  {
+    raw_plot + 
+      ggplot2::geom_point(data = timeline_minerals_outside, 
+                          color = outside_range_color, 
+                          ggplot2::aes(x = x,
+                                       y = yend)) +
+      ggplot2::geom_segment(data = timeline_minerals_outside, 
+                            color = outside_range_color, 
+                            ggplot2::aes(x = x, xend = x,
+                                         y = 0, yend = yend)) -> raw_plot
+  }
+  
+  
   ### To avoid very irritating warnings, we need to entirely set inside range colors within ifs:
-  if (!(use_palette)) {
+  if (color_by == "singlecolor") {
     raw_plot_colored <- raw_plot + 
                           ggplot2::geom_point(data  = timeline_minerals_inside, 
                                               color = mineral_color_palette,
@@ -231,11 +234,13 @@ build_current_timeline <- function(timeline_minerals, nodes, mineral_color_by, m
       ggplot2::geom_segment(data  = timeline_minerals_inside, 
                             ggplot2::aes(x = x, xend = x, y = 0, yend = yend,
                                          color = {{color_by}})) +
-      ggplot2::scale_color_distiller(palette  = mineral_color_palette, 
-                                     name     = variable_to_title[[color_by]]) + ## TODO: do we need an na_value?
+      ggplot2::scale_color_distiller(palette   = mineral_color_palette, 
+                                     name      = variable_to_title[[color_by]], 
+                                     direction = -1) + ## TODO: do we need an na_value?
       ggplot2::theme(legend.position = "none")
       legend_grid <- cowplot::plot_grid(baseline_timeline()$legend, 
-                                        raw_plot_colored + ggplot2::theme(legend.position = "bottom"), nrow = 1, scale = 0.8)
+                                        cowplot::get_legend(raw_plot_colored + ggplot2::theme(legend.position = "bottom")), 
+                                        nrow = 1, scale = 0.8)
     
     
   }
