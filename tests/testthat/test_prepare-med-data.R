@@ -1,5 +1,6 @@
 test_that("fct_prepare-rruff-data::find_most_recent_date() returns a date stamp", {
   skip_if_offline()
+  skip_on_travis()
   test_date <- find_most_recent_date()
   # Skip tests if couldn't ping
   if (test_date != FALSE){ 
@@ -14,7 +15,8 @@ test_that("fct_prepare-rruff-data::find_most_recent_date() returns a date stamp"
 
 test_that("fct_prepare-rruff-data::try_url() works", {
   skip_if_offline()
-
+  skip_on_travis()
+  
   should_work <- try_url(med_exporting_url)
   expect_true(should_work$success)
   expect_true(typeof(should_work$html) == "list")
