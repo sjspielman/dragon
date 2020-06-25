@@ -813,7 +813,7 @@ app_server <- function( input, output, session ) {
       paste("dragon_mineral_timeline-", Sys.Date(), ".pdf", sep="")
     },
     content  = function(file) {
-      ggplot2::ggsave(file, timeline_plot(), width = 15, height = 7)
+      ggplot2::ggsave(file, timeline_plot(), width = 15, height = 7.5)
     })        
   
 

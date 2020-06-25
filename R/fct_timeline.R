@@ -87,7 +87,8 @@ baseline_timeline <- function()
                                           "Great Oxidation Events"),
                                name   = "") + 
     ggplot2::guides(fill = ggplot2::guide_legend(nrow=2)) + 
-    ggplot2::theme(legend.text = ggplot2::element_text(size=12)) -> timeline_base_legend_raw
+    ggplot2::theme(legend.text = ggplot2::element_text(size=12),
+                   legend.key.size = ggplot2::unit(0.5, "cm"))-> timeline_base_legend_raw
   
   timeline_base_legend <- cowplot::get_legend(timeline_base_legend_raw)
   
