@@ -7,13 +7,13 @@
 prepare_med_data <- function(cache = FALSE)
 {
   md <- fetch_med_data() ## FALSE if no internet
-  if (md$success == FALSE){
+  if (md == FALSE){
     md <- med_data_cache
     ers <- element_redox_states_cache
     cache <- TRUE
   } else {
     ers <- calculate_element_redox_states(md)
-    if(is.null(ers)) stop("FATAL ERROR. Please file a bug report at ", dragon_github_issue_url)
+    if(is.null(ers) | ers == FALSE) stop("FATAL ERROR. Please file a bug report at ", dragon_github_issue_url)
   }
   return( list("med_data" = md, "element_redox_states" = ers, "cache" = cache) )
 }
@@ -68,8 +68,8 @@ fetch_med_data <- function()
 #' @noRd
 calculate_element_redox_states <- function(med_data)
 {
-  ## Return NULL right away if data is NULL ---------------------------------------
-  if(is.null(med_data)) return (NULL)
+  ## Return NULL right away if data is NULL or FALSE ---------------------------------------
+  if(is.null(med_data) | med_data == FALSE) return (NULL)
 
   ## Parse the redox ---------------------------------------------------
   med_data %>% 
@@ -141,8 +141,10 @@ find_most_recent_date <- function()
 {
   med_html <- try_url(med_exporting_url)
   
-  if (med_html$success)
+  if (med_html$success == FALSE)
   {
+    return(FALSE)
+  } else {
     med_html$html %>%
       rvest::html_node("table") %>% 
       rvest::html_table(fill=TRUE) %>% 
@@ -156,8 +158,6 @@ find_most_recent_date <- function()
       lubridate::as_date() -> update_date
     
     suppressMessages(lubridate::stamp("March 1, 1999")(update_date))
-  } else {
-    return(FALSE)
   }
   
 

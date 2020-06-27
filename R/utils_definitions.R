@@ -22,6 +22,10 @@ med_m1_url        <- paste0(med_exporting_url, "tbl_mineral.csv")
 #' @noRd
 med_m2_url        <- paste0(med_exporting_url, "tbl_locality_age_cache_alt.csv")
 
+#' URL of dragon github to file issues, used in error messages
+#' @noRd
+dragon_github_issue_url <- "https://github.com/spielmanlab/dragon/issues"
+
 ## Explicit pipe and operator definitions ---------------------------------------------------------
 `%>%`    <- magrittr::`%>%`
 `%<>%`   <- magrittr::`%>%`

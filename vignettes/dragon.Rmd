@@ -77,7 +77,7 @@ Please refer to the [Issues](https://github.com/spielmanlab/dragon/issues) page 
 
 # Building your network
 
-By default `dragon` will used a cached and pre-processed version of the MED data. Upon launch, you will be greeted with a prompt indicating the status of the MED data used, with an option to update to the most recent MED data if the cache is out of date. *If you elect to update the data, please be patient!! The download will take several minutes or more depending on your internet connection.*
+By default `dragon` will used a cached and pre-processed version of the MED data. Upon launch, if `dragon`'s MED cache is not up-to-date with MED releases, you will be greeted with a prompt that gives the option to update to the most recent MED data. *If you elect to update the data, please be patient!! The download will take several minutes or more depending on your internet connection.* In addition, note that if you are running `dragon` locally from RStudio, this may result in a error that is *specific to RStudio*. In this case, you may wish to launch `dragon` using another approach.
 
 Once you acknowledge the prompt, you can proceed to build your network using the sidebar panel. Options and specifications for network construction are described below: 
 

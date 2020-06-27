@@ -10,32 +10,30 @@ app_server <- function( input, output, session ) {
   med <- reactiveVal(list("med_data"           = NULL, 
                           "element_redox_states" = NULL,
                           "cache"                = NULL))
-  
+  attempted_download <- reactiveVal(FALSE)
   ## Prompt for MED data to use -------------------------------------------------------------
   observe({
     
     most_recent_date <- find_most_recent_date()
     
-    if (most_recent_date != FALSE) {
+    if (most_recent_date != FALSE) { ## If FALSE, curl fail. MUST BE !=
       # SUCCESSFULLY CURLED
-      if (most_recent_date != med_cache_date) ## !! SHOULD BE != 
+      if (most_recent_date != med_cache_date) #!!!!! MUST BE BE != 
       { 
         shinyWidgets::confirmSweetAlert(
           session,
           "use_med_cache",
-          title = "Welcome to dragon!",
-          text = tags$span(
-            "We generate mineral-chemistry networks using information provided in the Mineral Evolution Database (MED).",
-            br(),
-            "MED was updated on", 
-            tags$b(most_recent_date), 
-            ", but dragon is using cached MED data from, ",  tags$b(med_cache_date),
-            ". Do you want to used the cached data, or download and update the MED data for this dragon session?",
+          title = "Welcome!",
+          text = tags$span(style="text-align:justify;display:block", 
+            tags$code("dragon"), " generates mineral-chemistry networks using data from the Mineral Evolution Database (MED).",
+            tags$code("dragon"), " is using cached MED data released on", med_cache_date,
+            ". MED was since updated on", most_recent_date, 
+            ". Do you want to use the cached data, or download/update the MED data for this", tags$code("dragon"), "session?",
             br(),br(),
             tags$b("CAUTION: Downloading will take several minutes!")
           ),                                     
-          type = "info",
-          btn_labels = c("Download data.", "Use data cache."), # FALSE, TRUE
+          type = "warning",
+          btn_labels = c("Update MED data", "Use MED data cache"), # FALSE, TRUE
           btn_colors = c("#FE642E", "#04B404"),
           closeOnClickOutside = FALSE, 
           showCloseButton = FALSE, 
@@ -69,13 +67,13 @@ app_server <- function( input, output, session ) {
     {
       shinyWidgets::sendSweetAlert(
           session = session, title = "Downloading now!", type = "info",
-          text = tags$span("Please be aware this process will take",
-                        tags$b("several minutes."),
-                        "You will be notified when the download is complete.", 
-                        br(),br(),
-                        "You can close this message any time."),
+          text = tags$span(style="text-align:justify;display:block", 
+                    tags$b("Please be aware this process will take 5-15 minutes."), br(),
+                    "You will be notified when the download is complete. You can close this message any time."
+                  ),
           html = TRUE
       )
+      attempted_download(TRUE)
       ## Download from MED
       future::future({
         prepare_med_data()
@@ -95,6 +93,17 @@ app_server <- function( input, output, session ) {
           session = session, title = "Download is complete!", type = "success",
           text = "You may now proceed to build your network with the most recent MED data."
         )
+    } else {
+      # download attempted and cache is TRUE
+      if(attempted_download()){
+          shinyWidgets::sendSweetAlert(
+            session = session, title = "Unable to update data.", type = "warning",
+            text = "MED data could not be downloaded either due to your internet connection or MED server status. Using cached data."
+          )
+          med(list("med_data"             = med_data_cache, 
+                   "element_redox_states" = element_redox_states_cache,
+                   "cache"                = TRUE))    
+      }
     }
   })
   

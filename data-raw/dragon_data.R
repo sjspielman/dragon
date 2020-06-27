@@ -2,7 +2,7 @@
 
 library(dragon)
 
-## LAST UPDATED ON 6/14/20 WITH MED 2/3/20 ##
+## LAST UPDATED ON 6/27/20 WITH MED 2/3/20 ##
 
 med_data_cache <- fetch_med_data()
 element_redox_states_cache <- calculate_element_redox_states(med_data_cache)
