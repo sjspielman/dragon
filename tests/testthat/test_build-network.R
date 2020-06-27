@@ -44,19 +44,23 @@ test_that("fct_build_network::initialize_data() with multiple unforced elements"
 
 ## Test initialize_data(), multiple elements forced -----------------------------------
 test_that("fct_build_network::initialize_data() with multiple forced elements", {
-  elements_of_interest <- c("Cd", "Sn")
+  elements_of_interest <- c("As", "Cd", "Cu")
   test_output <- initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, TRUE)
   
-  ## The number of rows WITH Cd or Sn should be all of them
+  ## The number of rows WITH should be all of them
   test_output %>%
     dplyr::rowwise() %>%
-    dplyr::filter(stringr::str_detect(rruff_chemistry, "Cd") | stringr::str_detect(rruff_chemistry, "Sn")) -> rows_with_cd_sn
-  expect_equal(nrow(rows_with_cd_sn), nrow(test_output))
+    dplyr::filter(stringr::str_detect(rruff_chemistry, "As") | 
+                  stringr::str_detect(rruff_chemistry, "Cd") |
+                  stringr::str_detect(rruff_chemistry, "Cu")) -> rows_with
+  expect_equal(nrow(rows_with), nrow(test_output))
   
-  ## The number of rows WITHOUT Cd or Sn should be 0
+  ## The number of rows WITHOUT should be 0
   test_output %>%
-    dplyr::filter(!(stringr::str_detect(rruff_chemistry, "Cd")) & !(stringr::str_detect(rruff_chemistry, "Sn"))) -> rows_without_cd_sn
-  expect_equal(nrow(rows_without_cd_sn), 0)  
+    dplyr::filter(!(stringr::str_detect(rruff_chemistry, "As")) & 
+                  !(stringr::str_detect(rruff_chemistry, "Cd")) &
+                    !(stringr::str_detect(rruff_chemistry, "Cu"))) -> rows_without
+  expect_equal(nrow(rows_without), 0)  
   
   ## Check the column names
   expected_names <- c("mineral_name", "mineral_id", "mindat_id", "locality_longname" , "age_type", "rruff_chemistry", "ima_chemistry", "min_age","max_age", "chemistry_elements")

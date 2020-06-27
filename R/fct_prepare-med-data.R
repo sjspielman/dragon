@@ -13,6 +13,7 @@ prepare_med_data <- function(cache = FALSE)
     cache <- TRUE
   } else {
     ers <- calculate_element_redox_states(md)
+    if(is.null(ers)) stop("FATAL ERROR. Please file a bug report at ", dragon_github_issue_url)
   }
   return( list("med_data" = md, "element_redox_states" = ers, "cache" = cache) )
 }
@@ -24,14 +25,13 @@ prepare_med_data <- function(cache = FALSE)
 fetch_med_data <- function()
 {
 
-  
   ## TRY to Download MED tables-------------------------------------------
   m1 <- try_url( readr::read_tsv(med_m1_url, guess_max=10000) )
   m2 <- try_url( readr::read_tsv(med_m2_url, guess_max=10000) )
   
   if (!(m1$success & m2$success))
   {
-    output <- FALSE
+    return(FALSE)
   } else {
     dplyr::left_join(m1$html, m2$html) %>% 
       dplyr::filter(at_locality == 1) %>%
@@ -54,9 +54,8 @@ fetch_med_data <- function()
       dplyr::mutate(ima_chemistry = stringr::str_replace_all(ima_chemistry, 
                                                              "_(\\d+\\.*\\d*)_", 
                                                              "<sub>\\1</sub>")) %>%
-      dplyr::ungroup() -> output
+      dplyr::ungroup()
   }
-  return(output)
 }
 
 
@@ -102,7 +101,7 @@ calculate_element_redox_states <- function(med_data)
       names(temp2) <- c("mineral_name", "element", "element_redox_mineral", "num")
     }
     
-    element_redox_states_raw <- dplyr::bind_rows( element_redox_states_raw, temp2 )
+    element_redox_states_raw <- dplyr::bind_rows( element_redox_states_raw, unique(temp2) )
   }
   
   ## Merge with elements unknown redox state (NA) -----------------------------------
@@ -122,10 +121,12 @@ calculate_element_redox_states <- function(med_data)
                                                             element %in% group2_elements ~ 2,
                                                             TRUE                         ~ as.numeric(element_redox_mineral)
     ) ## END case_when
-  ) -> element_redox_states
+  ) %>%
+  dplyr::distinct() -> element_redox_states
   
   
-  element_redox_states %>% dplyr::filter(element_redox_mineral == 0) -> num_zero_redox
+  element_redox_states %>% 
+    dplyr::filter(element_redox_mineral == 0) -> num_zero_redox
   if(nrow(num_zero_redox) != 0) stop("Redox states of 0 recovered.")
   
   element_redox_states

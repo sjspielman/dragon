@@ -114,6 +114,7 @@ initialize_data <- function(med_data, element_redox_states, elements_of_interest
     element_redox_states %>% 
       dplyr::select(-element_redox_mineral) %>%
       dplyr::group_by(mineral_name) %>%
+      dplyr::distinct() %>% ##!!!!!!!!
       dplyr::mutate(has_element = ifelse( sum(element %in% elements_of_interest) == n_elements, TRUE, FALSE)) %>% 
       dplyr::filter(has_element == TRUE) -> elements_only_raw
   } else 
