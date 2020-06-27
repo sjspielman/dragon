@@ -15,7 +15,7 @@ test_that("fct_export_network::* works ", {
   igraph_version <- visnetwork_to_igraph(position_tibble, 
                                          true_styled_edges, 
                                          1, ## baseline_output_element_size
-                                         1, ## baseline_output_element_label_size
+                                         0.65, ## baseline_output_element_label_size
                                          1) ## baseline_output_mineral_size
   
   # check names
@@ -28,8 +28,9 @@ test_that("fct_export_network::* works ", {
   # check coordinates
   if (R.Version()$major < 4) expect_true(class(igraph_version$coords) == "matrix") 
   if (R.Version()$major >= 4) expect_true(inherits(igraph_version$coords, "matrix"))
-  expect_equal(igraph_version$coords[,1], position_tibble$x)
-  expect_equal(igraph_version$coords[,2], -1*position_tibble$y) ## NEGATIVE!!!!
+  ### TIMES 10!
+  expect_equal(igraph_version$coords[,1], position_tibble$x * 10)
+  expect_equal(igraph_version$coords[,2], -1*position_tibble$y * 10) ## NEGATIVE!!!!
   
   # check graph itself---------------
   graph <- igraph_version$igraph_network

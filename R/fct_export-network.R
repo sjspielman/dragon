@@ -16,7 +16,7 @@ visnetwork_to_igraph <- function(nodes, edges, input_element_size_scale, input_e
   
   ####################### BASELINES ###########################
   element_cex_baseline_textonly <- 1.4
-  element_cex_baseline <- 1 
+  element_cex_baseline <- 0.65
   mineral_cex_baseline <- 0.4
   max_cex_limit         <- 2.5
   max_size_limit        <- 20
@@ -125,6 +125,8 @@ visnetwork_to_igraph <- function(nodes, edges, input_element_size_scale, input_e
    
   nodes_igraph %>%
     dplyr::select(x, y) %>% ## Select order can flip 180, FYI
+    ## This seems to actually work REALLY well for sizing the network in PDF
+    dplyr::mutate(x = x*10, y = y*10) %>% 
     ## igraph plots upside down from visNetwork, because sure why not, so flip the sign.
     dplyr::mutate(y = -1 * y) -> coords
   

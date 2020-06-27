@@ -25,37 +25,37 @@ app_server <- function( input, output, session ) {
           "use_med_cache",
           title = "Welcome to dragon!",
           text = tags$span(
-            "dragon is GPL-3 and by clicking this you acknowledge to agree to terms. Please cite DRAGON AND MED in your papers.",
+            "We generate mineral-chemistry networks using information provided in the Mineral Evolution Database (MED).",
             br(),
-            "We use MED data, cached from the MED update on", 
-            tags$b(med_cache_date), ". MED was mostly recently updated on ",  
+            "MED was updated on", 
             tags$b(most_recent_date), 
-            ". Do you want to used the cached data, or re-download right now?",
+            ", but dragon is using cached MED data from, ",  tags$b(med_cache_date),
+            ". Do you want to used the cached data, or download and update the MED data for this dragon session?",
             br(),br(),
             tags$b("CAUTION: Downloading will take several minutes!")
           ),                                     
           type = "info",
-          btn_labels = c("Download data", "Use data cache"), # FALSE, TRUE
+          btn_labels = c("Download data.", "Use data cache."), # FALSE, TRUE
           btn_colors = c("#FE642E", "#04B404"),
           closeOnClickOutside = FALSE, 
           showCloseButton = FALSE, 
           html = TRUE
         )
       } else {
-        shinyWidgets::sendSweetAlert(
-          session = session, title = "Welcome to dragon!", type = "info",
-          text = paste0("We're using the most up to date MED data, which was released on ", med_cache_date, ". dragon is GPL-3 and by clicking this you acknowledge to agree to terms. Please cite DRAGON AND MED in your papers.")
-        )
+       # shinyWidgets::sendSweetAlert(
+       #   session = session, title = "Welcome to dragon!", type = "info",
+       #   text = paste0("We're using the most up to date MED data, which was released on ", med_cache_date, ". dragon is GPL-3 and by clicking this you acknowledge to agree to terms. Please cite DRAGON AND MED in your papers.")
+       # )
         med(list("med_data"            = med_data_cache, 
                  "element_redox_states" = element_redox_states_cache,
                  "cache"                = TRUE))
       }
     } else {
       ## this is for most_recent_date == FALSE
-      shinyWidgets::sendSweetAlert(
-        session = session, title = "Welcome to dragon!", type = "info",
-        text = paste0("We're MED data, which was released on ", med_cache_date, ". dragon is GPL-3 and by clicking this you acknowledge to agree to terms. Please cite DRAGON AND MED in your papers. YOU ARE NOT CONNECTED TO THE INTERNET!")
-      )
+     # shinyWidgets::sendSweetAlert(
+     #   session = session, title = "Welcome to dragon!", type = "info",
+     #   text = paste0("We're MED data, which was released on ", med_cache_date, ". dragon is GPL-3 and by clicking this you acknowledge to agree to terms. Please cite DRAGON AND MED in your papers. YOU ARE NOT CONNECTED TO THE INTERNET!")
+     # )
       med(list("med_data"            = med_data_cache, 
                "element_redox_states" = element_redox_states_cache,
                "cache"                = TRUE))
@@ -396,7 +396,7 @@ app_server <- function( input, output, session ) {
   
   ## DOWNLOAD LINKS ------------------------------------------------------------------------
   observeEvent(input$store_position,{
-    visNetwork::visNetworkProxy("networkplot") %>% visNetwork::visGetPositions()
+    visNetwork::visNetworkProxy("networkplot") %>% visNetwork::visGetPositions() 
   })
   
   styled_nodes_with_positions <- reactive({
@@ -591,6 +591,7 @@ app_server <- function( input, output, session ) {
         shiny::br()
     )
   })   
+  ## Select all node attributes ----------------------------------------
   observeEvent(input$include_all_selectednodes, {
    updatePrettyCheckboxGroup(session=session,
                              inputId="columns_selectednode_mineral",
@@ -606,6 +607,7 @@ app_server <- function( input, output, session ) {
                              selected = selected_node_table_column_choices_network)
   })
   
+  ## De-select all node attributes ----------------------------------------
   observeEvent(input$clear_all_selectednodes, {
    updatePrettyCheckboxGroup(session=session,
                              inputId="columns_selectednode_mineral",

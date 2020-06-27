@@ -4,7 +4,8 @@ author: "Stephanie J. Spielman"
 date: "`r Sys.Date()`"
 output: 
   html_document:
-    theme: cerulean
+    theme: united
+    toc: true
 bibliography: dragon.bib
 vignette: >
   %\VignetteIndexEntry{Mineral-chemistry network analysis in `dragon`}
@@ -50,7 +51,7 @@ Or, in LaTeX:
 
 # Obtaining `dragon` 
 
-`dragon` can be used freely online. Please visit the `dragon` github page at [https://github.com/spielmanlab/dragon](https://github.com/spielmanlab/dragon), which will contain the current link to the free online `dragon` server without any download. <!-- spielmanlab.github.io/dragon -->. 
+`dragon` can be used freely online. Please visit the `dragon` github page at [https://github.com/spielmanlab/dragon](https://github.com/spielmanlab/dragon), which will contain the current link to the free online `dragon` server without any download. <!-- spielmanlab.github.io/dragon -->
 
 Alternatively, the current release of `dragon` can be installed from CRAN, or the bleeding edge version can be installed using the `remotes` library:
 ```{r}
@@ -70,6 +71,9 @@ run_dragon() ## run_app() also works!
 ```
 
 
+## Getting help
+
+Please refer to the [Issues](https://github.com/spielmanlab/dragon/issues) page on `dragon`'s github to file any bug reports or get help beyond that provided in this vignette.
 
 # Building your network
 
@@ -179,6 +183,23 @@ Finally, you can export the network image itself. On one hand, it is possible to
 + Then, click the "Export network as PDF" button, and your network image as a high-resolution PDF will be saved.
 + Due to the `visNetwork`-`igraph` conversion, some of the exported aspects of the network image may not be precisely to your liking. Therefore, you can use the dropdown menu "PDF options" (above the "Export network as PDF" button) to slightly increase/decrease node sizes, and or remove the node outlines, and change the outputted PDF file's dimensions.
 
+# Exploring attributes of your network
+
+There are several ways you can explore nodes, relationships, and other attributes of the network. 
+
+First, hovering over the nodes themselves will reveal some key attributes helpful for exploring redox evolution. 
+
+Second, below the interactive network itself, the box entitled **Examine individual nodes** will populate a table with various selected attributes when nodes are selected. You can selected nodes either by directly clicking them in the interactive network display and/or by selecting them from the dropdown menu in this box. When a node is selected, the node and its first-degree connections (i.e., minerals a selected element is in, or a selected mineral's constituent elements) will be revealed in the table. You can de-select nodes from this table using the dropdown menu.
+
+Third, the tab panel entitled **Explore Network Attributes** allows for more in-depth exploration of elements and minerals in the network. This tab will provide overall information about network contents (number of nodes of each type, number of edges, and network modularity based on community clustering), as well as all attributes associated with each element and mineral node. 
+
+
+## Using tables in dragon
+
+All tables in `dragon` support column re-organization: Simply click and drag a column to the location in the table in which you want it to be. For circumstances where a table has more columns that can be viewed in the screen, a small green plus-sign icon will appear along each table row. Click this plus-sign to reveal the columns that cannot be displayed. Full tables can easily be exported in various formats by clicking one of the Copy/Excel/CSV buttons above each table.
+
+
+
 # Analyzing the minerals in your network
 
 Under the tab "Analyze Network Minerals," `dragon` will construct simple linear regressions to analyze the relationships among mineral properties in the network you have built. Note that this tab is also responsive to the inputs in the sidebar panel. If you change the network fundamentals (e.g. focal elements or age range), the analysis will change as well.
@@ -192,8 +213,15 @@ There are several caveats to be aware of when conducting analyses in this tab:
 + `dragon` will _not_ check if the relationship between your numeric variables is indeed linear. You will need to gauge this for yourself in the resulting image.
 + `dragon` will _not_ transform the data in any way. You will need to gauge for yourself whether the data is appropriate for a linear model analysis.
 + For analyses which consider Community cluster as the predictor variable, only those clusters that contain at least 3 minerals will be analyzed. `dragon` will also display a warning if the variance is not equal among clusters being compared, which can result in imprecise modeling results.
-+ *Overall, please interpret these results with caution.* We do your models, but not your science!
++ **_Overall, please interpret these results with caution._** We do your models, but not your science!
 
+# Tracking mineral formation over time
+
+The final tab panel in `dragon`, **Mineral formation timeline**, presents a view of mineral formation for the selected network in geologic-time, contextualized with major biogeochemical transitions including early evidence for microbial metabolism and Great Oxidation Events. By default, each line and point ("lollipop") in the timeline represents a mineral in the network at its oldest discovered age. Therefore, within the selected time frame along the timeline, there are the same number of "lollipops" as there are mineral nodes in the constructed network. The timeline will also reveal minerals with oldest-known ages that fall outside the selected time range, although these will be shown in a different (and customizable!) color.
+
+It is also possible for the timeline to show *all* instances over time when each of these mineral was discovered, by turning off the button labeled ``Display minerals discovered at their oldest known age only. Turn off to display minerals discovered at any age.''
+
+Users can style timeline minerals either with single colors, or minerals that fall within the selected time range can be styled according to an attribute such as mean electronegativity or maximum known age. This image can be exported to PDF using the "Download Timeline" button. 
 
 
 
