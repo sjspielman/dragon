@@ -214,8 +214,7 @@ build_current_timeline <- function(timeline_minerals, nodes, mineral_color_by, m
                                 limits=c(timeline_lower, y_fudge + max(break_points) + 0.2),
                                 breaks = break_points,
                                 labels = break_labels, 
-                                position = "right") +
-    ggplot2::geom_hline(yintercept=0)  -> raw_plot
+                                position = "right")  -> raw_plot
   
   ##### Add in outside minerals, if any ######
   if (nrow(timeline_minerals_outside) > 0)
@@ -261,8 +260,8 @@ build_current_timeline <- function(timeline_minerals, nodes, mineral_color_by, m
     
   }
     
-  ## Add GOEs and metabolism bars
-  final_plot <- add_timeline_events(raw_plot_colored)
+  ## Add GOEs and metabolism bars as well as hline
+  final_plot <- add_timeline_events(raw_plot_colored) + ggplot2::geom_hline(yintercept=0)
 
   cowplot::plot_grid(final_plot, legend_grid, nrow = 2, rel_heights=c(1, 0.1), scale=c(1, 0.9))
 }
