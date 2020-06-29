@@ -126,17 +126,29 @@ element_density_str         <- "Element density"
 #' UI display string for element_specific_heat variable
 #' @noRd
 element_specific_heat_str    <- "Element specific heat"
+
 #' UI display string for mineral_ndn variable
+#' @noRd
 mineral_network_degree_norm_str <- "Mineral degree centrality (normalized)" 
+
 #' UI display string for element_ndn variable
+#' @noRd
 element_network_degree_norm_str <- "Element degree centrality (normalized)" 
+
 #' UI display string for mineral_closeness variable
+#' @noRd
 mineral_closeness_str       <- "Mineral closeness centrality"
+
 #' UI display string for element_closeness variable
+#' @noRd
 element_closeness_str       <- "Element closeness centrality"
+
 #' UI display string for mineral_cluster variable
+#' @noRd
 mineral_cluster_ID_str      <- "Mineral community cluster"
+
 #' UI display string for element_cluster variable
+#' @noRd
 element_cluster_ID_str      <- "Element community cluster"
 
 #' Variables as an array to be matched with names

@@ -166,6 +166,7 @@ find_most_recent_date <- function()
 #' Function to check for internet and read a specified html
 #' @param url The URL to read
 #' @return Website read with `xml2::read_html`, or FALSE if could not reach internet/website
+#' @noRd
 try_url <- function(url)
 {
   
