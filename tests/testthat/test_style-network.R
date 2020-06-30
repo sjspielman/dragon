@@ -106,7 +106,7 @@ test_that("fct_style_network::style_nodes() node font color with TEXT", {
   styled_nodes_test <- styled_test$styled_nodes
   
   # element font color when shape is text should be the NODE COLOR, and we also check for highlighted. mineral should still be mineral color
-  regular_element_nodes <- styled_nodes_test$font.color[styled_nodes_test$group == "element" & !(styled_nodes_test$id %in% true_special_element_abbr)]
+  regular_element_nodes <- styled_nodes_test$font.color[styled_nodes_test$group == "element" & !(styled_nodes_test$id %in% true_special_element_id)]
   expect_true(all((regular_element_nodes == true_element_color)))
   expect_true(all(styled_nodes_test$font.color[styled_nodes_test$group == "element" &
                                           styled_nodes_test$element_name == true_focal_element_name] == true_highlight_color))                
