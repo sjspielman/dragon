@@ -65,11 +65,10 @@ true_mineral_shape       <- "square"
 true_element_shape       <- "circle"
 true_na_color            <- black
 true_highlight_color     <- yellow
-true_custom_selection_element <- c("P", "O")
+true_custom_selection_element <- c("P", "O-2")
 true_custom_selection_color   <- orange
-true_custom_select_element_names <- c("Phosphorus", "Oxygen")
 true_focal_element_name <- "Iron"
-true_special_element_names <- c(true_focal_element_name, true_custom_select_element_names )
+true_special_element_id <- c("P", "O-2", "Fe+2", "Fe", "Fe+3") ## the three iron focals and P/O redoxes
 
 # Baseline list can be updated when testing other conditions. 
 # Baseline conditions are **singlecolor/singlesize** with element highlights and custom selections

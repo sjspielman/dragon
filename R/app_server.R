@@ -927,7 +927,8 @@ app_server <- function( input, output, session ) {
   
   ## Reactive to style nodes by user input ---------------------------------------------------------------------------
   node_styler <- reactive({
-    #print(network_style_options())
+    print(network_style_options()$custom_selection_element)
+    
     style_nodes(chemistry_network()$nodes, network_style_options())
   })   
   

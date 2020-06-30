@@ -13,9 +13,12 @@ test_that("fct_style_network::style_nodes() returns appropriate structure and ba
   styled_nodes_test <- styled_test$styled_nodes
   
   # Colors were assigned correctly: single element/mineral, custom element node colors as well
-  regular_element_nodes <- styled_nodes_test$color.background[styled_nodes_test$group == "element" & !(styled_nodes_test$element_name %in% true_special_element_names)]
+  regular_element_nodes <- styled_nodes_test$color.background[styled_nodes_test$group == "element" & !(styled_nodes_test$id %in% true_special_element_id)]  
+  
   expect_true(all(regular_element_nodes == true_element_color))
-  expect_true(all(styled_nodes_test$color.background[styled_nodes_test$element_name %in% true_custom_select_element_names] == true_custom_selection_color)) 
+  ## custom selection
+  expect_true(all(styled_nodes_test$color.background[styled_nodes_test$id %in% true_custom_selection_element] == true_custom_selection_color)) 
+  ## focal
   expect_true(all(styled_nodes_test$color.background[styled_nodes_test$group == "element" & styled_nodes_test$element_name == true_focal_element_name] == true_highlight_color)) 
   expect_true(all(styled_nodes_test$color.background[styled_nodes_test$group == "mineral"] == true_mineral_color))
   
@@ -103,11 +106,11 @@ test_that("fct_style_network::style_nodes() node font color with TEXT", {
   styled_nodes_test <- styled_test$styled_nodes
   
   # element font color when shape is text should be the NODE COLOR, and we also check for highlighted. mineral should still be mineral color
-  regular_element_nodes <- styled_nodes_test$font.color[styled_nodes_test$group == "element" & !(styled_nodes_test$element_name %in% true_special_element_names)]
+  regular_element_nodes <- styled_nodes_test$font.color[styled_nodes_test$group == "element" & !(styled_nodes_test$id %in% true_special_element_abbr)]
   expect_true(all((regular_element_nodes == true_element_color)))
   expect_true(all(styled_nodes_test$font.color[styled_nodes_test$group == "element" &
                                           styled_nodes_test$element_name == true_focal_element_name] == true_highlight_color))                
-  expect_true(all(styled_nodes_test$font.color[styled_nodes_test$id %in% true_custom_select_element_names] == true_custom_selection_color)) 
+  expect_true(all(styled_nodes_test$font.color[styled_nodes_test$id %in% true_custom_selection_element] == true_custom_selection_color)) 
   expect_true(all(styled_nodes_test$font.color[styled_nodes_test$group == "mineral"] == true_mineral_label_color))             
 })
 

@@ -237,9 +237,7 @@ style_nodes_sizes <- function(full_nodes, style_options)
 #' @noRd
 style_nodes_shape_highlight_label <- function(node_attr_styled_nodes, style_options)
 {
-  custom_selection_as_names <- element_info$element_name[element_info$element %in% style_options$custom_selection_element]
   focal_element_names       <- element_info$element_name[element_info$element %in% style_options$elements_of_interest]
-
 
   node_attr_styled_nodes %>%
     dplyr::mutate(shape = ifelse(group == "element", style_options$element_shape, style_options$mineral_shape),
@@ -247,8 +245,8 @@ style_nodes_shape_highlight_label <- function(node_attr_styled_nodes, style_opti
                   color.background = ifelse(element_name %in% focal_element_names & style_options$highlight_element,
                                             style_options$highlight_color, 
                                             color.background),
-                  ## Node color for custom selection if specified
-                  color.background = ifelse(element_name %in% custom_selection_as_names, 
+                  ## Node color for custom selection if specified  
+                  color.background = ifelse(id %in% style_options$custom_selection_element, 
                                             style_options$custom_selection_color, 
                                             color.background), 
                   ## Element font color                                                                                       
