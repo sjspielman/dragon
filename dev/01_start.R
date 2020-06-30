@@ -29,7 +29,7 @@ golem::set_golem_options()
 ## Create Common Files ----
 ## See ?usethis for more information
 usethis::use_gpl3_license( name = "Stephanie J. Spielman" )  # You can set another license here
-usethis::use_readme_rmd( open = FALSE )
+usethis::use_readme_md( open = FALSE )
 usethis::use_code_of_conduct()
 usethis::use_lifecycle_badge( "Stable" )
 usethis::use_news_md( open = FALSE )
@@ -42,7 +42,7 @@ usethis::use_git()
 golem::use_recommended_tests()
 
 ## Use Recommended Packages ----
-golem::use_recommended_deps()
+#golem::use_recommended_deps() ## dont need glue, attempt
 
 ## Favicon ----
 # If you want to change the favicon (default is golem's one)

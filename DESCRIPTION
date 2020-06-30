@@ -21,24 +21,19 @@ Imports:
     cowplot (>= 1.0.0),
     ggforce,
     magrittr,
-    shinythemes,
     shinydashboard,
     shinyWidgets,
     colourpicker,
     colorspace,
     visNetwork (>= 2.0.9),
     igraph (>= 0.4),
-    attempt,
-    glue,
     htmltools,
-    processx,
     stats,
     promises,
     future,
     lubridate,
     xml2,
     rvest,
-    pkgload,
     curl,
     tidyselect
 Encoding: UTF-8
@@ -46,6 +41,7 @@ LazyData: true
 RoxygenNote: 7.1.0
 Suggests: 
     testthat (>= 2.1.0),
+    processx,
     knitr,
     rmarkdown
 VignetteBuilder: knitr

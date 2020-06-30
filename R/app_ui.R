@@ -123,12 +123,12 @@ app_ui <- function(request) {
                 ), ## END column                
                 column(6, 
                   conditionalPanel(condition = "input.element_size_by == 'singlesize'", {
-                    shiny::sliderInput("element_label_size","Element size",value=50,min=10,max=100, step=10) #### !!!!!!! label size - this is how visnetwork does <shrug>!!!!!!!
+                    shiny::sliderInput("element_label_size","Element size",value=50,min=10,max=100, step=5) #### !!!!!!! label size - this is how visnetwork does <shrug>!!!!!!!
                   })
                 ), ## END column   
                 column(6, 
                   conditionalPanel(condition = "input.element_size_by != 'singlesize'", {
-                    shiny::sliderInput("element_size_scale","Scale element size",value=20,min=10,max=100,step=10)
+                    shiny::sliderInput("element_size_scale","Scale element size",value=20,min=10,max=100,step=5)
                   }) 
                 ) ## END column   
               ), ## END fluidRow                    
@@ -166,7 +166,7 @@ app_ui <- function(request) {
               ),  ## END fluidRow
               fluidRow( 
                 column(6, colourpicker::colourInput("mineral_label_color", "Mineral font color:", value = default_mineral_label_color)),
-                column(6, shiny::sliderInput("mineral_label_size","Mineral font size",value=0,min=0,max=50))
+                column(6, shiny::sliderInput("mineral_label_size","Mineral font size",value=0,min=0,max=50, step = 5))
               ) ## END fluidRow
             ), ## END "Node Labels and Font" menuItem
                        

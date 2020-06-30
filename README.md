@@ -1,67 +1,15 @@
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
-
 # dragon
 
-<!-- badges: start -->
 
 [![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-<!-- badges: end -->
+experimental](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable) [![Build Status](https://travis-ci.org/spielmanlab/dragon.svg?branch=dev)](https://travis-ci.org/spielmanlab/dragon) 
 
-The goal of dragon is to …
+**Citation forthcoming.**
 
-## Installation
+The `dragon` (**D**eep time **R**edox **A**nalysis of the **G**eobiology **O**ntology **N**etwork) package provides a [Shiny Application](https://shiny.rstudio.com/) for generating, exploring, and analyzing bipartite mineral-chemistry networks over deep time on Earth using information from the [Mineral Evolution Database](http://rruff.info/ima/), with a specific application of investigating biologically-relevant evolution of element redox states and availability over time. `dragon` uses `igraph` and `visNetwork` library (a terribly handy R wrapper for `vis.js`) to construct user-friendly interactive networks. 
 
-You can install the released version of dragon from
-[CRAN](https://CRAN.R-project.org) with:
+**For instructions on obtaining and using dragon**, please see the [vignette](http://htmlpreview.github.io/?https://github.com/spielmanlab/dragon/blob/dev/vignettes/dragon.html).
 
-``` r
-install.packages("dragon")
-```
+**Current website:** [sjspielman.shinyapps.io/dragon-dev](sjspielman.shinyapps.io/dragon-dev)
 
-And the development version from [GitHub](https://github.com/) with:
-
-``` r
-# install.packages("devtools")
-devtools::install_github("spielmanlab/dragon")
-```
-
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-``` r
-library(dragon)
-#> Warning: replacing previous import 'DT::dataTableOutput' by
-#> 'shiny::dataTableOutput' when loading 'dragon'
-#> Warning: replacing previous import 'DT::renderDataTable' by
-#> 'shiny::renderDataTable' when loading 'dragon'
-#> Warning: replacing previous import 'colourpicker::runExample' by
-#> 'shiny::runExample' when loading 'dragon'
-## basic example code
-```
-
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
-
-``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
-```
-
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date.
-
-You can also embed plots, for example:
-
-<img src="man/figures/README-pressure-1.png" width="100%" />
-
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub\!
