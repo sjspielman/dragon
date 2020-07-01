@@ -345,16 +345,26 @@ obtain_dynamic_colors_legend <- function(dat, color_variable, variable_type, col
   
   if (variable_type == "c")
   {
+    ## we want max_age legend to go high->low, but colors should in same direction as the rest.
+    rev_guide <- FALSE
+    direction <- -1
+    if (color_variable == "max_age"){
+      direction <- 1
+      rev_guide <- TRUE
+    }
+    
     ggplot2::ggplot(dat2) + 
       ggplot2::aes(x = x, y = !!cvar, color = !!cvar) + 
       ggplot2::geom_point() + 
-      ggplot2::scale_color_distiller(name = legendtitle, palette = colors_or_palette, na.value = na_color) + #direction = -1,
-      ggplot2::guides(colour = ggplot2::guide_colourbar(barheight = ggplot2::unit(1, "cm"),
+      ggplot2::scale_color_distiller(name = legendtitle, palette = colors_or_palette, na.value = na_color, direction = direction) +
+      ggplot2::guides(colour = ggplot2::guide_colourbar(reverse = rev_guide,
+                                                        barheight = ggplot2::unit(1, "cm"),
                                                         title.position="top", 
                                                         frame.colour = "black", 
-                                                        ticks.colour = "black")
-                      ) -> p
+                                                        ticks.colour = "black")) -> p
   }
+  
+  
   
   ggplot2::ggplot_build(p)$data[[1]] %>% 
     tibble::as_tibble() %>% 

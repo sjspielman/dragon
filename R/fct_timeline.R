@@ -242,6 +242,14 @@ build_current_timeline <- function(timeline_minerals, nodes, mineral_color_by, m
                                                 ggplot2::aes(x = x, xend = x, y = 0, yend = yend))
     legend_grid <- cowplot::plot_grid(baseline_timeline()$legend)
   } else {
+    
+    rev_guide <- FALSE
+    direction <- -1
+    if (color_by == "max_age"){
+      direction <- 1
+      rev_guide <- TRUE
+    }
+    
     raw_plot_colored <- raw_plot + 
       ggplot2::geom_point(data  = timeline_minerals_inside, 
                           ggplot2::aes(x = x,
@@ -251,17 +259,25 @@ build_current_timeline <- function(timeline_minerals, nodes, mineral_color_by, m
                             ggplot2::aes(x = x, xend = x, y = 0, yend = yend,
                                          color = {{color_by}})) +
       ggplot2::scale_color_distiller(palette   = mineral_color_palette, 
-                                     name      = variable_to_title[[color_by]]) + ## TODO: do we need an na_value?
-      ggplot2::theme(legend.position = "none")
+                                     name      = variable_to_title[[color_by]],
+                                     direction = direction) + ## TODO: do we need an na_value?
+      ggplot2::theme(legend.position = "bottom") + 
+      ggplot2::guides(colour = ggplot2::guide_colourbar(reverse = rev_guide,
+                                                        barheight = ggplot2::unit(1, "cm"),
+                                                        title.position="top", 
+                                                        frame.colour = "black", 
+                                                        ticks.colour = "black"))
+    
+      
       legend_grid <- cowplot::plot_grid(baseline_timeline()$legend, 
-                                        cowplot::get_legend(raw_plot_colored + ggplot2::theme(legend.position = "bottom")), 
+                                        cowplot::get_legend(raw_plot_colored), 
                                         nrow = 1, scale = 0.8)
     
     
   }
     
   ## Add GOEs and metabolism bars as well as hline
-  final_plot <- add_timeline_events(raw_plot_colored) + ggplot2::geom_hline(yintercept=0)
+  final_plot <- add_timeline_events(raw_plot_colored) + ggplot2::geom_hline(yintercept=0) + ggplot2::theme(legend.position = "none")
 
   cowplot::plot_grid(final_plot, legend_grid, nrow = 2, rel_heights=c(1, 0.1), scale=c(1, 0.9))
 }
