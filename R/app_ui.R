@@ -248,11 +248,27 @@ app_ui <- function(request) {
                     br(),
                     column(width = 12,
                       h3("Explore Element Attributes:"),
+                      div(style="display:inline-block;vertical-align:top;",
+                        downloadButton("export_element_table", label = "Export table"),
+                        shinyWidgets::radioGroupButtons("export_element_table_fmt", 
+                                                        "", 
+                                                        choices = c("CSV", "Excel"),
+                                                        checkIcon = list(yes = icon("ok", lib = "glyphicon")),
+                                                        selected = "CSV")
+                      ),
                       div(style = "font-size:85%;", 
                         DT::dataTableOutput("element_exploration_table")
                       ),
                       br(), br(),
                       h3("Explore Mineral Attributes:"),
+                      div(style="display:inline-block;vertical-align:top;",
+                        downloadButton("export_mineral_table", label = "Export table"),
+                        shinyWidgets::radioGroupButtons("export_mineral_table_fmt", 
+                                                        "", 
+                                                        choices = c("CSV", "Excel"),
+                                                        checkIcon = list(yes = icon("ok", lib = "glyphicon")),
+                                                        selected = "CSV")
+                      ),
                       div(style = "font-size:85%;", 
                         DT::dataTableOutput("mineral_exploration_table")
                       )
@@ -352,11 +368,10 @@ app_ui <- function(request) {
                 
               ## Render the node table ---------------------------------------------------------
               br(),br(),br(),
-              fluidRow(
-                column(width = 12,
-                  shiny::uiOutput("show_nodeTable")
-                )
-              ),
+              shiny::uiOutput("show_nodeTable"),
+              br(),
+             
+              
               ## NETWORK EXPORT BOX -----------------------------------------------------------------------
               box(width = 12, status = "primary", title = "Network Export", collapsible = TRUE,
                 shinyWidgets::actionBttn("store_position", 

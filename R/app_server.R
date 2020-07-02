@@ -107,12 +107,11 @@ app_server <- function( input, output, session ) {
     }
   })
   
-  ## Call styling modules ----------------------------------------------------------------------
-  element_node_color <- callModule(mod_server_choose_color_sd_palette, id = "mod_element_colors")
-  mineral_node_color <- callModule(mod_server_choose_color_sd_palette, id = "mod_mineral_colors")
-  edge_color         <- callModule(mod_server_choose_color_sd_palette, id = "mod_edge_colors")
+  ## Call styling and table export modules ----------------------------------------------------------------------
+  element_node_color  <- callModule(mod_server_choose_color_sd_palette, id = "mod_element_colors")
+  mineral_node_color  <- callModule(mod_server_choose_color_sd_palette, id = "mod_mineral_colors")  
+  edge_color          <- callModule(mod_server_choose_color_sd_palette, id = "mod_edge_colors")
 
-  
   
   ################################# Build network ####################################
   ## Construct the network from user input ------------------------------------------
@@ -551,12 +550,11 @@ app_server <- function( input, output, session ) {
   
 
   # WE WANT TO KEEP COL NAMES WRAPPED. THIS UNWRAPS: https://stackoverflow.com/questions/31293506/prevent-column-name-wrap-in-shiny-datatable
-  output$nodeTable <- DT::renderDataTable( rownames= FALSE, escape = FALSE,  ### escape=FALSE for HTML rendering, i.e. the IMA formula
+  output$nodeTable <- DT::renderDataTable(rownames= FALSE, escape = FALSE,  ### escape=FALSE for HTML rendering, i.e. the IMA formula
                                 node_table(), 
-                                extensions = c('ColReorder', 'Responsive', 'Buttons'),
+                                extensions = c('ColReorder', 'Responsive'),
                                 options = list(
-                                  dom = 'Bfrtip',
-                                  buttons = c('copy', 'csv', 'excel'),
+                                  dom = 'frtip',
                                   colReorder = TRUE
                                 )
   )
@@ -592,14 +590,35 @@ app_server <- function( input, output, session ) {
              label = tags$span(style="font-weight:700", "Network attributes:"),
              choices = selected_node_table_column_choices_network
            )),
-        br(),
-        br(),
         shiny::div(style="font-size:85%;", 
           DT::dataTableOutput("nodeTable")
-        ),
-        shiny::br()
-    )
-  })   
+        ), 
+        shiny::br(),      
+        div(style="display:inline-block;vertical-align:top;",
+          downloadButton("export_selected_table", label = "Export table"),
+          shinyWidgets::radioGroupButtons("export_selected_table_fmt", 
+                                          "", 
+                                          choices = c("CSV", "Excel"),
+                                          size = "sm",
+                                          checkIcon = list(yes = icon("ok", lib = "glyphicon")),
+                                          selected = "CSV")
+        ) # div   
+    ) ## box
+  }) ## renderUI
+  
+  ## Download handler for selected node table -----------------------------------------
+  output$export_selected_table <- shiny::downloadHandler(
+    filename = function() {
+        if (input$export_selected_table_fmt == "Excel") return(paste("dragon_table-", Sys.Date(), ".xlsx", sep=""))
+        if (input$export_selected_table_fmt == "CSV")   return(paste("dragon_table-", Sys.Date(), ".csv", sep=""))
+    },
+    content = function(filename) {
+        if (input$export_selected_table_fmt == "Excel") openxlsx::write.xlsx(node_table(), filename)
+        if (input$export_selected_table_fmt == "CSV")   readr::write_csv(node_table(), filename)
+    }
+  )
+  
+  
   ## Select all node attributes ----------------------------------------
   observeEvent(input$include_all_selectednodes, {
    updatePrettyCheckboxGroup(session=session,
@@ -633,26 +652,46 @@ app_server <- function( input, output, session ) {
   })
   
   ## Network information panel ---------------------------------------------------------------------------------
-  output$element_exploration_table <- DT::renderDataTable( rownames= FALSE, ## no IMA formulas for elements, dont need escape=F
+  output$element_exploration_table <- DT::renderDataTable(rownames= FALSE, ## no IMA formulas for elements, dont need escape=F
                                                            build_element_exploration_table(chemistry_network()$nodes), 
-                                                           extensions = c('ColReorder', 'Responsive', 'Buttons'),
+                                                           extensions = c('ColReorder', 'Responsive'),
                                                            options = list(
-                                                             dom = 'Bfrtip',
-                                                             buttons = c('copy', 'csv', 'excel'),
+                                                             dom = 'frtip',
                                                              colReorder = TRUE
-                                                           ) 
-                  )
-  output$mineral_exploration_table <- DT::renderDataTable( rownames= FALSE, escape = FALSE,  ### escape=FALSE for HTML rendering, i.e. the IMA formula
-                                                           build_mineral_exploration_table(chemistry_network()$nodes, chemistry_network()$locality_info), 
-                                                           extensions = c('ColReorder', 'Responsive', 'Buttons'),
-                                                           options = list(
-                                                             dom = 'Bfrtip',
-                                                             buttons = c('copy', 'csv', 'excel'),
-                                                             colReorder = TRUE
-                                                           )
-  )  
+                                                           )) 
 
-  
+  ## Download handler for element exploration -----------------------------------------
+  output$export_element_table <- shiny::downloadHandler(
+    filename = function() {
+        if (input$export_element_table_fmt == "Excel") return(paste("dragon_elements-", Sys.Date(), ".xlsx", sep=""))
+        if (input$export_element_table_fmt == "CSV")   return(paste("dragon_elements-", Sys.Date(), ".csv", sep=""))
+    },
+    content = function(filename) {
+        if (input$export_element_table_fmt == "Excel") openxlsx::write.xlsx(build_element_exploration_table(chemistry_network()$nodes), filename)
+        if (input$export_element_table_fmt == "CSV")   readr::write_csv(build_element_exploration_table(chemistry_network()$nodes), filename)
+    }
+  )
+
+                                                           
+  output$mineral_exploration_table <- DT::renderDataTable(rownames= FALSE, escape = FALSE,  ### escape=FALSE for HTML rendering, i.e. the IMA formula
+                                                           build_mineral_exploration_table(chemistry_network()$nodes, chemistry_network()$locality_info), 
+                                                           extensions = c('ColReorder', 'Responsive'),
+                                                           options = list(
+                                                             dom = 'frtip',
+                                                             colReorder = TRUE
+                                                      ))
+
+ ## Download handler for mineral exploration -----------------------------------------
+  output$export_mineral_table <- shiny::downloadHandler(
+    filename = function() {
+        if (input$export_mineral_table_fmt == "Excel") return(paste("dragon_minerals-", Sys.Date(), ".xlsx", sep=""))
+        if (input$export_mineral_table_fmt == "CSV")   return(paste("dragon_minerals-", Sys.Date(), ".csv", sep=""))
+    },
+    content = function(filename) {
+        if (input$export_mineral_table_fmt == "Excel") openxlsx::write.xlsx(build_mineral_exploration_table(chemistry_network()$nodes, chemistry_network()$locality_info), filename)
+        if (input$export_mineral_table_fmt == "CSV")   readr::write_csv(build_mineral_exploration_table(chemistry_network()$nodes, chemistry_network()$locality_info), filename)
+    }
+  ) 
   #################################################################################################################
   #################################################################################################################
   
@@ -759,12 +798,12 @@ app_server <- function( input, output, session ) {
   ## Renderings for linear model tab ------------------------------------------------------------------------------
     
   ## Render table with fitted model parameters and statistics, for any constructed model -----------------------
-  output$fitted_model <- DT::renderDataTable( rownames= FALSE, extensions = 'Buttons', options = list(dom = 'Bp', buttons = c('copy', 'csv', 'excel')), { 
+  output$fitted_model <- DT::renderDataTable(server = FALSE, rownames= FALSE, extensions = 'Buttons', options = list(dom = 'Bp', buttons = c('copy', 'csv', 'excel')), { 
     linear_model_output()$model_fit
   })
         
   ## Render table specifically for Tukey tests -----------------------------------------------------------------
-  output$fitted_tukey <- DT::renderDataTable( rownames= FALSE, extensions = 'Buttons', options = list(dom = 'Bp', buttons = c('copy', 'csv', 'excel')), { 
+  output$fitted_tukey <- DT::renderDataTable(server = FALSE, rownames= FALSE, extensions = 'Buttons', options = list(dom = 'Bp', buttons = c('copy', 'csv', 'excel')), { 
     linear_model_output()$tukey_fit
   })
 

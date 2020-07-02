@@ -11,6 +11,7 @@ Imports:
     DT,
     ggplot2,
     readr,
+    openxlsx,
     dplyr,
     RColorBrewer,
     stringr,

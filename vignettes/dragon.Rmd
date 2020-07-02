@@ -86,7 +86,7 @@ Once you acknowledge the prompt, you can proceed to build your network using the
 These input options are used to specify which elements and minerals will be included in the constructed network. **Once you have set these options, click the "Initialize Network" button.** When clicked, `dragon` will build and display your network (unless you turned the display off per settings below). You can change your network settings at any time, including changing the focal elements, without having to click this button again during a given `dragon` session.
 
 + **Select focal element(s).** 
-  + Use this dropdown menu to select one or more focal elements for your network. `dragon` will construct its network from all minerals that contain your selected elements. To build the full mineral network, simply click the "Select All" button in the dropdown - this will automatically selected all elements to be included.
+  + Use this dropdown menu to select one or more focal elements for your network. `dragon` will construct its network from all minerals that contain your selected elements. To build the full mineral network, simply click the "Select All" button in the dropdown.
 
 + **Age (Ga) range of minerals.** 
   + `dragon` will include only those minerals whose oldest-known-age is within the specified range, in billion years. For example. The range selection is *inclusive*. For example, if you select a range of 3-5 Ga, all minerals observed to have first formed 3 billion years ago or more will be included. By contrast, if you select a range of 2-3 Ga, all minerals whose *oldest recorded* formation is within the 2-3 Ga range will be included. The dates used in these calculations are based on mineral discovery dates as recorded in MED.
@@ -102,7 +102,7 @@ These input options are used to specify which elements and minerals will be incl
 
 
 + **Build network without display**
-  + For extremely large networks (such as the full mineral network), the interactive rendering performed by `visNetwork` can take a very long time (several minutes) and exhibit overall slower behavior. By turning this option on, `dragon` will build the network in the background but will not display an interactive network. This option should be used when you wish to explore information about a network, but do not specifically need to visualize it. 
+  + For extremely large networks (such as the full mineral network), the interactive rendering performed by `visNetwork` can take a very long time and exhibit overall slower behavior. By turning this option on, `dragon` will build the network but will _not_ display an interactive network. This option should be used when you wish to explore information about a network, but do not specifically need to visualize it. 
 
 
 
@@ -120,7 +120,7 @@ This menu item allows you to specifiy network layout and clustering algorithms, 
 
 ### Node colors
 
-Here you can select color schemes for element and mineral nodes (**Color elements/minerals based on:**"). Most simply, you can choose a single color for all nodes of a given group, or you can choose a data attribute according to which nodes of a given group will be colored. When an attribute is selected ("Color elements/minerals based on:"), you will have the choice of several *colorblind-friendly* palettes offered by the RColorBrewer package [@brewer].
+Here you can select color schemes for element and mineral nodes (**Color elements/minerals based on:**). Most simply, you can choose a single color for all nodes of a given group, or you can choose a data attribute according to which nodes of a given group will be colored. When an attribute is selected ("Color elements/minerals based on:"), you will have the choice of several *colorblind-friendly* palettes offered by the RColorBrewer package [@brewer].
 
 When coloring nodes by an attribute, it is possible that some nodes will not have an associated attribute value, i.e. there may be some "NAs." The field **Color to use for missing for unknown values** can be used to select how nodes with missing information will be colored. Notably, this selected color will also be used for any NAs associated with "Edge Colors" (keep reading!).
 
@@ -133,9 +133,7 @@ Alternatively, you can choose to turn on the option **Color all nodes by communi
 
 ### Node Sizes
 
-Similar to node colors, you can either select a single size for element and mineral nodes each, or you can set the size for each node type according to a given attribute. All size settings can be scaled up or down using the associated slider. Unlike the node colors where some attributes may have missing data, however, it is guaranteed that no attributes used for node sizing have any NAs. 
-
-Further, note that one of the sizing options for elements is "Number of known element localities." This quantity is based strictly on the number of localities where the element's associated minerals have been found in the specified network.
+Similar to node colors, you can either select a single size for element and mineral nodes each, or you can set the size for each node type according to a given attribute. All size settings can be scaled up or down using the associated slider. Note that one of the sizing options for elements is "Number of known element localities." This quantity is based strictly on the number of localities where the element's associated minerals have been found in the specified network.
 
 ### Node Shapes
 
@@ -156,7 +154,7 @@ Under thus menu item, you can set the edge color scheme as well as edge thicknes
 The final sidebar menu item controls how you interact with the network by allowing you to change the default `visNetwork` settings. None of these options will effect the network contents or styling.
 
 + **Node selection highlight degree**
-  + This specifies how many connected nodes will be emphasized when you click a node. The default degree of "2" means all nodes within 2 degrees of separation ($\leq$2 edges) will be emphasized.
+  + This specifies how many connected nodes will be emphasized when you click a node. The default degree of "2" means all nodes within 2 degrees of separation ($\leq$ 2 edges) will be emphasized.
 + **Emphasize on hover**
   + When turned on (default), nodes will be emphasized when the cursor hovers over them.
 + **Hide edges when dragging nodes**
