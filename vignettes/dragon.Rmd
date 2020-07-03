@@ -51,7 +51,7 @@ Or, in LaTeX:
 
 # Obtaining `dragon` 
 
-`dragon` can be used freely online. Please visit the `dragon` github page at [https://github.com/spielmanlab/dragon](https://github.com/spielmanlab/dragon), which will contain the current link to the free online `dragon` server without any download. <!-- spielmanlab.github.io/dragon -->
+`dragon` can be used freely online. Please visit the `dragon` github page at [https://github.com/sjspielman/dragon](https://github.com/sjspielman/dragon), which will contain the current link to the free online `dragon` server without any download. <!-- sjspielman.github.io/dragon -->
 
 Alternatively, the current release of `dragon` can be installed from CRAN, or the bleeding edge version can be installed using the `remotes` library:
 ```{r}
@@ -60,7 +60,7 @@ install.packages("dragon")
 
 ## Install from github:
 library(remotes)
-remotes::install_github("spielmanlab/dragon")
+remotes::install_github("sjspielman/dragon")
 ```
 
 To run `dragon` locally on your computer after installing the package, simply load the library and issue either command, `run_dragon()` or `run_app()`:
@@ -73,7 +73,7 @@ run_dragon() ## run_app() also works!
 
 ## Getting help
 
-Please refer to the [Issues](https://github.com/spielmanlab/dragon/issues) page on `dragon`'s github to file any bug reports or get help beyond that provided in this vignette.
+Please refer to the [Issues](https://github.com/sjspielman/dragon/issues) page on `dragon`'s github to file any bug reports or get help beyond that provided in this vignette.
 
 # Building your network
 
