@@ -1,13 +1,8 @@
-os:
-  - linux
-  - osx
-
 language: R
 sudo: false
 cache: 
   packages: true
 warnings_are_errors: FALSE
-
 
 r:
   - oldrel
