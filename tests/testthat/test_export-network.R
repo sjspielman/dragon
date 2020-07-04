@@ -7,7 +7,7 @@ test_that("fct_export_network::* works ", {
                                                      true_graph, 
                                                      "layout_with_fr", 
                                                      1)
-                                  
+                                                                    
   true_names <- sort(c(names(true_styled_nodes), "x", "y"))
   expect_equal(sort(names(position_tibble)), true_names)   
   
@@ -37,13 +37,15 @@ test_that("fct_export_network::* works ", {
   expect_true(class(graph) == "igraph")
   
   # node color
-  custom_ids <- c("O-2", "P")
-  focal_ids <- c("Fe", "Fe+2", "Fe+3")
-    
+
   expect_true(all(igraph::V(graph)$color[igraph::V(graph)$group == "element" & 
-                                           !(igraph::V(graph)$name %in% custom_ids) &
-                                           !(igraph::V(graph)$name %in% focal_ids)] == true_element_color))
-  expect_true(all(igraph::V(graph)$color[igraph::V(graph)$name %in% true_custom_selection_element] == true_custom_selection_color))
+                                           !(igraph::V(graph)$name %in% true_special_element_id)] == true_element_color))
+  
+  
+  expect_true(all(igraph::V(graph)$color[igraph::V(graph)$name %in% true_custom_selection_set_1] == true_custom_selection_color_1))
+  expect_true(all(igraph::V(graph)$color[igraph::V(graph)$name %in% true_custom_selection_set_2] == true_custom_selection_color_2))
+  
+  
   expect_true(all(igraph::V(graph)$color[igraph::V(graph)$name == focal] == true_highlight_color))
   expect_true(all(igraph::V(graph)$color[igraph::V(graph)$group =="mineral"] == true_mineral_color))
   

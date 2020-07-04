@@ -7,12 +7,12 @@ testdata_path <- system.file("testdata",package="dragon")
 ## Read in testdata CSV files and graph  --------------------------------
 true_graph <- igraph::read_graph(file.path(testdata_path, "graph_by_redox.igraph"), format = "ncol")
 true_graph_louvain <- igraph::cluster_louvain(true_graph)
-true_nodes <- readr::read_csv(file.path(testdata_path, "nodes_by_redox.csv"), col_types = readr::cols())
-true_edges <- readr::read_csv(file.path(testdata_path, "edges_by_redox.csv"), col_types = readr::cols())
-true_mineral_nodes <- readr::read_csv(file.path(testdata_path, "true_mineral_nodes.csv"), col_types = readr::cols(cluster_ID = readr::col_factor()))
-true_styled_nodes  <- readr::read_csv(file.path(testdata_path, "styled_nodes.csv"), col_types = readr::cols())
-true_styled_edges  <- readr::read_csv(file.path(testdata_path, "styled_edges.csv"), col_types = readr::cols())
-true_locality_info <- readr::read_csv(file.path(testdata_path, "locality_info.csv"), col_types = readr::cols())
+true_nodes <- readr::read_csv(file.path(testdata_path, "nodes_by_redox.csv.zip"), col_types = readr::cols())
+true_edges <- readr::read_csv(file.path(testdata_path, "edges_by_redox.csv.zip"), col_types = readr::cols())
+true_mineral_nodes <- readr::read_csv(file.path(testdata_path, "true_mineral_nodes.csv.zip"), col_types = readr::cols(cluster_ID = readr::col_factor()))
+true_styled_nodes  <- readr::read_csv(file.path(testdata_path, "styled_nodes.csv.zip"), col_types = readr::cols())
+true_styled_edges  <- readr::read_csv(file.path(testdata_path, "styled_edges.csv.zip"), col_types = readr::cols())
+true_locality_info <- readr::read_csv(file.path(testdata_path, "locality_info.csv.zip"), col_types = readr::cols())
 
 true_node_names <- sort(names(true_nodes))
 true_node_names_precluster <- true_node_names[true_node_names != "cluster_ID" & true_node_names != "cluster_algorithm"]
@@ -65,10 +65,19 @@ true_mineral_shape       <- "square"
 true_element_shape       <- "circle"
 true_na_color            <- black
 true_highlight_color     <- yellow
-true_custom_selection_element <- c("P", "O-2")
-true_custom_selection_color   <- orange
 true_focal_element_name <- "Iron"
-true_special_element_id <- c("P", "O-2", "Fe+2", "Fe", "Fe+3") ## the three iron focals and P/O redoxes
+true_special_element_id <- c("P", "O-2", "H+1", "Fe+2", "Fe", "Fe+3") ## the three iron focals and P/O/H redoxes
+
+true_custom_selection_color_1   <- orange
+true_custom_selection_color_2   <- black
+true_custom_selection_set_1 <- c("P", "O-2")
+true_custom_selection_set_2 <- c("H+1")
+
+true_custom_element_colors <- c("P" = true_custom_selection_color_1,
+                                "O-2" = true_custom_selection_color_1,
+                                "H+1" = true_custom_selection_color_2)
+
+
 
 # Baseline list can be updated when testing other conditions. 
 # Baseline conditions are **singlecolor/singlesize** with element highlights and custom selections
@@ -89,8 +98,7 @@ true_style_options <- list("color_by_cluster"  = FALSE,
                            "elements_by_redox"        = TRUE, ## IT'S TRUE
                            "highlight_element"        = TRUE,
                            "highlight_color"          = true_highlight_color,
-                           "custom_selection_element" = true_custom_selection_element,
-                           "custom_selection_color"   = true_custom_selection_color,
+                           "custom_element_colors"    = true_custom_element_colors,
                            "na_color"                 = true_na_color,
                            ## Sizes
                            "element_size_by"  = "singlesize", ## num_localities 
@@ -111,9 +119,6 @@ true_element_color_by_dynamic_vals <- c("#AD0A14", "#CF1D1F", "#F34C35", "#F5533
 true_mineral_color_by_dynamic_type <- "max_age"
 true_mineral_color_by_dynamic_vals <- c("#EFF3FF", "#2775B7", "#2675B7", "#EFF3FF", "#2775B7", "#EFF3FF", "#084594", "#1B63AB", "#1B63AB", "#EFF3FF", "#EFF3FF", "#EFF3FF", "#EFF3FF", "#EFF3FF", "#084594", "#1B63AB", "#2675B7", "#084594", "#EFF3FF", "#1B63AB", "#EFF3FF", "#2775B7", "#EFF3FF", "#EFF3FF", "#1B63AB", "#084594", "#EFF3FF", "#1B63AB", "#2775B7", "#1B63AB", "#2675B7", "#084594", "#2775B7", "#EFF3FF", "#2775B7", "#084594", "#1B63AB", "#EFF3FF", "#2775B7", "#2675B7", "#1B63AB", "#EFF3FF", "#1B63AB", "#1B63AB", "#084594", "#EFF3FF", "#084594", "#2675B7", "#EFF3FF", "#EFF3FF", "#EFF3FF", "#084594", "#1B63AB", "#2675B7", "#1B63AB", "#EFF3FF", "#084594", "#EFF3FF", "#EFF3FF", "#EFF3FF", "#1B63AB", "#EFF3FF", "#1B63AB", "#084594", "#EFF3FF", "#1B63AB", "#084594", "#EFF3FF", "#2675B7", "#1B63AB")
 
-  
-  
-  c("#084594", "#C1D9ED", "#C1D9ED", "#084594", "#C1D9ED", "#084594", "#EFF3FF", "#D3E2F4", "#D3E2F4", "#084594", "#084594", "#084594", "#084594", "#084594", "#EFF3FF", "#D3E2F4", "#C1D9ED", "#EFF3FF", "#084594", "#D3E2F4", "#084594", "#C1D9ED", "#084594", "#084594", "#D3E2F4", "#EFF3FF", "#084594", "#D3E2F4", "#C1D9ED", "#D3E2F4", "#C1D9ED", "#EFF3FF", "#C1D9ED", "#084594", "#C1D9ED", "#EFF3FF", "#D3E2F4", "#084594", "#C1D9ED", "#C1D9ED", "#D3E2F4", "#084594", "#D3E2F4", "#D3E2F4", "#EFF3FF", "#084594", "#EFF3FF", "#C1D9ED", "#084594", "#084594", "#084594", "#EFF3FF", "#D3E2F4", "#C1D9ED", "#D3E2F4", "#084594", "#EFF3FF", "#084594", "#084594", "#084594", "#D3E2F4", "#084594", "#D3E2F4", "#EFF3FF", "#084594", "#D3E2F4", "#EFF3FF", "#084594", "#C1D9ED", "#D3E2F4")
 
 true_element_size_by_dynamic_type <- "pauling"
 true_element_size_by_dynamic_vals <- c(35.72667, 45.94769, 57.25300, 58.52232, 80.00000, 63.54519, 32.29411, 51.45335, 57.25300, 68.75550, 63.22849, 69.17642, 58.70026, 57.25300, 63.38713, 65.55007, 58.52232, 61.11054, 69.17642, 58.52232, 52.94687, 53.97350, 53.36131, 61.93779, 62.90946, 63.54519, 63.54519, 63.54519, 20.00000, 69.17642, 62.90946, 76.70333, 58.70026, 68.75550, 75.23026, 60.94308, 59.57793, 63.22849, 58.70026, 58.16397)
@@ -124,10 +129,6 @@ true_edge_color_by_dynamic <- "max_age"
 true_edge_color_by_vals <- c("#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#278F48", "#278F48", "#278F48", "#278F48", "#278F48", "#278F48", "#278F48", "#278F48", "#278F48", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#278F48", "#278F48", "#278F48", "#278F48", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#197B3F", "#197B3F", "#197B3F", "#197B3F", "#197B3F", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#005A32", "#005A32", "#005A32", "#197B3F", "#197B3F", "#278F48", "#278F48", "#278F48", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#197B3F", "#197B3F", "#197B3F", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#278F48", "#278F48", "#278F48", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#197B3F", "#197B3F", "#197B3F", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#197B3F", "#197B3F", "#197B3F", "#278F48", "#278F48", "#278F48", "#278F48", "#197B3F", "#197B3F", "#278F48", "#278F48", "#278F48", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#278F48", "#278F48", "#278F48", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#278F48", "#278F48", "#278F48", "#005A32", "#197B3F", "#197B3F", "#197B3F", "#197B3F", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#278F48", "#278F48", "#278F48", "#278F48", "#278F48", "#278F48", "#278F48", "#197B3F", "#197B3F", "#EDF8E9", "#EDF8E9", "#197B3F", "#197B3F", "#197B3F", "#197B3F", "#197B3F", "#005A32", "#005A32", "#005A32", "#EDF8E9", "#EDF8E9", "#005A32", "#005A32", "#005A32", "#278F48", "#278F48", "#278F48", "#278F48", "#278F48", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#005A32", "#005A32", "#005A32", "#197B3F", "#197B3F", "#197B3F", "#197B3F", "#197B3F", "#278F48", "#278F48", "#278F48", "#278F48", "#278F48", "#278F48", "#278F48", "#197B3F", "#197B3F", "#197B3F", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#005A32", "#005A32", "#005A32", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#197B3F", "#197B3F", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#197B3F", "#197B3F", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#197B3F", "#197B3F", "#197B3F", "#005A32", "#005A32", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#278F48", "#278F48", "#197B3F", "#197B3F")
   
   
-  
-  
-  c("#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#005A32", "#005A32", "#005A32", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#D3EECD", "#D3EECD", "#D3EECD", "#D3EECD", "#D3EECD", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#D3EECD", "#D3EECD", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#005A32", "#005A32", "#005A32", "#005A32", "#D3EECD", "#D3EECD", "#D3EECD", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#D3EECD", "#D3EECD", "#D3EECD", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#005A32", "#005A32", "#005A32", "#005A32", "#D3EECD", "#D3EECD", "#D3EECD", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#D3EECD", "#D3EECD", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#EDF8E9", "#D3EECD", "#D3EECD", "#D3EECD", "#D3EECD", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#D3EECD", "#D3EECD", "#005A32", "#005A32", "#D3EECD", "#D3EECD", "#D3EECD", "#D3EECD", "#D3EECD", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#005A32", "#005A32", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#D3EECD", "#D3EECD", "#D3EECD", "#D3EECD", "#D3EECD", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#C2E7BB", "#D3EECD", "#D3EECD", "#D3EECD", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#D3EECD", "#D3EECD", "#005A32", "#005A32", "#005A32", "#005A32", "#D3EECD", "#D3EECD", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#005A32", "#D3EECD", "#D3EECD", "#D3EECD", "#EDF8E9", "#EDF8E9", "#005A32", "#005A32", "#005A32", "#C2E7BB", "#C2E7BB", "#D3EECD", "#D3EECD")
-
 ## Variables for linear model testing --------------------------------
 true_point_color   <- red
 true_point_size    <- 2.33 

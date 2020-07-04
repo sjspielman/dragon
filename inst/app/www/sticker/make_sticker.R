@@ -6,4 +6,4 @@ sticker("download.png", #"FeO-4.6-force_for_sticker.png", #"dragon_for_sticker.p
         filename = "favicon.png", 
         h_fill = "#DE4C39", h_color = "grey20",
         #h_fill = "grey70", h_color = "firebrick", 
-        dpi=2000)
+        dpi=600)

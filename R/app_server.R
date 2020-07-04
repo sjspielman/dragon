@@ -201,6 +201,13 @@ app_server <- function( input, output, session ) {
     ## Subset mineral nodes, used in modeling --------------------------------------------
     mineral_nodes <- subset_mineral_nodes(clustered$nodes)
 
+    ## Find element ids for custom highlighting -----------------------------------
+    clustered$nodes %>%
+        dplyr::filter(group == "element") %>%
+        dplyr::select(id) %>%
+        dplyr::arrange(id) %>%
+        dplyr::pull(id) -> network_element_ids
+        
     return (list("nodes" = clustered$nodes, 
                  "edges" = network$edges, 
                  "graph" = graph, 
@@ -210,32 +217,49 @@ app_server <- function( input, output, session ) {
                  "timeline_data" = prepare_timeline_data(elements_only, age_range, max_age_type),
                  "raw_node_table" = prepare_raw_node_table(network$edges, clustered$nodes),
                  "clustering"     = clustered$clustered_net, 
-                 "cluster_colors" = cluster_colors))
+                 "cluster_colors" = cluster_colors, 
+                 "network_element_ids" = network_element_ids))
   
   })
   
+  ## UI components for highlighting a specified set of elements------------------------------------------
+  custom_element_modules <- reactiveValues()
 
-  
-  ## UI component for highlighting a specified set of elements------------------------------------------
-  # NOTE: In server since this relies on knowing which elements are actually present in the network
-  output$choose_custom_elements_color <- renderUI({
-    chemistry_network()$nodes %>%
-      dplyr::filter(group == "element") %>%
-      dplyr::select(id) %>%
-      dplyr::arrange(id) %>%
-      dplyr::pull(id) -> available
-    
-    shinyWidgets::pickerInput("custom_selection_element", 
-                              "Highlight a set of elements",             
-                              choices = unique(available),
-                              options = list(`actions-box` = TRUE, size = 6), 
-                              multiple = TRUE
+  ## Add button for more colors
+  observeEvent(input$insert_custom, {
+    this_id <- paste0('customcolor_', input$insert_custom)
+    insertUI(
+      selector = '#custom_color_chooser', # label in UI
+      ## wrap element in a div with id for ease of removal
+      ui = tags$div(
+        id = this_id,
+        mod_ui_choose_custom_element_colors(this_id, chemistry_network()$network_element_ids) 
+      )
     )
+    ## save module output
+    custom_element_modules[[ as.character(input$insert_custom) ]] <- callModule(mod_server_choose_custom_element_colors, id = this_id)
+  })
+
+  custom_element_colors <- reactive({
+    alll <- c()
+    if (input$insert_custom > 0) {
+      for (i in 1:input$insert_custom) {
+        this_one <- custom_element_modules[[as.character(i)]]()
+        if ( !(is.null( names(this_one)))) {
+          for (nodename in names(this_one) ) {
+            alll[nodename] <-unname( this_one[nodename] )
+          }
+        }
+      }
+    }
+    alll
   })
   
+  ### WE DO NOT HAVE A REMOVE BUTTON AT THIS TIME.
+
  
 
-  ## Calculate network quantities reactively
+  ## Calculate network quantities reactively --------------------------------------------
   network_quantities <- reactive({
     
     num_nodes_edges <- calculate_number_nodes_edges(chemistry_network()$nodes, 
@@ -842,9 +866,6 @@ app_server <- function( input, output, session ) {
       mineral_color_palette <- input$timeline_palette
     }
 
-    print(input$color_timeline_by)
-    print(mineral_color_palette)
-    print(input$outside_range_color)
     build_current_timeline(data, 
                            chemistry_network()$nodes,
                            input$color_timeline_by, # "singlecolor" or a variable 
@@ -949,6 +970,7 @@ app_server <- function( input, output, session ) {
          "elements_by_redox"        = input$elements_by_redox,
          "highlight_element"        = input$highlight_element,
          "highlight_color"          = input$highlight_color,
+         "custom_element_colors"    = custom_element_colors(), ## NAMED LIST
          "custom_selection_element" = input$custom_selection_element, 
          "custom_selection_color"   = input$custom_selection_color,
          ## Edges
@@ -966,7 +988,6 @@ app_server <- function( input, output, session ) {
   
   ## Reactive to style nodes by user input ---------------------------------------------------------------------------
   node_styler <- reactive({
-    print(network_style_options()$custom_selection_element)
     
     style_nodes(chemistry_network()$nodes, network_style_options())
   })   
