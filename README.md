@@ -5,7 +5,7 @@
 experimental](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable) [![Build Status](https://travis-ci.org/sjspielman/dragon.svg?branch=dev)](https://travis-ci.org/sjspielman/dragon) 
 
 
-<img src="inst/app/www/favicon.png" height="250"/>
+<img src="inst/app/www/sticker/favicon.png" height="250"/>
 
 
 **The current version of dragon is `1.0.0`.**
