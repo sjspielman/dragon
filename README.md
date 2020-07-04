@@ -1,6 +1,7 @@
 
 # dragon
 
+<img src="inst/app/www/favicon.png" height="100"/>
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable) [![Build Status](https://travis-ci.org/sjspielman/dragon.svg?branch=dev)](https://travis-ci.org/sjspielman/dragon) 
