@@ -104,13 +104,11 @@ app_ui <- function(request) {
             
             menuItem(text = "Color individual elements",
               fluidRow(
-                column(7, shinyWidgets::prettySwitch("highlight_element","Highlight focal element(s)", value = FALSE,  status = "danger")),
-                column(5, colourpicker::colourInput("highlight_color", "Color:", value = default_highlight_color))
-              ), ## END fluidRow
-              fluidRow(
-                column(7, shiny::uiOutput("choose_custom_elements_color")),
-                column(5, colourpicker::colourInput("custom_selection_color", "Color:", value = default_selection_color))
-              ) ## END fluidRow
+                column(6, shinyWidgets::prettySwitch("highlight_element","Color focal element(s)", value = FALSE,  status = "danger")),
+                column(6, colourpicker::colourInput("highlight_color", "Color:", value = default_highlight_color))
+              ),
+              actionButton('insert_custom', 'Add new custom color group.'),
+              tags$div(id = 'custom_color_chooser')                
             ), ## END "Color individual elements" menuItem
             
             menuItem(text = "Node Sizes",

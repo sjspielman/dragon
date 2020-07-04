@@ -239,15 +239,18 @@ style_nodes_shape_highlight_label <- function(node_attr_styled_nodes, style_opti
 {
   focal_element_names       <- element_info$element_name[element_info$element %in% style_options$elements_of_interest]
 
+  #print(names(names(style_options$custom_element_colors)))
+  #print(names(style_options$custom_element_colors))
+
   node_attr_styled_nodes %>%
     dplyr::mutate(shape = ifelse(group == "element", style_options$element_shape, style_options$mineral_shape),
                   ## Node color for focal elements if highlight is T
                   color.background = ifelse(element_name %in% focal_element_names & style_options$highlight_element,
                                             style_options$highlight_color, 
                                             color.background),
-                  ## Node color for custom selection if specified  
-                  color.background = ifelse(id %in% style_options$custom_selection_element, 
-                                            style_options$custom_selection_color, 
+                  ## Node color for custom selections if specified  
+                  color.background = ifelse(id %in% names(style_options$custom_element_colors), 
+                                            style_options$custom_element_colors[id], 
                                             color.background), 
                   ## Element font color                                                                                       
                   font.color = ifelse(group == "element", style_options$element_label_color, style_options$mineral_label_color),
