@@ -50,28 +50,28 @@ app_ui <- function(request) {
             menuItem("Network layout and clustering options",
               fluidRow(
                 column(8,
-                  #shinyBS::tipify(
-                    shinyWidgets::pickerInput("network_layout", tags$span(style="font-weight:400", "Network layout:"),
-                      choices = network_layout_choices, selected = "layout_with_fr"
-                    ) #, # RESTORE COMMA IF RESTORING TIPIFY
-                  #  title = "Algorithm for rendering the initial state of the interactive network"
-                 # ) ## END tipify
-                ), ## END column
+                  shinyWidgets::pickerInput("network_layout", tags$span(style="font-weight:400", "Network layout:"),
+                    choices = network_layout_choices, selected = "layout_with_fr"
+                  ), style='padding:0px;' 
+                ),
                 column(4,
-                  #shinyBS::tipify(
-                    numericInput("network_layout_seed", tags$span(style="font-weight:400", "Seed:"), min = 0, max = Inf, value = 1) #,# RESTORE COMMA IF RESTORING TIPIFY
-                  #  title = "Set the random seed for stochastic (force-directed and dynamic) network layouts here."
-                 # ) ## END tipify            
-                )  ## END column
-              ), ## END fluidRow
-              conditionalPanel('input.network_layout == "physics"', {
-                shinyWidgets::pickerInput("physics_solver", tags$span(style="font-weight:400", "Solver for physics layout:"),
-                                            choices = physics_choices, selected = "forceAtlas2Based"
+                  numericInput("network_layout_seed", tags$span(style="font-weight:400", "Seed:"), min = 0, max = Inf, value = 1),
+                  style='padding-left:0px'
                 )
-              }), ## END conditionalPanel           
-              shinyWidgets::pickerInput("cluster_algorithm", tags$span(style="font-weight:400", "Network community detection (clustering) algorithm:"),
-                          choices = cluster_algorithm_choices, selected = "Louvain"
-                         ) ## END pickerInput
+              ), # fluidRow
+              fluidRow( 
+                column(12,
+                    conditionalPanel('input.network_layout == "physics"', {
+                        shinyWidgets::pickerInput("physics_solver", tags$span(style="font-weight:400", "Solver for physics layout:"),
+                                                  choices = physics_choices, selected = "forceAtlas2Based") 
+                    }), style='padding:0px'
+                ) # column 12
+              ), # fluidrow        
+              fluidRow(
+                column(12, shinyWidgets::pickerInput("cluster_algorithm", tags$span(style="font-weight:400", "Network community detection (clustering) algorithm:"),
+                                                      choices = cluster_algorithm_choices, selected = "Louvain"),
+                  style='padding:0px')
+              ) ## fluidRow  
             ), ## END menuitem
             
             
@@ -89,35 +89,46 @@ app_ui <- function(request) {
                                               mineral_color_by_choices,
                                               "singlecolor",
                                               default_mineral_color,
-                                              default_mineral_palette),       
-              colourpicker::colourInput("na_color", "Color to use for missing or unknown values:", value = default_na_color),
-              shinyWidgets::prettySwitch("color_by_cluster", "Color all nodes by community cluster", value = FALSE, status = "danger"), 
-              conditionalPanel(condition = "input.color_by_cluster == true",{
-                pickerInput("cluster_palette", 
-                            label = "Palette:",
-                            choices = qual_palettes_ui$name,
-                            choicesOpt = list(content = qual_palettes_ui$img)
+                                              default_mineral_palette),     
+                                              
+              fluidRow(
+                column(12,
+                  colourpicker::colourInput("na_color", "Color to use for missing or unknown values:", value = default_na_color),
+                  style = "padding:0px;"            
                 )
-              }) ## END conditionalPanel 
+              ),  
+              fluidRow(
+                column(12,
+                  shinyWidgets::prettySwitch("color_by_cluster", "Color all nodes by community cluster", value = FALSE, status = "danger"), 
+                  style = "padding:0px;"            
+                )
+              ),  
+              fluidRow(
+                column(12,
+                  conditionalPanel(condition = "input.color_by_cluster == true",{
+                    pickerInput("cluster_palette", 
+                                label = "Palette:",
+                                choices = qual_palettes_ui$name,
+                                choicesOpt = list(content = qual_palettes_ui$img)
+                    )
+                  }), ## END conditionalPanel 
+                  style = "padding:0px;"            
+                ) ## end column
+              )  ## end fluidRow
             ), ## END "Node Colors" menuItem
             
             
             menuItem(text = "Color individual elements",
               fluidRow(
-                column(6, shinyWidgets::prettySwitch("highlight_element","Color focal element(s)", value = FALSE,  status = "danger")),
-                column(6, colourpicker::colourInput("highlight_color", "Color:", value = default_highlight_color))
+                column(6, shinyWidgets::prettySwitch("highlight_element","Color focal element(s)", value = FALSE,  status = "danger"), style='padding:0px;'),
+                column(6, colourpicker::colourInput("highlight_color", "Color:", value = default_highlight_color), style='padding-left:0px;')
               ),
-              div(style = "margin-left:15px;margin-right:15px;",
-                tags$span("Use the buttons below to add or remove",
-                          br(),
-                          "custom sets of elements to color.")
-              ),
-              
+              tags$span("Use the buttons below to add or remove custom groups",
+                        br(),
+                        "of elements to color."),
               fluidRow(
-                div(style = "font-size:90%",
-                  column(6, actionButton('insert_custom', 'Add new color set.')),
-                  column(6, actionButton('remove_custom', 'Remove color set.'))
-                )
+                column(6, actionButton('insert_custom', 'Add new color group.'), style = "padding:0px;"),
+                column(6, actionButton('remove_custom', 'Remove color group.'),  style = "padding-left:0px;")
               ),
               tags$div(id = 'custom_color_chooser')              
             ), ## END "Color individual elements" menuItem
@@ -128,17 +139,18 @@ app_ui <- function(request) {
                   shinyWidgets::pickerInput("element_size_by", 
                                             "Size elements based on:", 
                                             element_size_by_choices, 
-                                            selected = "singlesize")
+                                            selected = "singlesize"),
+                  style='padding:0px;'
                 ), ## END column                
                 column(6, 
                   conditionalPanel(condition = "input.element_size_by == 'singlesize'", {
                     shiny::sliderInput("element_label_size","Element size",value=50,min=10,max=100, step=5) #### !!!!!!! label size - this is how visnetwork does <shrug>!!!!!!!
-                  })
+                  }), style='padding-left:0px;'
                 ), ## END column   
                 column(6, 
                   conditionalPanel(condition = "input.element_size_by != 'singlesize'", {
                     shiny::sliderInput("element_size_scale","Scale element size",value=20,min=10,max=100,step=5)
-                  }) 
+                  }), style='padding-left:0px;' 
                 ) ## END column   
               ), ## END fluidRow                    
                      
@@ -147,35 +159,38 @@ app_ui <- function(request) {
                   shinyWidgets::pickerInput("mineral_size_by", 
                                             "Size minerals based on:", 
                                             mineral_size_by_choices, 
-                                            selected = "singlesize")
+                                            selected = "singlesize"), style='padding:0px;'
                 ), ## END column
                 column(6,       
                   conditionalPanel(condition = "input.mineral_size_by == 'singlesize'",{ 
                     shiny::sliderInput("mineral_size","Mineral size",value=10,min=0,max=50, step = 5)
-                  })
+                  }), style='padding-left:0px;'
                 ), ## END column   
                 column(6, 
                   conditionalPanel(condition = "input.mineral_size_by != 'singlesize'", {
                     shiny::sliderInput("mineral_size_scale","Scale mineral size",value=10,min=1,max=25,step=1)
-                  }) 
+                  }), style='padding-left:0px;'
                 ) ## END column   
               ) ## END fluidRow
             ), ## END "Node Sizes" menuItem
 
             menuItem(text = "Node Shapes", 
               fluidRow(
-                column(6, shinyWidgets::pickerInput("element_shape", "Element node shape:", element_shape_choices, selected = default_element_shape)),
-                column(6, shinyWidgets::pickerInput("mineral_shape", "Mineral node shape:", mineral_shape_choices, selected = default_mineral_shape))
+                column(6, shinyWidgets::pickerInput("element_shape", "Element node shape:", element_shape_choices, selected = default_element_shape), style='padding:0px;'),
+                column(6, shinyWidgets::pickerInput("mineral_shape", "Mineral node shape:", mineral_shape_choices, selected = default_mineral_shape), style='padding-left:0px;')
               ) ## END fluidRow
             ), ## END "Node Shapes" menuItem
                         
             menuItem(text = "Node Labels and Font", 
               fluidRow(
-                column(12, colourpicker::colourInput("element_label_color", "Element font color (applies only when element shape is not 'text'):", value = default_element_label_color)),
+                column(12, colourpicker::colourInput("element_label_color", "Element font color (applies only when element shape is not 'text'):", value = default_element_label_color),
+                      style='padding:0px;'),
               ),  ## END fluidRow
               fluidRow( 
-                column(6, colourpicker::colourInput("mineral_label_color", "Mineral font color:", value = default_mineral_label_color)),
-                column(6, shiny::sliderInput("mineral_label_size","Mineral font size",value=0,min=0,max=50, step = 5))
+                column(6, colourpicker::colourInput("mineral_label_color", "Mineral font color:", value = default_mineral_label_color),
+                       style='padding:0px;'),
+                column(6, shiny::sliderInput("mineral_label_size","Mineral font size",value=0,min=0,max=50, step = 5),
+                       style='padding-left:0px;')
               ) ## END fluidRow
             ), ## END "Node Labels and Font" menuItem
                        
@@ -187,12 +202,11 @@ app_ui <- function(request) {
                                               "singlecolor",
                                               default_edge_color,
                                               default_edge_palette),
-              tags$div(style = "margin-left:5%",
-                       tags$p("Visit the 'Node Colors' menu tab to select the color", tags$br(), "used for missing or unknown values.")
-              ),
-              
-              #shiny::helpText("Visit the 'Node Colors' menu tab",
-              #                "to select the color used for missing values."),
+                #div(style = "margin-left:15px;margin-right:15px;",
+                  tags$span("Visit the 'Node Colors' menu tab to select the color used",
+                          br(),
+                          "for missing or unknown edge attribute values."),
+                #),
               sliderInput("edge_weight","Edge weight:",value=3,min=1,max=10)
             ),  ## END "Edge Attributes" menuItem
             

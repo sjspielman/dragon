@@ -13,7 +13,8 @@ mod_ui_choose_color_sd_palette <- function(id, by_label, by_choices, by_default_
   tagList(
     fluidRow(
       column(7,
-        shinyWidgets::pickerInput(ns("color_by"), by_label, by_choices, selected = by_default_selection)
+        shinyWidgets::pickerInput(ns("color_by"), by_label, by_choices, selected = by_default_selection),
+        style='padding:0px;'
       ),
       column(5,
         conditionalPanel(condition = "input.color_by == 'singlecolor'", ns = ns, 
@@ -28,7 +29,7 @@ mod_ui_choose_color_sd_palette <- function(id, by_label, by_choices, by_default_
                       options = list( size = 6 ),
                       choicesOpt = list(content = sd_palettes_ui$img),
                       selected = palette_default)
-        }) 
+        }), style='padding-left:0px;' 
       ) ## END column 5
     ) ## END fluidRow
   ) ## END tagList

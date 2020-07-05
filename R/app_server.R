@@ -265,13 +265,9 @@ app_server <- function( input, output, session ) {
   ## Reactive that stores custom element colors as named list, by marching over custom_element_modules -------
   custom_element_colors <- reactive({
     alll <- c()
-    print("updating custom reactive")   
     if (most_recent_button_index() > 0) {
-      print(custom_element_modules_indices())
-      print(names(custom_element_modules))
       for (i in custom_element_modules_indices()) {
         this_one <- custom_element_modules[[ as.character(i) ]]()
-        print(this_one)
         if ( !(is.null( names(this_one)))) {
           for (nodename in names(this_one) ) {
             alll[nodename] <-unname( this_one[nodename] )
@@ -509,8 +505,9 @@ app_server <- function( input, output, session ) {
                      width = 10, ## ??
                      height = 8) ## ??
       igraph::plot.igraph(network_as_igraph()$igraph_network, 
-                          layout = network_as_igraph()$coords, 
-                          asp    = network_as_igraph()$vis_aspect_ratio)
+                          layout     = network_as_igraph()$coords, 
+                          asp        = network_as_igraph()$vis_aspect_ratio, 
+                          edge.width = input$edge_weight/3) # a single weight provided to E() ends up being same size, since weight is handled RELATIVLELY by igraph. for scaling diffs, make my 3 --> 1. 
       grDevices::dev.off()
     }
   )
