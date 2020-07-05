@@ -224,27 +224,54 @@ app_server <- function( input, output, session ) {
   
   ## UI components for highlighting a specified set of elements------------------------------------------
   custom_element_modules <- reactiveValues()
+  most_recent_button_index <- reactiveVal(0)
+  custom_element_modules_indices <- reactiveVal(c())  
+  this_id <- reactive({ paste0('customcolor_', most_recent_button_index()) })
 
-  ## Add button for more colors
+  ## Add button for more custom element colors -------------------------------------------
   observeEvent(input$insert_custom, {
-    this_id <- paste0('customcolor_', input$insert_custom)
+    last_most_recent <- most_recent_button_index()
+    if (last_most_recent < 0) last_most_recent <- 0
+    most_recent_button_index(last_most_recent + 1)
     insertUI(
       selector = '#custom_color_chooser', # label in UI
       ## wrap element in a div with id for ease of removal
       ui = tags$div(
-        id = this_id,
-        mod_ui_choose_custom_element_colors(this_id, chemistry_network()$network_element_ids) 
+        id = this_id(),
+        mod_ui_choose_custom_element_colors(this_id(), chemistry_network()$network_element_ids, most_recent_button_index()) 
       )
     )
-    ## save module output
-    custom_element_modules[[ as.character(input$insert_custom) ]] <- callModule(mod_server_choose_custom_element_colors, id = this_id)
+    ## save module output. only add in the index AFTER it's in the module list
+    custom_element_modules[[ as.character(most_recent_button_index()) ]] <- callModule(mod_server_choose_custom_element_colors, id = this_id())
+    previous_indices <- custom_element_modules_indices()
+    custom_element_modules_indices( c(previous_indices, most_recent_button_index()) )
+  })
+  
+  observeEvent(input$remove_custom, {
+    ## Remove most recent UI 
+    removeUI(selector = paste0("#customcolor_", most_recent_button_index()))
+    
+    ## remove the selection from module list and then update the most recent
+    previous_indices <- custom_element_modules_indices()
+    custom_element_modules_indices( previous_indices[-most_recent_button_index()]) 
+    new_most_recent <- most_recent_button_index() - 1
+    most_recent_button_index(new_most_recent)
+
+    ## Clean the modules list, +1 since already -1 above
+    custom_element_modules[[ as.character(most_recent_button_index() + 1) ]] <- NULL
   })
 
+
+  ## Reactive that stores custom element colors as named list, by marching over custom_element_modules -------
   custom_element_colors <- reactive({
     alll <- c()
-    if (input$insert_custom > 0) {
-      for (i in 1:input$insert_custom) {
-        this_one <- custom_element_modules[[as.character(i)]]()
+    print("updating custom reactive")   
+    if (most_recent_button_index() > 0) {
+      print(custom_element_modules_indices())
+      print(names(custom_element_modules))
+      for (i in custom_element_modules_indices()) {
+        this_one <- custom_element_modules[[ as.character(i) ]]()
+        print(this_one)
         if ( !(is.null( names(this_one)))) {
           for (nodename in names(this_one) ) {
             alll[nodename] <-unname( this_one[nodename] )
@@ -254,6 +281,8 @@ app_server <- function( input, output, session ) {
     }
     alll
   })
+
+  
   
   ### WE DO NOT HAVE A REMOVE BUTTON AT THIS TIME.
 

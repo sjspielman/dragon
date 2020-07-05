@@ -107,8 +107,19 @@ app_ui <- function(request) {
                 column(6, shinyWidgets::prettySwitch("highlight_element","Color focal element(s)", value = FALSE,  status = "danger")),
                 column(6, colourpicker::colourInput("highlight_color", "Color:", value = default_highlight_color))
               ),
-              actionButton('insert_custom', 'Add new custom color group.'),
-              tags$div(id = 'custom_color_chooser')                
+              div(style = "margin-left:15px;margin-right:15px;",
+                tags$span("Use the buttons below to add or remove",
+                          br(),
+                          "custom sets of elements to color.")
+              ),
+              
+              fluidRow(
+                div(style = "font-size:90%",
+                  column(6, actionButton('insert_custom', 'Add new color set.')),
+                  column(6, actionButton('remove_custom', 'Remove color set.'))
+                )
+              ),
+              tags$div(id = 'custom_color_chooser')              
             ), ## END "Color individual elements" menuItem
             
             menuItem(text = "Node Sizes",
