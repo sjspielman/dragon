@@ -129,7 +129,7 @@ Alternatively, you can choose to turn on the option **Color all nodes by communi
 
 ### Color individual elements
 
-`dragon` can also apply specific colors to a set of element nodes of interest, on top of any color scheme specified under "Node Colors." First, you can turn on the option **Highlight focal element(s)** to specifically color your network's focal element(s) by a chosen color. Second, you can highlight any set of elements you would like to emphasize using the dropdown menu **Highlight a set of elements** and choosing an associated color. 
+`dragon` can also apply specific colors to a set of element nodes of interest, on top of any color scheme specified under "Node Colors." First, you can turn on the option **Highlight focal element(s)** to specifically color your network's focal element(s) by a chosen color. Second, you create any number of specific groups of element(s) to color, using associated buttons to add or remove groups. Note, if/when you change the contents of the network itself, you should remove all groups and re-make groups according to the new element nodes in the network.
 
 ### Node Sizes
 
