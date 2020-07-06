@@ -2,7 +2,7 @@
 # dragon
 
 [![Lifecycle:
-experimental](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable) [![Build Status](https://travis-ci.org/sjspielman/dragon.svg?branch=dev)](https://travis-ci.org/sjspielman/dragon) 
+experimental](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable) [![Build Status](https://travis-ci.org/sjspielman/dragon.svg?branch=master)](https://travis-ci.org/sjspielman/dragon) 
 
 
 <img src="inst/app/www/sticker/favicon.png" height="250"/>
@@ -16,7 +16,7 @@ The `dragon` (**D**eep time **R**edox **A**nalysis of the **G**eobiology **O**nt
 **Citation forthcoming.**
 
 
-**For instructions on obtaining and using dragon**, please see the [vignette](http://htmlpreview.github.io/?https://github.com/sjspielman/dragon/blob/dev/doc/dragon.html).
+**For instructions on obtaining and using dragon**, please see the [vignette](http://htmlpreview.github.io/?https://github.com/sjspielman/dragon/blob/master/doc/dragon.html).
 
-**Current link to server:** [sjspielman.shinyapps.io/dragon-dev](sjspielman.shinyapps.io/dragon-dev)
+**Current link to server:** [sjspielman.shinyapps.io/dragon](sjspielman.shinyapps.io/dragon)
 
