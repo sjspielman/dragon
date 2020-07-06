@@ -34,7 +34,8 @@ test_that("fct_run_linear_models::fit_linear_model() with cluster predictor", {
     dplyr::filter(n>=3) %>% 
     nrow() -> n_clusters_compared
   expect_true(n_clusters_compared == length(test_fitted$keep_clusters))
-
+  expect_equal( sort(test_fitted$keep_clusters), test_fitted$keep_clusters )
+  
   model_fit_table <- test_fitted$model_fit
   expect_equal(sort(names(model_fit_table)), sort(c("Coefficient", "Coefficient estimate", "Standard error", "t-statistic", "P-value")))
   expect_true(nrow(model_fit_table) == n_clusters_compared)
@@ -44,6 +45,7 @@ test_that("fct_run_linear_models::fit_linear_model() with cluster predictor", {
   true_mineral_nodes %>% dplyr::count(cluster_ID) %>% nrow() -> true_n_clusters
   expected_tukey_rows <- (n_clusters_compared * (n_clusters_compared - 1)) / 2
   expect_true(nrow(tukey_table) == expected_tukey_rows)
+  
 
 })
 

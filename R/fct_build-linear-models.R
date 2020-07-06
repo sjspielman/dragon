@@ -30,7 +30,7 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
       dplyr::ungroup() %>%
       dplyr::filter(num>=3) %>%
       dplyr::select(-num) -> mineral_nodes
-    keep_clusters <- unique(mineral_nodes$cluster_ID)
+    keep_clusters <- sort( unique(mineral_nodes$cluster_ID) ) ## SORT
     
     # Ensure factor
     predictor_string <- paste0("factor(`", predictor, "`)")
@@ -87,7 +87,7 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
                   "t-statistic"          = statistic,
                   "P-value"              = p.value) -> model_fit_table
 
-  return(list("keep_clusters" = keep_clusters, 
+  return(list("keep_clusters" = keep_clusters,  
               "model_fit" = model_fit_table,  ## tibble
               "rsquared" = c(rsquared, rsquared.pvalue), # array
               "tukey_fit" = tukey_fit_table,  ## tibble
@@ -116,11 +116,13 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
 plot_linear_model_cluster <- function(response, keep_clusters, mineral_nodes, cluster_colors, plot_type, flip_coord, show_mean_se, show_legend, point_size, show_grid)
 {
 
+  stopifnot(all( keep_clusters == sort(keep_clusters) ))
   use_cluster_colors <- cluster_colors[keep_clusters]
   resp <- as.symbol(response)
   ## Build the baseline plot output for models with cluster as predictor ------------------------------------
   mineral_nodes %>%
     dplyr::filter(cluster_ID %in% keep_clusters) %>%
+    dplyr::mutate(cluster_ID = factor(cluster_ID)) %>%
     ggplot2::ggplot() + 
       ggplot2::aes(x = cluster_ID, y = {{resp}}) +
       ggplot2::xlab(cluster_ID_str) + 
