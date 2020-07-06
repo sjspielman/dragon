@@ -1,0 +1,229 @@
+---
+title: "Mineral-chemistry network analysis in `dragon`"
+author: "Stephanie J. Spielman"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    theme: united
+    toc: true
+bibliography: dragon.bib
+vignette: >
+  %\VignetteIndexEntry{Mineral-chemistry network analysis in `dragon`}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+<!-- https://bookdown.org/yihui/rmarkdown/r-package-vignette.html -->
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE
+)
+```
+
+The `dragon` (**D**eep-time **R**edox **A**nalysis of the **G**eobiology **O**ntology **N**etwork) library provides a Shiny Application [@shiny] for examining mineral-chemistry networks over deep time on Earth, with a specific application of investigating biologically-relevant evolution of element redox states as recorded in the mineral record. These networks are built using open-source data from the [Mineral Evolution Database](https://rruff.info/ima/) [@med]. `dragon` uses the `igraph` [@igraph] and `visNetwork` [@visnetwork] libraries to construct user-friendly interactive networks that can be manipulated and explored in the browser and exported as publication-ready figures. 
+
+# Citing `dragon` 
+
+If you use dragon, please cite the following publications:
+
++ The `dragon` library
+  + Forthcoming
++ The MED database
+  + Golden, Joshua J., Downs, Robert T., Hazen, Robert M., Pires, Alexander J., Ralph, Jolyon. 2019. Mineral Evolution Database: Data-Driven Age Assignment, How Does a Mineral Get an Age?” In GSA Annual Meeting. Phoenix, Arizona. https://doi.org/10.1130/abs/2019AM-334056.
+
+
+Or, in LaTeX:
+```
+# dragon preprint forthcoming
+
+# MED 
+@inproceedings{med,
+	location = {Phoenix, Arizona},
+	title = {Mineral Evolution Database: Data-Driven Age Assignment, How Does a Mineral Get an Age?},
+	doi = {10.1130/abs/2019AM-334056},
+	booktitle = {{GSA} Annual Meeting},
+	year = 2019,
+	author = {Golden, Joshua J. and Downs, Robert T. and Hazen, Robert M. and Pires, Alexander J. and Ralph, Jolyon}
+}
+```
+
+# Obtaining `dragon` 
+
+`dragon` can be used freely online. Please visit the `dragon` github page at [https://github.com/sjspielman/dragon](https://github.com/sjspielman/dragon), which will contain the current link to the free online `dragon` server without any download. <!-- sjspielman.github.io/dragon -->
+
+Alternatively, the current release of `dragon` can be installed from CRAN, or the bleeding edge version can be installed using the `remotes` library:
+```{r}
+## Install from CRAN:
+install.packages("dragon")
+
+## Install from github:
+library(remotes)
+remotes::install_github("sjspielman/dragon")
+```
+
+To run `dragon` locally on your computer after installing the package, simply load the library and issue either command, `run_dragon()` or `run_app()`:
+```{r}
+## Launch application
+library(dragon)
+run_dragon() ## run_app() also works!
+```
+
+
+## Getting help
+
+Please refer to the [Issues](https://github.com/sjspielman/dragon/issues) page on `dragon`'s github to file any bug reports or get help beyond that provided in this vignette.
+
+# Building your network
+
+By default `dragon` will used a cached and pre-processed version of the MED data. Upon launch, if `dragon`'s MED cache is not up-to-date with MED releases, you will be greeted with a prompt that gives the option to update to the most recent MED data. *If you elect to update the data, please be patient!! The download will take several minutes or more depending on your internet connection.* In addition, note that if you are running `dragon` locally from RStudio, this may result in a error that is *specific to RStudio*. In this case, you may wish to launch `dragon` using another approach.
+
+Once you acknowledge the prompt, you can proceed to build your network using the sidebar panel. Options and specifications for network construction are described below: 
+
+## Network construction specifications
+
+These input options are used to specify which elements and minerals will be included in the constructed network. **Once you have set these options, click the "Initialize Network" button.** When clicked, `dragon` will build and display your network (unless you turned the display off per settings below). You can change your network settings at any time, including changing the focal elements, without having to click this button again during a given `dragon` session.
+
++ **Select focal element(s).** 
+  + Use this dropdown menu to select one or more focal elements for your network. `dragon` will construct its network from all minerals that contain your selected elements. To build the full mineral network, simply click the "Select All" button in the dropdown.
+
++ **Age (Ga) range of minerals.** 
+  + `dragon` will include only those minerals whose oldest-known-age is within the specified range, in billion years. For example. The range selection is *inclusive*. For example, if you select a range of 3-5 Ga, all minerals observed to have first formed 3 billion years ago or more will be included. By contrast, if you select a range of 2-3 Ga, all minerals whose *oldest recorded* formation is within the 2-3 Ga range will be included. The dates used in these calculations are based on mineral discovery dates as recorded in MED.
+
++ **Use maximum or minimum age of minerals**
+  + The MED reports, for each mineral, a maximum and a minimum bound for its estimated age. When determining the oldest-known-age of minerals from MED, `dragon` will by default use the maximum recorded age bounds. This option can be used to instead specify that `dragon` uses the minimum age bounds. Changing this option will change your network, so we recommend using the maximum age bound unless you have a specific reason not to. 
+
++ **Use separate nodes for each element redox**
+  + When this option is turned on, `dragon` will divide element nodes in the network by redox state, rather than considering a single node for each element. For example, consider the element Fe (Iron), which can take on several redox states (2+ or 3+) depending on the mineral. When this option is turned *off*, there will be a single node "Fe."  When this option is turned *on*, there will be a separate node for each redox state present in the network, e.g. Fe2+ and Fe3+ will be separate nodes. Note that for many minerals, the precise redox states of its constituent elements cannot be determined with confidence. For these circumstances, there will be a separate element node for unknown redox states. 
+
++ **Force element intersection in minerals**
+  + When more than one element is selected as focal, `dragon` will by default include all minerals (at the selected age range) which contain *any of* ("unity") the focal elements. When turning this option *on*, `dragon` will instead include only those minerals which contain *all of* ("intersection") the focal elements. 
+
+
++ **Build network without display**
+  + For extremely large networks (such as the full mineral network), the interactive rendering performed by `visNetwork` can take a very long time and exhibit overall slower behavior. By turning this option on, `dragon` will build the network but will _not_ display an interactive network. This option should be used when you wish to explore information about a network, but do not specifically need to visualize it. 
+
+
+
+## Network styling specifications
+
+`dragon` contains extremely flexibility functionality for styling your network to your liking, as follows. You can change these settings at any time while using `dragon`, and the updated settings will be automatically applied to your network.
+
+### Network layout and clustering options
+
+This menu item allows you to specifiy network layout and clustering algorithms, as follows:
+
++ **Network layout**: Use this menu to select an initial layout for the network. The "Force-directed" layout algorithms are stochastic, so you can also specify a **Seed** for reproducibility purposes. 
+  + **CAUTION!** The "Dynamic physics layout" option can, for larger networks, produce substantial amounts of visual noise which may trigger photosensitive users.
++ **Network community detection (clustering) algorithm:** You can select one of the two approaches "Louvain" [@louvain] or "Leading eigenvector" [@eigen] to perform community clustering on your network.
+
+### Node colors
+
+Here you can select color schemes for element and mineral nodes (**Color elements/minerals based on:**). Most simply, you can choose a single color for all nodes of a given group, or you can choose a data attribute according to which nodes of a given group will be colored. When an attribute is selected ("Color elements/minerals based on:"), you will have the choice of several *colorblind-friendly* palettes offered by the RColorBrewer package [@brewer].
+
+When coloring nodes by an attribute, it is possible that some nodes will not have an associated attribute value, i.e. there may be some "NAs." The field **Color to use for missing for unknown values** can be used to select how nodes with missing information will be colored. Notably, this selected color will also be used for any NAs associated with "Edge Colors" (keep reading!).
+
+
+Alternatively, you can choose to turn on the option **Color all nodes by community cluster,** which will override any element- or mineral-specific color scheme specified. All nodes will be colored according to their community cluster, using a colorblind-friendly palette of your choosing. The option to choose a community cluster palette will appear if this option is turned on.
+
+### Color individual elements
+
+`dragon` can also apply specific colors to a set of element nodes of interest, on top of any color scheme specified under "Node Colors." First, you can turn on the option **Highlight focal element(s)** to specifically color your network's focal element(s) by a chosen color. Second, you create any number of specific groups of element(s) to color, using associated buttons to add or remove groups. 
+
+### Node Sizes
+
+Similar to node colors, you can either select a single size for element and mineral nodes each, or you can set the size for each node type according to a given attribute. All size settings can be scaled up or down using the associated slider. Note that one of the sizing options for elements is "Number of known element localities." This quantity is based strictly on the number of localities where the element's associated minerals have been found in the specified network.
+
+### Node Shapes
+
+Here, you can change the shape for element and mineral nodes. In particular, you can also disable the shape for element nodes and select the "Text only (no shape)" option. When this is selected, element node color and size will still be based on the specifications under "Node Colors", "Color Individual Elements", and "Node Sizes." Do *not* use the "Element font color" (keep reading!) to style text-only element nodes.
+
+### Node Labels and Font
+
+Here, you can modify element node label color, as well as mineral node label color and font size. Due to specific details of how the `visNetwork` library handles element nodes, the element node size itself controls the element font size. Therefore, to resize element labels, please resize element nodes. Note further that the "Element font color" should *only* be used when element nodes have either a circle or square shape; it will have no effect when the element shape is text only.
+
+By default, mineral node names are hidden as they are usually very long and contribute mostly visual noise. However, you can show mineral node names (and select the font color!) using the widgets "Mineral font color" and "Mineral font size". Unlike element nodes, the font color and size for mineral nodes is *independent* of the shape's size.
+
+### Edge attributes
+
+Under thus menu item, you can set the edge color scheme as well as edge thickness. The edge color scheme specification is similar to that for node colors: You can either select a single color for all edges, or color edges according to a given attribute with a colorblind-friendly palette. Again, if an attribute is selected, some edges may have missing information. Please use the "Color to use for missing for unknown values" widget under the "Node Colors" menu item to specify the NA color to use. 
+
+### Network Interaction Options
+
+The final sidebar menu item controls how you interact with the network by allowing you to change the default `visNetwork` settings. None of these options will effect the network contents or styling.
+
++ **Node selection highlight degree**
+  + This specifies how many connected nodes will be emphasized when you click a node. The default degree of "2" means all nodes within 2 degrees of separation ($\leq$ 2 edges) will be emphasized.
++ **Emphasize on hover**
+  + When turned on (default), nodes will be emphasized when the cursor hovers over them.
++ **Hide edges when dragging nodes**
+  + When turned on (default), edges will *visually* disappear when re-positioning a node, and they will re-appear after you drag the node to its new location. This option increases the speed of the interactive network rendering, so we recommend keeping it on! 
++ **Drag network in frame**
+  + When turned on (default), you can reposition the entire network by clicking and dragging. When turned off, you can reposition individual nodes but *not* the network as a whole.
++ **Scroll in network frame to zoom**
+  + When turned on (default), scrolling on your mouse will zoom in and out of the network.
++ **Show navigation buttons**
+  + When turned on (*not* the default), a set of green buttons will appear in the network display frame which can be used to re-position and zoom in/out of the network. 
+
+
+## Exporting your network
+
+Below the interactive network are several buttons to export the network and its associated metadata:
+
++ Export the nodes and associated metadata as a CSV file by clicking the button "Export nodes as CSV."
++ Export the edges and associated metadata as a CSV file by clicking the button "Export edges as CSV."
++ Export the legend image as a PDF by clicking the button "Export legend as PDF."
+
+Finally, you can export the network image itself. On one hand, it is possible to directly right-click on the interactive network and click "Save Image As." This will save the network image exactly as it appears within `dragon`. Unfortunately, there are known limitations with `visNetwork` (itself a wrapper for the `vis.js` Javascript library) that prevent high-resolution image export. We therefore offer a separate approach for exporting the network image: We convert the `visNetwork`-formatted network display styled in the browser into a fully styled `igraph` object, which can be exported and visualized at high resolution. To use this approach...
+
++ *You must first* click the "Click to prepare network for export to PDF" button. You need to click this button every time you change the node *positions* and want to update the export. (If you do not click this button, your exact network layout will be the inputted sidebar menu layout.) 
++ Then, click the "Export network as PDF" button, and your network image as a high-resolution PDF will be saved.
++ Due to the `visNetwork`-`igraph` conversion, some of the exported aspects of the network image may not be precisely to your liking. Therefore, you can use the dropdown menu "PDF options" (above the "Export network as PDF" button) to slightly increase/decrease node sizes, and or remove the node outlines, and change the outputted PDF file's dimensions.
+
+# Exploring attributes of your network
+
+There are several ways you can explore nodes, relationships, and other attributes of the network. 
+
+First, hovering over the nodes themselves will reveal some key attributes helpful for exploring redox evolution. 
+
+Second, below the interactive network itself, the box entitled **Examine individual nodes** will populate a table with various selected attributes when nodes are selected. You can selected nodes either by directly clicking them in the interactive network display and/or by selecting them from the dropdown menu in this box. When a node is selected, the node and its first-degree connections (i.e., minerals a selected element is in, or a selected mineral's constituent elements) will be revealed in the table. You can de-select nodes from this table using the dropdown menu.
+
+Third, the tab panel entitled **Explore Network Attributes** allows for more in-depth exploration of elements and minerals in the network. This tab will provide overall information about network contents (number of nodes of each type, number of edges, and network modularity based on community clustering), as well as all attributes associated with each element and mineral node. 
+
+
+## Using tables in dragon
+
+All tables in `dragon` support column re-organization: Simply click and drag a column to the location in the table in which you want it to be. For circumstances where a table has more columns that can be viewed in the screen, a small green plus-sign icon will appear along each table row. Click this plus-sign to reveal the columns that cannot be displayed. Full tables can easily be exported in various formats by clicking one of the Copy/Excel/CSV buttons above each table.
+
+
+
+# Analyzing the minerals in your network
+
+Under the tab "Analyze Network Minerals," `dragon` will construct simple linear regressions to analyze the relationships among mineral properties in the network you have built. Note that this tab is also responsive to the inputs in the sidebar panel. If you change the network fundamentals (e.g. focal elements or age range), the analysis will change as well.
+
+To perform a linear regression, specify a *predictor* (aka "explanatory" or "independent") variable and a *response* (aka "dependent") variable. The modeling results will be reported on the right side of the screen. If you select "Community cluster" as the predictor variable, a Tukey test will also be performed to perform pairwise comparisons of all clusters considered, so you will see two tables of results. A visualization of your model will appear below the table(s), and you can use style the plot according to various options that appear left of the visualization. You can also export this image using the "Download Plot" button. 
+
+There are several caveats to be aware of when conducting analyses in this tab:
+
++ Hiding the sidebar panel can result in a better view. Click the "hamburger" button to the right of the app title will collapse the sidebar.
++ Any network with fewer than three minerals cannot be analyzed. `dragon` will issue a warning if there are too few data points for statistical analysis.
++ `dragon` will _not_ check if the relationship between your numeric variables is indeed linear. You will need to gauge this for yourself in the resulting image.
++ `dragon` will _not_ transform the data in any way. You will need to gauge for yourself whether the data is appropriate for a linear model analysis.
++ For analyses which consider Community cluster as the predictor variable, only those clusters that contain at least 3 minerals will be analyzed. `dragon` will also display a warning if the variance is not equal among clusters being compared, which can result in imprecise modeling results.
++ **_Overall, please interpret these results with caution._** We do your models, but not your science!
+
+# Tracking mineral formation over time
+
+The final tab panel in `dragon`, **Mineral formation timeline**, presents a view of mineral formation for the selected network in geologic-time, contextualized with major biogeochemical transitions including early evidence for microbial metabolism and Great Oxidation Events. By default, each line and point ("lollipop") in the timeline represents a mineral in the network at its oldest discovered age. Therefore, within the selected time frame along the timeline, there are the same number of "lollipops" as there are mineral nodes in the constructed network. The timeline will also reveal minerals with oldest-known ages that fall outside the selected time range, although these will be shown in a different (and customizable!) color.
+
+It is also possible for the timeline to show *all* instances over time when each of these mineral was discovered, by turning off the button labeled ``Display minerals discovered at their oldest known age only. Turn off to display minerals discovered at any age.''
+
+Users can style timeline minerals either with single colors, or minerals that fall within the selected time range can be styled according to an attribute such as mean electronegativity or maximum known age. This image can be exported to PDF using the "Download Timeline" button. 
+
+
+
+<br><br>
+
+# References
+

@@ -1,45 +1,74 @@
 Package: dragon
-Type: Package
 Title: Deep Time Redox Analysis of the Geobiology Ontology Network
-Version: 0.2.1
-Authors@R: c( person("Stephanie J.", "Spielman", role = c("aut", "cre"), email = "spielman@rowan.edu"))
-Maintainer: Stephanie J. Spielman <spielman@rowan.edu>
-Description: Visualization and manipulation of the mineral-chemistry network across deep time on earth. 
+Version: 1.0.0
+Authors@R: person('Stephanie', 'Spielman', email = 'spielman@rowan.edu', role = c('cre', 'aut'))
+Description: Visualization and manipulation of the mineral-chemistry network across deep time on earth.
 License: GPL-3
+Imports: 
+    config,
+    golem,
+    shiny,
+    DT,
+    ggplot2,
+    readr,
+    openxlsx,
+    dplyr,
+    RColorBrewer,
+    stringr,
+    tidyr (>= 1.0.0),
+    purrr,
+    tibble,
+    broom,
+    cowplot (>= 1.0.0),
+    ggforce,
+    magrittr,
+    shinydashboard,
+    shinyWidgets,
+    colourpicker,
+    colorspace,
+    visNetwork (>= 2.0.9),
+    igraph (>= 0.4),
+    htmltools,
+    stats,
+    promises,
+    future,
+    lubridate,
+    xml2,
+    rvest,
+    curl,
+    tidyselect
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/spielmanlab/dragon
-BugReports: https://github.com/spielmanlab/dragon/issues
-Repository: CRAN
-NeedsCompilation: no
-RoxygenNote: 6.1.1
-Imports: 
-    dplyr,
-    tidyr,
-    stringr,
-    ggplot2,
-    purrr,
-    readr,
-    tibble,
-    broom, 
-    cowplot, 
-    magrittr, 
-    shiny, 
-    shinythemes, 
-    shinydashboard,
-    shinyWidgets, 
-    shinyBS, 
-    colourpicker, 
-    colorspace, 
-    RColorBrewer, 
-    DT, 
-    visNetwork, 
-    igraph
+RoxygenNote: 7.1.1
 Suggests: 
+    testthat (>= 2.1.0),
+    processx,
     knitr,
-    testthat,
-    shinytest
+    rmarkdown
 VignetteBuilder: knitr
-
-
-
+URL: https://github.com/sjspielman/dragon
+BugReports: https://github.com/sjspielman/dragon/issues
+Depends:
+    R (>= 3.5.0)
+Collate:
+    'utils_definitions.R'
+    'utils_globals.R'
+    'utils_names.R'
+    'utils_palette.R'
+    'utils_style-network.R'
+    'utils_ui-choices.R'
+    'fct_prepare-med-data.R'
+    'fct_build-legend.R'
+    'fct_build-linear-models.R'
+    'fct_build-network.R'
+    'fct_build-shiny-tables.R'
+    'fct_calculate-network-info.R'
+    'fct_export-network.R'
+    'fct_style-network.R'
+    'fct_timeline.R'
+    'mod_choose-color-palette.R'
+    'mod_choose-custom-element-colors.R'
+    'app_config.R'
+    'app_server.R'
+    'app_ui.R'
+    'run_app.R'

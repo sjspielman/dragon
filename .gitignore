@@ -3,3 +3,7 @@
 **/.Rdata
 **/.Rapp.history
 rsconnect/
+.Rproj.user
+.Rhistory
+.RData
+Meta

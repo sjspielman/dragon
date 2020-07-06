@@ -1,0 +1,38 @@
+HELPER_ TO TESTS_
+
+CHANGE NAMING FCT_STUFF-.R
+CHANGE NAMING TEST_STUFF-.R
+
+----------------------------------------------------------------------------------
+Miscellaneous output from `devtools::check()` that needs dealing with:
+
+
+
+Undefined global functions or variables:
+    := MetalType TableGroup TablePeriod V1 V2 adj.p.value age_check
+    age_type base_element blah category chemistry_elements closeness
+    cluster_ID color color.background color.border colorblind colour
+    community_cluster comparison conf.high conf.low cov_pauling dplyr
+    element element_as_redox element_hsab element_name
+    element_redox_mineral element_redox_mineral_sign
+    element_redox_network estimate font.color font.face font.size
+    frame.color from group has_element id2 ima_chemistry label label.cex
+    lm locality_longname max_age max_age_locality maxcolors
+    mean_font_size mean_pauling mean_size min_age min_age_locality
+    mindat_id mineral_id mineral_name na.omit network_degree
+    network_degree_norm num_localities num_localities_element
+    num_localities_mineral obtain_network_information overall_max p.value
+    palette pauling rescale_cex rescale_size rruff_chemistry session
+    shape size statistic std.error term to type write_csv x y
+    
+Document data:MAYBE??
+W  checking for missing documentation entries (1.8s)
+   Undocumented code objects:
+     ‘element_info’ ‘element_redox_states’ ‘rruff’
+   Undocumented data sets:
+     ‘element_info’ ‘element_redox_states’ ‘rruff’
+     
+   Consider adding
+     importFrom("grDevices", "palette")
+     importFrom("stats", "lm", "na.omit")
+   to your NAMESPACE file.  
