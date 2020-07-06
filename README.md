@@ -18,5 +18,5 @@ The `dragon` (**D**eep time **R**edox **A**nalysis of the **G**eobiology **O**nt
 
 **For instructions on obtaining and using dragon**, please see the [vignette](http://htmlpreview.github.io/?https://github.com/sjspielman/dragon/blob/master/doc/dragon.html).
 
-**Current link to server:** [sjspielman.shinyapps.io/dragon](sjspielman.shinyapps.io/dragon)
+**Current link to server:** [https://sjspielman.shinyapps.io/dragon](https://sjspielman.shinyapps.io/dragon)
 
