@@ -8,7 +8,6 @@ mod_ui_choose_custom_element_colors <- function(id, available, index) {
   
   tagList(
     fluidRow(
-      column(1, tags$p(paste0(index, "."))),
       column(6, 
         shinyWidgets::pickerInput(ns("custom_elements"), 
                                   "Element(s):",             
@@ -17,7 +16,7 @@ mod_ui_choose_custom_element_colors <- function(id, available, index) {
                                   multiple = TRUE
         ), style='padding:0px;'
       ),
-      column(5, 
+      column(6, 
              colourpicker::colourInput(ns("custom_color"), "Color:"), style='padding-left:0px;'
       )
     )

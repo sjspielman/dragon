@@ -227,9 +227,11 @@ app_server <- function( input, output, session ) {
   most_recent_button_index <- reactiveVal(0)
   custom_element_modules_indices <- reactiveVal(c())  
   this_id <- reactive({ paste0('customcolor_', most_recent_button_index()) })
-
+  button_reset <- reactiveVal(FALSE)
+  
   ## Add button for more custom element colors -------------------------------------------
   observeEvent(input$insert_custom, {
+    button_reset(FALSE)
     last_most_recent <- most_recent_button_index()
     if (last_most_recent < 0) last_most_recent <- 0
     most_recent_button_index(last_most_recent + 1)
@@ -248,15 +250,16 @@ app_server <- function( input, output, session ) {
   })
   
   observeEvent(input$remove_custom, {
+    button_reset(FALSE)
     ## Remove most recent UI 
     removeUI(selector = paste0("#customcolor_", most_recent_button_index()))
-    
+        
     ## remove the selection from module list and then update the most recent
     previous_indices <- custom_element_modules_indices()
     custom_element_modules_indices( previous_indices[-most_recent_button_index()]) 
     new_most_recent <- most_recent_button_index() - 1
     most_recent_button_index(new_most_recent)
-
+  
     ## Clean the modules list, +1 since already -1 above
     custom_element_modules[[ as.character(most_recent_button_index() + 1) ]] <- NULL
   })
@@ -264,23 +267,38 @@ app_server <- function( input, output, session ) {
 
   ## Reactive that stores custom element colors as named list, by marching over custom_element_modules -------
   custom_element_colors <- reactive({
-    alll <- c()
+    custom <- c()
+    if (button_reset()) return (custom)
+    
     if (most_recent_button_index() > 0) {
       for (i in custom_element_modules_indices()) {
         this_one <- custom_element_modules[[ as.character(i) ]]()
         if ( !(is.null( names(this_one)))) {
           for (nodename in names(this_one) ) {
-            alll[nodename] <-unname( this_one[nodename] )
+            custom[nodename] <-unname( this_one[nodename] )
           }
         }
       }
     }
-    alll
+    custom
   })
 
+  ## Observer to remove all buttons if the network changes -----------------------
+  observeEvent(chemistry_network(),{
+    
+    # Remove all UIs
+    for (i in custom_element_modules_indices()) {
+      removeUI(selector = paste0("#customcolor_", i))
+    }        
+    # Reset all reactives
+    custom_element_modules <- reactiveValues()
+    most_recent_button_index <- reactiveVal(0)
+    custom_element_modules_indices <- reactiveVal(c())  
+    this_id <- reactive({ paste0('customcolor_', most_recent_button_index()) })
+    button_reset(TRUE)
+  })  
   
-  
-  ### WE DO NOT HAVE A REMOVE BUTTON AT THIS TIME.
+
 
  
 

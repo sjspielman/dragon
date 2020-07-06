@@ -20,8 +20,8 @@ Running under: macOS Catalina 10.15.5
 
 R CMD CHECK completed with:
 ```
-── R CMD check results ─────────────────────────────────────── dragon 0.3.0 ────
-Duration: 1m 2.3s
+── R CMD check results ─────────────────────────────────────── dragon 1.0.0 ────
+Duration: 1m 28.4s
 0 errors ✔ | 0 warnings ✔ | 0 notes ✔
 ```
 
