@@ -231,6 +231,11 @@ app_server <- function( input, output, session ) {
   
   ## Add button for more custom element colors -------------------------------------------
   observeEvent(input$insert_custom, {
+    
+    if (button_reset()){
+      custom_element_modules_indices(c())
+      most_recent_button_index(0)
+    }
     button_reset(FALSE)
     last_most_recent <- most_recent_button_index()
     if (last_most_recent < 0) last_most_recent <- 0
@@ -268,9 +273,7 @@ app_server <- function( input, output, session ) {
   ## Reactive that stores custom element colors as named list, by marching over custom_element_modules -------
   custom_element_colors <- reactive({
     custom <- c()
-    if (button_reset()) return (custom)
-    
-    if (most_recent_button_index() > 0) {
+    if (most_recent_button_index() > 0 & !(button_reset())) {
       for (i in custom_element_modules_indices()) {
         this_one <- custom_element_modules[[ as.character(i) ]]()
         if ( !(is.null( names(this_one)))) {
@@ -285,16 +288,14 @@ app_server <- function( input, output, session ) {
 
   ## Observer to remove all buttons if the network changes -----------------------
   observeEvent(chemistry_network(),{
+    req(input$go >= 1)
     
-    # Remove all UIs
+    # Remove all UIs AND module outputs
     for (i in custom_element_modules_indices()) {
       removeUI(selector = paste0("#customcolor_", i))
+      custom_element_modules[[as.character(i)]] <- NULL
     }        
     # Reset all reactives
-    custom_element_modules <- reactiveValues()
-    most_recent_button_index <- reactiveVal(0)
-    custom_element_modules_indices <- reactiveVal(c())  
-    this_id <- reactive({ paste0('customcolor_', most_recent_button_index()) })
     button_reset(TRUE)
   })  
   
