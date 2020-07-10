@@ -26,14 +26,14 @@ fetch_med_data <- function()
 {
 
   ## TRY to Download MED tables-------------------------------------------
-  m1 <- try_url( readr::read_tsv(med_m1_url, guess_max=10000) )
-  m2 <- try_url( readr::read_tsv(med_m2_url, guess_max=10000) )
-  
+  m1 <- try_url( med_m1_url, "tsv" )
+  m2 <- try_url( med_m2_url, "tsv" )
+    
   if (!(m1$success & m2$success))
   {
     return(FALSE)
   } else {
-    dplyr::left_join(m1$html, m2$html) %>% 
+    dplyr::left_join(m1$content, m2$content) %>% 
       dplyr::filter(at_locality == 1) %>%
       dplyr::select(mineral_name, 
                     mineral_id, 
@@ -139,13 +139,13 @@ calculate_element_redox_states <- function(med_data)
 #' @noRd
 find_most_recent_date <- function()
 {
-  med_html <- try_url(med_exporting_url)
+  med_html <- try_url(med_exporting_url, "html")
   
   if (med_html$success == FALSE)
   {
     return(FALSE)
   } else {
-    med_html$html %>%
+    med_html$content %>%
       rvest::html_node("table") %>% 
       rvest::html_table(fill=TRUE) %>% 
       as.data.frame() -> raw_html
@@ -165,9 +165,10 @@ find_most_recent_date <- function()
 
 #' Function to check for internet and read a specified html
 #' @param url The URL to read
-#' @return Website read with `xml2::read_html`, or FALSE if could not reach internet/website
+#' @read_type One of "tsv" or "html" to determine how to read the URL
+#' @return Named list with `success` as logical if successful ping, and `content` as either FALSE or the read content
 #' @noRd
-try_url <- function(url)
+try_url <- function(url, read_type)
 {
   
   ## Check for internet
@@ -179,7 +180,12 @@ try_url <- function(url)
   {
     ## TRY to curl
     tryCatch(
-      xml2::read_html(url) ,
+      if ( read_type == "tsv" )
+      {
+       readr::read_tsv(url, guess_max=10000)
+      } else if ( read_type == "html" ) { 
+        xml2::read_html(url)
+      } ,
       error=function(e) {
         return(FALSE)
       },
@@ -192,9 +198,9 @@ try_url <- function(url)
   }
   if (typeof(final_url) == "list")
   {
-    output <- list("success" = TRUE, "html" = final_url)  
+    output <- list("success" = TRUE, "content" = final_url)  
   } else if (final_url == FALSE){
-    output <- list("success" = FALSE, "html" = FALSE)  
+    output <- list("success" = FALSE, "content" = FALSE)  
   }
 
   return(output)

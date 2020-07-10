@@ -17,13 +17,13 @@ test_that("fct_prepare-rruff-data::try_url() works", {
   skip_if_offline()
   skip_on_travis()
   
-  should_work <- try_url(med_exporting_url)
+  should_work <- try_url(med_exporting_url, "html")
   expect_true(should_work$success)
-  expect_true(typeof(should_work$html) == "list")
+  expect_true(typeof(should_work$content) == "list")
   
-  should_fail <- try_url("http://rruff.infottt")
+  should_fail <- try_url("http://rruff.infottt", "html")
   expect_true(!(should_fail$success))
-  expect_true(!(should_fail$html))
+  expect_true(!(should_fail$content))
 })
 
 

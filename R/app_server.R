@@ -134,7 +134,7 @@ app_server <- function( input, output, session ) {
     input$network_layout
     input$network_layout_seed
     
-    if (length(elements_of_interest) == nrow(element_info)) 
+    if (length(elements_of_interest) == nrow(element_info) & !(input$build_only)) 
     {
       shinyWidgets::sendSweetAlert(
         session = session, title = "Warning!", type = "warning",
@@ -312,7 +312,7 @@ app_server <- function( input, output, session ) {
     
     modularity      <- calculate_modularity(chemistry_network()$clustering)
     connectivity    <- calculate_connectivity(chemistry_network()$graph)
-
+    
     list("n_mineral_nodes" = num_nodes_edges$n_mineral_nodes,
          "n_element_nodes" = num_nodes_edges$n_element_nodes,
          "n_base_elements" = num_nodes_edges$n_base_elements,
@@ -352,7 +352,7 @@ app_server <- function( input, output, session ) {
     output$n_element_nodes <- renderText({
       if (input$elements_by_redox)
       {
-        element_phrase <- paste0("Number of elements: ", network_quantities()$n_base_elements, ". Number of element nodes: ", num_nodes$n_element_nodes)    
+        element_phrase <- paste0("Number of elements: ", network_quantities()$n_base_elements, ". Number of element nodes: ", network_quantities()$n_element_nodes)    
       } else
       {
         element_phrase <- paste0("Number of element nodes: ", network_quantities()$n_element_nodes)    
