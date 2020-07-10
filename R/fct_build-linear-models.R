@@ -52,12 +52,19 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
 
     stats::TukeyHSD(stats::aov(model_fit)) %>%
       broom::tidy() %>%
-      dplyr::select(-term) %>%
-      dplyr::mutate(#comparison  = stringr::str_replace_all(comparison, "-", " - "),
+      dplyr::select(-term) -> tidy_tukey_raw
+    
+    # In an INSANE twist of events, column is either `comparison` or `contrast`, and sometimes there is a null.value column.
+    # THEREFORE, we need an if/else to rename comparison, and we need to use select() to get just the columns we want and not null.value
+    raw_names <- names(tidy_tukey_raw)
+    if ("contrast" %in% raw_names) tidy_tukey_raw %<>% dplyr::rename(comparison = contrast)
+    tidy_tukey_raw %>%    
+      dplyr::mutate(comparison  = stringr::str_replace_all(comparison, "-", " - "),
                     estimate    = round(estimate, 6),
                     conf.low    = round(conf.low, 6),
                     conf.high   = round(conf.high, 6),
                     adj.p.value = round(adj.p.value, 6)) %>%
+      dplyr::select(comparison, estimate, conf.low, conf.high, adj.p.value) %>%
       dplyr::rename("Cluster Comparison" = comparison, 
                     "Estimated effect size difference" = estimate,
                     "95% CI Lower bound" = conf.low,
