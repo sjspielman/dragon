@@ -53,7 +53,7 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
     stats::TukeyHSD(stats::aov(model_fit)) %>%
       broom::tidy() %>%
       dplyr::select(-term) %>%
-      dplyr::mutate(comparison  = stringr::str_replace_all(comparison, "-", " - "),
+      dplyr::mutate(#comparison  = stringr::str_replace_all(comparison, "-", " - "),
                     estimate    = round(estimate, 6),
                     conf.low    = round(conf.low, 6),
                     conf.high   = round(conf.high, 6),
