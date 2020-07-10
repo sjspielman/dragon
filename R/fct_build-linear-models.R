@@ -63,6 +63,7 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
                     "95% CI Lower bound" = conf.low,
                     "95% CI Upper bound" = conf.high,
                     "Adjusted P-value" = adj.p.value) -> tukey_fit_table
+    print.data.frame(tukey_fit_table)
     rsquared <- NA
     rsquared.pvalue <- NA
   } else {
