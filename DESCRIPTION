@@ -1,7 +1,7 @@
 Package: dragon
 Title: Deep Time Redox Analysis of the Geobiology Ontology Network
 Version: 1.0.0
-Authors@R: person('Stephanie', 'Spielman', email = 'spielman@rowan.edu', role = c('cre', 'aut'))
+Authors@R: as.person("Stephanie J. Spielman Wickham <spielman@rowan.edu> [aut, cre]")
 Description: Visualization and manipulation of the mineral-chemistry network across deep time on earth.
 License: GPL-3
 Imports: 
@@ -18,7 +18,7 @@ Imports:
     tidyr (>= 1.0.0),
     purrr,
     tibble,
-    broom (>= 0.7.0),
+    broom (>= 0.5.6),
     cowplot (>= 1.0.0),
     ggforce,
     magrittr,

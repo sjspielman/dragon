@@ -51,8 +51,12 @@ fit_linear_model <- function(response, predictor, mineral_nodes)
     if (test_variance_pvalue <= 0.05) tukey_ok_variance <- FALSE
 
     stats::TukeyHSD(stats::aov(model_fit)) %>%
-      broom::tidy() %>%
-      dplyr::select(-term, -null.value) %>%
+      broom::tidy() -> tidy_tukey_raw
+    # Broom packages aren't well managed (?) for some of the CRAN checks In an INSANE twist of events, column is either `comparison` or `contrast`, and sometimes there is a null.value column.
+    # Make the name `contrast`, and be sure to NOT select `null.value`
+    raw_names <- names(tidy_tukey_raw)
+    if ("comparison" %in% raw_names) tidy_tukey_raw %<>% dplyr::rename(contrast = comparison)
+    tidy_tukey_raw %>%    
       dplyr::mutate(contrast  = stringr::str_replace_all(contrast, "-", " - "),
                     estimate    = round(estimate, 6),
                     conf.low    = round(conf.low, 6),

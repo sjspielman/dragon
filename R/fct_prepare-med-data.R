@@ -165,7 +165,7 @@ find_most_recent_date <- function()
 
 #' Function to check for internet and read a specified html
 #' @param url The URL to read
-#' @read_type One of "tsv" or "html" to determine how to read the URL
+#' @param read_type One of "tsv" or "html" to determine how to read the URL
 #' @return Named list with `success` as logical if successful ping, and `content` as either FALSE or the read content
 #' @noRd
 try_url <- function(url, read_type)

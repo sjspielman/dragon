@@ -15,5 +15,5 @@ to <- from <- id <- label <- title <- group <- type <- NULL
 element_redox_mineral <- has_element <- element_redox_mineral_sign <- element_redox_network <- NULL
 available <- num <- num_nodes <- NULL   # base_element
 rd <- ers <- redox <- thesign <- X2 <- X3 <- X4 <- NULL
-V1 <- V2 <- x <- y <- NULL
+V1 <- V2 <- x <- y <- contrast <-  NULL
 early_age <- late_age <- label_x <- label_y <- eon_era_name <- selected_age_range <- yend <- ymax <- ymin <- NULL

@@ -6,7 +6,7 @@ experimental](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://
 
 
 
-<img src="inst/app/www/sticker/favicon.png" height="250"/>
+<img src="inst/app/www/favicon.ico" height="250"/>
 
 
 **The current version of dragon is `1.0.0`.**
