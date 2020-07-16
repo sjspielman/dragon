@@ -18,14 +18,14 @@ for (this_pal in palettes_of_interest$name){
 
   tibble::tibble(x = 1:6, y = rep(1,6)/10) %>% 
     ggplot2::ggplot(aes(x,y, fill = factor(x))) + 
-    ggplot2::geom_point(size=12, pch=21, color="black") + 
+    ggplot2::geom_point(size=4.5, pch=21, color="black") + 
     ggplot2::scale_fill_brewer(palette=this_pal, name = "", direction = direction)+
     ggplot2::guides(fill = ggplot2::guide_legend(nrow=1)) + 
     ggplot2::ylim(c(0.05, 0.15)) + 
-    ggplot2::xlim(c(0.9,6.1)) + 
+    ggplot2::xlim(c(0.8,6.2)) + 
     ggplot2::theme_void() + 
     ggplot2::theme(legend.position = "none") -> p
-  ggplot2::ggsave(paste0(this_pal, ".png"), p, width=3, height=0.39)
+  ggplot2::ggsave(paste0(this_pal, ".png"), p, width=1, height=0.2)
 
 }
 
