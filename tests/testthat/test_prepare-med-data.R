@@ -1,6 +1,8 @@
 test_that("fct_prepare-rruff-data::find_most_recent_date() returns a date stamp", {
   skip_if_offline()
   skip_on_travis()
+  skip_on_cran() 
+
   test_date <- find_most_recent_date()
   # Skip tests if couldn't ping
   if (test_date != FALSE){ 
@@ -16,6 +18,7 @@ test_that("fct_prepare-rruff-data::find_most_recent_date() returns a date stamp"
 test_that("fct_prepare-rruff-data::try_url() works", {
   skip_if_offline()
   skip_on_travis()
+  skip_on_cran() 
   
   should_work <- try_url(med_exporting_url, "html")
   expect_true(should_work$success)
@@ -25,8 +28,3 @@ test_that("fct_prepare-rruff-data::try_url() works", {
   expect_true(!(should_fail$success))
   expect_true(!(should_fail$content))
 })
-
-
-
-## TODO: Test other RRUFF fetching functions, but first need to figure out 
-####  how to turn skip them with a flag. definitely skip_if_????, but how do the flag?
