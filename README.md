@@ -10,13 +10,23 @@ stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.ti
 <img src="inst/app/www/favicon.ico" height="250"/>
 
 
-**The current version of dragon is `1.0.1`.**
 
 
 The `dragon` (**D**eep time **R**edox **A**nalysis of the **G**eobiology **O**ntology **N**etwork) package provides a [Shiny Application](https://shiny.rstudio.com/) for generating, exploring, and analyzing bipartite mineral-chemistry networks over deep time on Earth using information from the [Mineral Evolution Database](http://rruff.info/ima/), with a specific application of investigating biologically-relevant evolution of element redox states and availability over time. `dragon` uses `igraph` and `visNetwork` library (a terribly handy R wrapper for `vis.js`) to construct user-friendly interactive networks. 
 
-**Citation forthcoming.**
+**The associated pre-print** is available [here](https://eartharxiv.org/z7k9q/) and can be cited as:
 
+Spielman, Stephanie J., and Eli K. Moore. 2020. “dragon: A New Tool for Exploring Redox Evolution Preserved in the Mineral Record.” EarthArXiv. July 16. doi:10.31223/osf.io/z7k9q.
+
+Or, in LaTeX:
+```
+@article{  ,
+ journal = {EarthArXiV},
+ title = {dragon: A New Tool for Exploring Redox Evolution Preserved in the Mineral Record},
+ year = 2020,
+ doi = {10.31223/osf.io/z7k9q}
+}
+```
 
 **For instructions on obtaining and using dragon**, please see the [vignette](http://htmlpreview.github.io/?https://github.com/sjspielman/dragon/blob/master/doc/dragon.html).
 
