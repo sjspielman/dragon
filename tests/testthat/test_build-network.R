@@ -127,7 +127,7 @@ test_that("fct_build_network::construct_network() with elements_by_redox = F", {
   elements_of_interest <- c("Cd")
   age_range <- c(1, 2.5)
   age_data <- initialize_data_age(initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, FALSE), age_range, "Maximum")
-  test_output <- construct_network(age_data$elements_only_age, FALSE, element_redox_states_cache)
+  test_output <- construct_network(age_data$elements_only_age, FALSE, FALSE, element_redox_states_cache)
   
   ## Length of 3 with correct names
   expected_names_one <- c("edges", "nodes", "network")
@@ -165,7 +165,7 @@ test_that("fct_build_network::construct_network() with elements_by_redox = T", {
   elements_of_interest <- c("Fe") ## Cd is disconnected
   age_range <- c(3, 4)
   age_data <- initialize_data_age(initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, FALSE), age_range, "Maximum")
-  test_output <- construct_network(age_data$elements_only_age, TRUE, element_redox_states_cache)
+  test_output <- construct_network(age_data$elements_only_age, TRUE, FALSE, element_redox_states_cache)
   
   ## Length of 3 with correct names
   expected_names_one <- c("edges", "nodes", "network")
@@ -199,10 +199,93 @@ test_that("fct_build_network::construct_network() with elements_by_redox = T", {
 
 
 
+
+
+
+
+
+## Test construct_network(), using elements_by_redox = TRUE AND ignore_na_redox=TRUE --------------------------------
+test_that("fct_build_network::construct_network() with elements_by_redox = T and ignore_na_redox=T", {
+  elements_of_interest <- c("Fe") 
+  age_range <- c(3, 4)
+  age_data <- initialize_data_age(initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, FALSE), age_range, "Maximum")
+  test_output <- construct_network(age_data$elements_only_age, TRUE, TRUE, element_redox_states_cache)
+  
+  ## Length of 3 with correct names
+  expected_names_one <- c("edges", "nodes", "network")
+  expect_equal(sort(names(test_output)), sort(expected_names_one)) 
+  
+  ## Edges tests
+  test_edges <- test_output$edges
+  expect_equal(sort(names(test_edges)), true_edge_names) 
+  expect_equal(test_edges$from, test_edges$mineral_name)
+  
+  # There should be ONLY +/- in `to` 
+  expect_true( sum(stringr::str_detect(test_edges$to, "[\\+-]")) == nrow(test_edges))
+  
+  ## Nodes tests
+  test_nodes <- test_output$nodes
+  expect_equal(sort(names(test_nodes)), true_node_names_precluster) 
+  expect_true(length(test_nodes$id) == length(unique(test_nodes$id)) )
+  
+  ## Edges, nodes compatible
+  edges_to_nodes <- unique(c(test_edges$to, test_edges$from ))
+  expect_equal(sort(edges_to_nodes), sort(test_nodes$id)) 
+  
+  ## No NAs in various fields "known" to be silly
+  expect_true(sum(is.na(test_nodes$label)) == 0)
+  expect_true(sum(is.na(test_nodes$id)) == 0)
+  expect_true(sum(is.na(test_nodes$title)) == 0)
+  expect_true(all(test_nodes$group %in% c("element", "mineral")))
+  
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Test specify_community_detect_network(), using Louvain --------------------------------
 test_that("fct_build_network::specify_community_detect_network() with Louvain community clustering", {
   age_data <- initialize_data_age(initialize_data(med_data_cache, element_redox_states_cache, "Fe", FALSE), c(3, 4), "Maximum")
-  network_raw <- construct_network(age_data$elements_only_age, TRUE, element_redox_states_cache)
+  network_raw <- construct_network(age_data$elements_only_age, TRUE, FALSE, element_redox_states_cache)
   test_cluster <- specify_community_detect_network(network_raw$network, network_raw$nodes, "Louvain")
   
   ## Length of 3 with correct names
@@ -221,11 +304,81 @@ test_that("fct_build_network::specify_community_detect_network() with Louvain co
 
 
 
+
+
+## Test construct_network(), using elements_by_redox = TRUE --------------------------------
+test_that("fct_build_network::construct_network() with elements_by_redox = T", {
+  elements_of_interest <- c("Fe") ## Cd is disconnected
+  age_range <- c(3, 4)
+  age_data <- initialize_data_age(initialize_data(med_data_cache, element_redox_states_cache, elements_of_interest, FALSE), age_range, "Maximum")
+  test_output <- construct_network(age_data$elements_only_age, TRUE, FALSE, element_redox_states_cache)
+  
+  ## Length of 3 with correct names
+  expected_names_one <- c("edges", "nodes", "network")
+  expect_equal(sort(names(test_output)), sort(expected_names_one)) 
+  
+  ## Edges tests
+  test_edges <- test_output$edges
+  expect_equal(sort(names(test_edges)), true_edge_names) 
+  expect_equal(test_edges$from, test_edges$mineral_name)
+  
+  # Without redox there SHOULD BE +/- in `to`
+  expect_true( sum(stringr::str_detect(test_edges$to, "\\+")) != 0)
+  
+  ## Nodes tests
+  test_nodes <- test_output$nodes
+  expect_equal(sort(names(test_nodes)), true_node_names_precluster) 
+  expect_true(length(test_nodes$id) == length(unique(test_nodes$id)) )
+  
+  ## Edges, nodes compatible
+  edges_to_nodes <- unique(c(test_edges$to, test_edges$from ))
+  expect_equal(sort(edges_to_nodes), sort(test_nodes$id)) 
+  
+  ## No NAs in various fields "known" to be silly
+  expect_true(sum(is.na(test_nodes$label)) == 0)
+  expect_true(sum(is.na(test_nodes$id)) == 0)
+  expect_true(sum(is.na(test_nodes$title)) == 0)
+  expect_true(all(test_nodes$group %in% c("element", "mineral")))
+  
+})
+
+
+
+
+## Test specify_community_detect_network(), using Louvain --------------------------------
+test_that("fct_build_network::specify_community_detect_network() with Louvain community clustering", {
+  age_data <- initialize_data_age(initialize_data(med_data_cache, element_redox_states_cache, "Fe", FALSE), c(3, 4), "Maximum")
+  network_raw <- construct_network(age_data$elements_only_age, TRUE, FALSE, element_redox_states_cache)
+  test_cluster <- specify_community_detect_network(network_raw$network, network_raw$nodes, "Louvain")
+  
+  ## Length of 3 with correct names
+  expected_names_one <- c("nodes", "clustered_net")
+  expect_equal(sort(names(test_cluster)), sort(expected_names_one)) 
+  
+  ## Check that node nodes contains the added cluster columns
+  expected_names_nodes<- c("id", "cluster_ID", "cluster_algorithm", "title", "font.face", "label", "group", "network_degree", "closeness", "network_degree_norm", "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "cov_pauling", "element_hsab", "atomic_mass", "number_of_protons", "table_period", "table_group", "atomic_radius", "pauling", "metal_type", "element_density", "element_specific_heat", "element_name", "element_redox_network", "num_localities")
+  expect_equal(sort(names(test_cluster$nodes)), true_node_names) 
+  
+  
+  ## Same lengths all around
+  expect_true( length(test_cluster$clustered_net) == length(unique(test_cluster$nodes$cluster_ID)) )
+  
+})
+
+
+
+
+
+
+
+
+
 ## Test that initialize_network() works -----------------------------------------------
 test_that("fct_build_network::initialize_network() works", {
   output <- initialize_network("Fe", 
                      force_all_elements = FALSE, 
                      elements_by_redox = FALSE, 
+                     ignore_na_redox   = FALSE,
                      age_range         = c(0, 5),
                      max_age_type      = "Maximum",
                      cluster_algorithm = "Louvain")
@@ -235,6 +388,7 @@ test_that("fct_build_network::initialize_network() works", {
   output_all <- initialize_network("all", 
                      force_all_elements = FALSE, 
                      elements_by_redox = TRUE, 
+                     ignore_na_redox   = FALSE,
                      age_range         = c(0, 5),
                      max_age_type      = "Maximum",
                      cluster_algorithm = "Louvain")
