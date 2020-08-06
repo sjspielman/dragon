@@ -33,6 +33,6 @@ Or, in LaTeX:
 **Current link to server of current release of dragon:** [https://sjspielman.shinyapps.io/dragon](https://sjspielman.shinyapps.io/dragon)
 
 
-**Current link to server of development version of dragon:** [https://sjspielman.shinyapps.io/dragon](https://sjspielman.shinyapps.io/dragon-dev)
+**Current link to server of development version of dragon:** [https://sjspielman.shinyapps.io/dragon-dev](https://sjspielman.shinyapps.io/dragon-dev)
 
 
