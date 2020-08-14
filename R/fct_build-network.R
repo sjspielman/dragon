@@ -9,6 +9,9 @@
 #' @param elements_by_redox    A logical. If FALSE (default), element nodes will be constructed
 #' regardless of redox state. If TRUE, creates separate node for each element's redox state, 
 #' e.g. Fe2+ and Fe3+ would be separate nodes.
+#' @param ignore_na_redox A logical. If FALSE (default), include element nodes that do not have an associated
+#' redox state from the network. Set as TRUE to ignore these element nodes in the network. 
+#' This argument is ignored unless `elements_by_redox=TRUE`.
 #' @param age_range            A array of two numbers giving inclusive range of mineral ages in Ga
 #'  to include in network. 
 #' @param max_age_type         A string indicating how mineral ages should be assessed. 
@@ -44,6 +47,7 @@
 initialize_network <- function(elements_of_interest, 
                                force_all_elements = FALSE, 
                                elements_by_redox = FALSE, 
+                               ignore_na_redox   = FALSE,
                                age_range         = c(0, 5),
                                max_age_type      = "Maximum",
                                cluster_algorithm = "Louvain",
@@ -78,7 +82,7 @@ initialize_network <- function(elements_of_interest,
   age_data    <- initialize_data_age(subset_med, age_range, max_age_type)
   if (nrow(age_data$elements_only_age) == 0) stop("Network cannot be constructed at specified age range.")
 
-  network_raw <- construct_network(age_data$elements_only_age, elements_by_redox, element_redox_states)
+  network_raw <- construct_network(age_data$elements_only_age, elements_by_redox, ignore_na_redox, element_redox_states)
   if (nrow(network_raw$nodes) == 0) stop("Network could not be constructed. Please adjust input settings.")
   if (nrow(network_raw$edges) == 0) stop("Network could not be constructed. Please adjust input settings.")
 
@@ -182,11 +186,12 @@ initialize_data_age <- function(elements_only, age_range, max_age_type)
 #'
 #' @param elements_only_age A tibble containing all minerals and associated information which contain specified elements at the specified age range
 #' @param elements_by_redox A logical. If FALSE, element nodes will be constructed regardless of redox state. If TRUE, creates separate node for each element's redox state, e.g. Fe2+ and Fe3+ would be separate nodes.
+#' @param ignore_na_redox A logical. If TRUE and elements_by_redox is TRUE, element nodes without redox states will be removed from the network.
 #' @param element_redox_states A tibble of elements and their associated redox states per mineral
 #'
 #' @returns Named list with completed network: 'nodes' is a tibble of all node info, 'edges' is a tibble of all edge info, and 'network' is the igraph::graph object
 #' @noRd
-construct_network   <- function(elements_only_age, elements_by_redox, element_redox_states)
+construct_network   <- function(elements_only_age, elements_by_redox, ignore_na_redox, element_redox_states)
 {
   
   ## Merge data with redox states, element_info, and some associated processing --------------------------------
@@ -217,6 +222,15 @@ construct_network   <- function(elements_only_age, elements_by_redox, element_re
     dplyr::ungroup() %>%
     dplyr::rename(from = mineral_name) -> network_information
   
+  ## Remove element nodes without redox, IF elements_by_redox==TRUE and ignore_na_redox==TRUE
+  if(elements_by_redox == TRUE & ignore_na_redox == TRUE)
+  {
+    network_information %<>% 
+      tidyr::drop_na(element_redox_mineral)
+    
+    # each element node should have a +/- in it now
+    stopifnot(sum( stringr::str_detect(network_information$element_as_redox, "[\\+-]")) == nrow(network_information))
+  }
   
   
   ## Build igraph network

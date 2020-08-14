@@ -38,6 +38,9 @@ app_ui <- function(request) {
               shinyWidgets::sliderTextInput("age_range","Age (Ga) range of minerals:", choices = rev(seq(0, max(med_data_cache$max_age), 0.1)), grid=T, selected=c(max(med_data_cache$max_age),0)),
               shinyWidgets::prettyRadioButtons("max_age_type", "Use maximum or minimum age of minerals", inline = TRUE, choices = c("Maximum", "Minimum"), selected="Maximum", status="danger"),
               shinyWidgets::prettySwitch("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger"),
+              conditionalPanel(condition = "input.elements_by_redox == true",{
+                shinyWidgets::prettySwitch("ignore_na_redox","Ignore elements with unknown redox states",value = FALSE, status="danger")
+              }),        
               shinyWidgets::prettySwitch("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
               shinyWidgets::prettySwitch("build_only","Build network without display",value = FALSE, status="danger"),
               fluidRow(

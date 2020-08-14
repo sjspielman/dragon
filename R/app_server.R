@@ -127,6 +127,7 @@ app_server <- function( input, output, session ) {
     age_range            <- as.numeric(sort(input$age_range))  ## REVERSED, so sort here
     max_age_type         <- input$max_age_type
     elements_by_redox    <- input$elements_by_redox
+    ignore_na_redox      <- input$ignore_na_redox
     build_only           <- input$build_only
 
     
@@ -162,7 +163,7 @@ app_server <- function( input, output, session ) {
       shiny::validate( shiny::need(nrow(elements_only_age) > 0, ""))
     }
   
-    network <- construct_network(elements_only_age, elements_by_redox, med()$element_redox_states)
+    network <- construct_network(elements_only_age, elements_by_redox, ignore_na_redox, med()$element_redox_states)
     if (length(network) != 3 | nrow(network$nodes) == 0  | nrow(network$edges) == 0)
     {
       shinyWidgets::sendSweetAlert(
