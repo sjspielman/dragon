@@ -49,7 +49,9 @@ build_mineral_exploration_table <- function(nodes, locality_info)
                   closeness,
                   network_degree_norm, 
                   max_age,
+                  w_mean_pauling,
                   mean_pauling, 
+                  w_cov_pauling,
                   cov_pauling,
                   rruff_chemistry,
                   ima_chemistry,
@@ -57,7 +59,7 @@ build_mineral_exploration_table <- function(nodes, locality_info)
     dplyr::left_join(locality_info) %>%
     dplyr::distinct() %>%
     dplyr::arrange(mineral_name) %>%
-    dplyr::select(mineral_name, mineral_id, ima_chemistry, rruff_chemistry, max_age, mean_pauling, cov_pauling, cluster_ID, closeness, network_degree_norm, dplyr::everything()) %>%
+    dplyr::select(mineral_name, mineral_id, ima_chemistry, rruff_chemistry, max_age, w_mean_pauling, mean_pauling, w_cov_pauling, cov_pauling, cluster_ID, closeness, network_degree_norm, dplyr::everything()) %>%
     dplyr::mutate(dplyr::across(tidyselect::vars_select_helpers$where(is.numeric), round, 3)) %>%
     rename_for_ui() 
     
@@ -109,7 +111,7 @@ prepare_raw_node_table <- function(edges, nodes)
   # Mineral-only columns
   nodes %>%
     dplyr::filter(group == "mineral") %>%
-    dplyr::select(id, mineral_id, max_age, mean_pauling, cov_pauling, ima_chemistry, rruff_chemistry) %>%
+    dplyr::select(id, mineral_id, max_age, w_mean_pauling, mean_pauling, w_cov_pauling, cov_pauling, ima_chemistry, rruff_chemistry) %>%
     dplyr::right_join(sel_both_mineral)  %>%
     dplyr::rename(mineral_name = id) %>%
     dplyr::select(-group) -> sel_mineral

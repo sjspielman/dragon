@@ -220,7 +220,9 @@ construct_network   <- function(elements_only_age, elements_by_redox, ignore_na_
                   cov_pauling  = stats::sd(pauling) / mean_pauling ) %>%
     dplyr::distinct() %>%
     dplyr::ungroup() %>%
+    dplyr::left_join(weighted_pauling_values) %>% ## INCORPORATE WEIGHTED VALUES
     dplyr::rename(from = mineral_name) -> network_information
+  
   
   ## Remove element nodes without redox, IF elements_by_redox==TRUE and ignore_na_redox==TRUE
   if(elements_by_redox == TRUE & ignore_na_redox == TRUE)
@@ -248,13 +250,13 @@ construct_network   <- function(elements_only_age, elements_by_redox, ignore_na_
   ## Edge metadata ------------------------------------------------
   ## Columns that require an explicit link between minerals and elements, OR are used in edge styling
   network_information %>%
-    dplyr::select(from, to, element_redox_mineral, max_age, num_localities_mineral, mean_pauling, cov_pauling) %>%
+    dplyr::select(from, to, element_redox_mineral, max_age, num_localities_mineral, mean_pauling, w_mean_pauling, cov_pauling, w_cov_pauling) %>%
     dplyr::distinct() -> edge_metadata
                      
                      
   ## Node metadata ------------------------------------------------
   network_information %>% 
-    dplyr::select(from, mineral_id, max_age, num_localities_mineral, ima_chemistry, rruff_chemistry,  mean_pauling, cov_pauling) %>% 
+    dplyr::select(from, mineral_id, max_age, num_localities_mineral, ima_chemistry, rruff_chemistry, mean_pauling, w_mean_pauling, cov_pauling, w_cov_pauling) %>% 
     dplyr::rename(id = from) %>%
     dplyr::distinct() -> mineral_metadata
   
@@ -432,7 +434,7 @@ subset_mineral_nodes <- function(nodes)
 {
   nodes %>%
     dplyr::filter(group == "mineral") %>%
-    dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, mean_pauling, cov_pauling) %>% 
+    dplyr::select(cluster_ID, network_degree_norm, closeness, num_localities, max_age, w_mean_pauling, mean_pauling, w_cov_pauling, cov_pauling) %>% 
     rename_for_ui() %>%
     ## rename for UI **EXCEPT** cluster_ID
     dplyr::rename(cluster_ID = cluster_ID_str) %>%

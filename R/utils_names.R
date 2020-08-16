@@ -54,9 +54,15 @@ pauling_str                 <- "Element electronegativity"
 #' UI display string for mean_pauling variable
 #' @noRd
 mean_pauling_str            <- "Mean mineral electronegativity"  
+#' UI display string for w_mean_pauling variable
+#' @noRd
+w_mean_pauling_str            <- "Weighted mean mineral electronegativity"  
 #' UI display string for cov_pauling variable
 #' @noRd
 cov_pauling_str             <- "COV mineral electronegativity"
+#' UI display string for w_cov_pauling variable
+#' @noRd
+w_cov_pauling_str             <- "Weighted COV mineral electronegativity"
 #' UI display string for id variable
 #' @noRd
 id_str                      <- "Node name" 
@@ -153,11 +159,11 @@ element_cluster_ID_str      <- "Element community cluster"
 
 #' Variables as an array to be matched with names
 #' @noRd
-variables_themselves <- c("element_redox_mineral", "element_redox_network", "max_age", "min_age", "age_type", "num_localities_mineral", "num_localities_element", "num_localities", "locality_longname","mindat_id", "max_age_locality", "min_age_locality" , "network_degree_norm", "network_degree", "closeness", "pauling", "mean_pauling", "cov_pauling", "id", "cluster_ID", "group", "element", "element_name", "mineral_name", "mineral_id",  "rruff_chemistry", "ima_chemistry", "element_hsab", "number_of_protons", "atomic_mass", "atomic_radius", "element_table_group", "element_table_period", "element_metal_type", "element_density", "element_specific_heat", "mineral_cluster_ID", "mineral_closeness", "mineral_network_degree_norm", "element_cluster_ID", "element_closeness", "element_network_degree_norm")
+variables_themselves <- c("element_redox_mineral", "element_redox_network", "max_age", "min_age", "age_type", "num_localities_mineral", "num_localities_element", "num_localities", "locality_longname","mindat_id", "max_age_locality", "min_age_locality" , "network_degree_norm", "network_degree", "closeness", "pauling", "w_mean_pauling", "mean_pauling", "w_cov_pauling", "cov_pauling", "id", "cluster_ID", "group", "element", "element_name", "mineral_name", "mineral_id",  "rruff_chemistry", "ima_chemistry", "element_hsab", "number_of_protons", "atomic_mass", "atomic_radius", "element_table_group", "element_table_period", "element_metal_type", "element_density", "element_specific_heat", "mineral_cluster_ID", "mineral_closeness", "mineral_network_degree_norm", "element_cluster_ID", "element_closeness", "element_network_degree_norm")
 
 #' Variables names as an array
 #' @noRd
-variable_names <- c(element_redox_mineral_str, element_redox_network_str, max_age_str, min_age_str, age_type_str, num_localities_mineral_str, num_localities_element_str, num_localities_str, locality_longname_str, mindat_id_str, max_age_locality_str, min_age_locality_str, network_degree_norm_str, network_degree_str, closeness_str, pauling_str, mean_pauling_str, cov_pauling_str, id_str, cluster_ID_str, group_str, element_str, element_name_str, mineral_name_str, mineral_id_str, rruff_chemistry_str, ima_chemistry_str, element_hsab_str, number_of_protons_str, atomic_mass_str, atomic_radius_str, element_table_group_str, element_table_period_str, element_metal_type_str, element_density_str, element_specific_heat_str, mineral_cluster_ID_str, mineral_closeness_str, mineral_network_degree_norm_str, element_cluster_ID_str, element_closeness_str, element_network_degree_norm_str) 
+variable_names <- c(element_redox_mineral_str, element_redox_network_str, max_age_str, min_age_str, age_type_str, num_localities_mineral_str, num_localities_element_str, num_localities_str, locality_longname_str, mindat_id_str, max_age_locality_str, min_age_locality_str, network_degree_norm_str, network_degree_str, closeness_str, pauling_str, w_mean_pauling_str, mean_pauling_str, w_cov_pauling_str, cov_pauling_str, id_str, cluster_ID_str, group_str, element_str, element_name_str, mineral_name_str, mineral_id_str, rruff_chemistry_str, ima_chemistry_str, element_hsab_str, number_of_protons_str, atomic_mass_str, atomic_radius_str, element_table_group_str, element_table_period_str, element_metal_type_str, element_density_str, element_specific_heat_str, mineral_cluster_ID_str, mineral_closeness_str, mineral_network_degree_norm_str, element_cluster_ID_str, element_closeness_str, element_network_degree_norm_str) 
 
 #' Array of variables matched to their UI display, as c(variable_name = display_name_str)
 #' @noRd
