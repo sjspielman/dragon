@@ -78,7 +78,7 @@ element_info <- tibble::tribble(
   "Calcium", "Ca", "Hard acid", 40.078, 20, 4, 2, 2.20, 1.00, "Alkaline Earth Metal", 1.54e+00, 0.647, 
   "Cadmium", "Cd", "Soft acid", 112.411, 48, 5, 12, 1.70, 1.69, "Transition Metal", 8.69e+00, 0.232, 
   "Cerium", "Ce", "Hard acid", 140.116, 58, 6, NA, 2.70, 1.12, "Lanthanide", 6.77e+00, 0.192, 
-  "Chlorine", "Cl", "Int., base", 35.453, 17, 3, 17, 0.97, 3.16, "Halogen", 3.21e-03, 0.479, 
+  "Chlorine", "Cl", "Int. base", 35.453, 17, 3, 17, 0.97, 3.16, "Halogen", 3.21e-03, 0.479, 
   "Cobalt", "Co", "Int. acid", 58.933, 27, 4, 9, 1.70, 1.88, "Transition Metal", 8.86e+00, 0.421, 
   "Chromium", "Cr", "Hard acid", 51.996, 24, 4, 6, 1.90, 1.66, "Transition Metal", 7.15e+00, 0.449, 
   "Cesium", "Cs", "Hard acid", 132.905, 55, 6, 1, 3.30, 0.79, "Alkali Metal", 1.87e+00, 0.242, 
@@ -102,7 +102,7 @@ element_info <- tibble::tribble(
   "Magnesium", "Mg", "Hard acid", 24.305, 12, 3, 2, 1.70, 1.31, "Alkaline Earth Metal", 1.74e+00, 1.023, 
   "Manganese", "Mn", "Int. acid", 54.938, 25, 4, 7, 1.80, 1.55, "Transition Metal", 7.44e+00, 0.479, 
   "Molybdenum", "Mo", "Int. acid", 95.960, 42, 5, 6, 2.00, 2.16, "Transition Metal", 1.02e+01, 0.251, 
-  "Nitrogen", "N", "Int., base", 14.007, 7, 2, 15, 0.75, 3.04, "Nonmetal", 1.25e-03, 1.040, 
+  "Nitrogen", "N", "Int. base", 14.007, 7, 2, 15, 0.75, 3.04, "Nonmetal", 1.25e-03, 1.040, 
   "Sodium", "Na", "Hard acid", 22.990, 11, 3, 1, 2.20, 0.93, "Alkali Metal", 9.71e-01, 1.228, 
   "Niobium", "Nb", "Hard acid", 92.906, 41, 5, 5, 2.10, 1.60, "Transition Metal", 8.57e+00, 0.265, 
   "Neodymium", "Nd", "Hard acid", 144.242, 60, 6, NA, 2.60, 1.14, "Lanthanide", 7.01e+00, 0.190, 
@@ -118,7 +118,7 @@ element_info <- tibble::tribble(
   "Rare-earth element", "REE", NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, 
   "Rhodium", "Rh", "Soft acid", 102.906, 45, 5, 9, 1.80, 2.28, "Transition Metal", 1.24e+01, 0.243, 
   "Ruthenium", "Ru", "Soft acid", 101.070, 44, 5, 8, 1.90, 2.20, "Transition Metal", 1.24e+01, 0.238, 
-  "Sulfur", "S", "Int., base", 32.065, 16, 3, 16, 1.10, 2.58, "Nonmetal", 2.07e+00, 0.710, 
+  "Sulfur", "S", "Int. base", 32.065, 16, 3, 16, 1.10, 2.58, "Nonmetal", 2.07e+00, 0.710, 
   "Antimony", "Sb", "Hard acid", 121.760, 51, 5, 15, 1.50, 2.05, "Metalloid", 6.69e+00, 0.207, 
   "Scandium", "Sc", "Hard acid", 44.956, 21, 4, 3, 2.10, 1.36, "Transition Metal", 2.99e+00, 0.568, 
   "Selenium", "Se", "Soft base", 78.960, 34, 4, 16, 1.20, 2.55, "Nonmetal", 4.81e+00, 0.321, 
@@ -139,5 +139,6 @@ element_info <- tibble::tribble(
   "Ytterbium", "Yb", "Hard acid", 173.054, 70, 6, NA, 2.40, 1.10, "Lanthanide", 6.97e+00, 0.155, 
   "Zinc", "Zn", "Int. acid", 65.380, 30, 4, 12, 1.50, 1.65, "Transition Metal", 7.13e+00, 0.388, 
   "Zirconium", "Zr", "Hard acid", 91.224, 40, 5, 4, 2.20, 1.33, "Transition Metal", 6.51e+00, 0.278)
+
 
 
