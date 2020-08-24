@@ -33,6 +33,7 @@ Imports:
     colorspace (>= 1.4),
     visNetwork (>= 2.0.9),
     igraph (>= 0.4),
+    rlang,
     htmltools,
     stats,
     promises,

@@ -169,6 +169,7 @@ title_to_variable <-  setNames(variables_themselves, variable_names)
 
 
 #' Rename columns with presentable UI names
+#' @importFrom rlang :=
 #' @param df A tibble to rename
 #' @return Renamed tibble
 #' @noRd

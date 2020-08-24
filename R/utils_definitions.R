@@ -26,12 +26,33 @@ med_m2_url        <- paste0(med_exporting_url, "tbl_locality_age_cache_alt.csv")
 #' @noRd
 dragon_github_issue_url <- "https://github.com/spielmanlab/dragon/issues"
 
-## Explicit pipe and operator definitions ---------------------------------------------------------
-`%>%`    <- magrittr::`%>%`
-`%<>%`   <- magrittr::`%>%`
-`%...>%` <- promises::`%...>%`
-`:=`     <- rlang::`:=`
-`!!`     <- rlang::`!!`
+## Explicit pipe definitions ---------------------------------------------------------
+#' Pipe operator
+#'
+#' See \code{magrittr::\link[magrittr:pipe]{\%>\%}} for details.
+#'
+#' @name %>%
+#' @keywords internal
+#' @noRd
+#' @importFrom magrittr %>%
+NULL
+
+#' Pipe assignment operator
+#'
+#' @name %>%
+#' @keywords internal
+#' @noRd
+#' @importFrom magrittr %<>%
+NULL
+
+#' Promises pipe operator
+#'
+#' @name %...>%
+#' @keywords internal
+#' @noRd
+#' @importFrom promises %...>%
+NULL
+
 
 ## Enjoyable error messages ----------------------------------------------------------------
 #' Enjoyable error messages for randomized use in sweetAlerts

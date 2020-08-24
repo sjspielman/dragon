@@ -84,7 +84,7 @@ baseline_timeline <- function()
     ggplot2::geom_bar(alpha = band_alpha*10, color = "black") +  ## legend alpha seems weaker so *10.
     ggplot2::scale_fill_manual(values = c(geochemical_evidence_color, goe_color),
                                labels = c("Geochemical evidence of early microbial metabolism",
-                                          "Great Oxidation Events"),
+                                          "Oxygenation Events"),
                                name   = "") + 
     ggplot2::guides(fill = ggplot2::guide_legend(nrow=2)) + 
     ggplot2::theme(legend.text = ggplot2::element_text(size=12),
@@ -136,7 +136,7 @@ prepare_timeline_data <- function(df, age_range, max_age_type)
 
 
 
-#' Build GOE1, GOE2, and microbial metabolism bands to timeline plot
+#' Add "GOE1", "GOE2", and microbial metabolism bands to timeline plot
 #' 
 #' @param p ggplot that these bands should be added to
 #' @return ggplot containing bands
@@ -144,15 +144,16 @@ prepare_timeline_data <- function(df, age_range, max_age_type)
 add_timeline_events <- function(p)
 {
   p + 
-    ggplot2::geom_rect(ggplot2::aes(xmin = 2400,  # x axis reverse!
+    # GOE 1: Warke et al 2020 says 2.501 - 2.3 ga
+    ggplot2::geom_rect(ggplot2::aes(xmin = 2501,  # x axis reverse!
                                     xmax = 2300,
                                     ymin = 0,
                                     ymax = Inf),
                        fill = goe_color, 
                        alpha = band_alpha) + 
-      ## GOE 2
-      ggplot2::geom_rect(ggplot2::aes(xmin = 630, # x axis reverse!
-                                      xmax = 540,
+      ## GOE 2: from scott at al 2008 0.66-0.55 ga
+      ggplot2::geom_rect(ggplot2::aes(xmin = 660, # x axis reverse!
+                                      xmax = 550,
                                       ymin = 0, 
                                       ymax = Inf),
                          fill = goe_color, 
