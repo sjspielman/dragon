@@ -16,7 +16,7 @@ The `dragon` (**D**eep time **R**edox **A**nalysis of the **G**eobiology **O**nt
 
 **The associated pre-print** is available [here](https://eartharxiv.org/z7k9q/) and can be cited as:
 
-Spielman, Stephanie J., and Eli K. Moore. 2020. “dragon: A New Tool for Exploring Redox Evolution Preserved in the Mineral Record.” EarthArXiv. July 16. doi:10.31223/osf.io/z7k9q.
+Stephanie J. Spielman and Eli K. Moore. 2020. “dragon: A New Tool for Exploring Redox Evolution Preserved in the Mineral Record.” EarthArXiv. July 16. doi:10.31223/osf.io/z7k9q.
 
 Or, in LaTeX:
 ```
