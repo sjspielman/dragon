@@ -113,6 +113,20 @@ app_server <- function( input, output, session ) {
   edge_color          <- callModule(mod_server_choose_color_sd_palette, id = "mod_edge_colors")
 
   
+  
+
+  
+  ## Update selected elements_of_interest based on mineral composition selection -----------------------------
+  observeEvent(input$focal_from_mineral,{
+    
+    shinyWidgets::updatePickerInput(session = session,
+                                    "elements_of_interest", 
+                                    selected = get_focal_from_minerals(input$focal_from_mineral, med()$med_data)
+    ) 
+    
+    
+  }, ignoreNULL = FALSE)
+  
   ################################# Build network ####################################
   ## Construct the network from user input ------------------------------------------
   chemistry_network <- reactive({
@@ -124,6 +138,7 @@ app_server <- function( input, output, session ) {
     
     elements_of_interest <- input$elements_of_interest
     force_all_elements   <- input$force_all_elements
+    restrict_to_elements <- input$restrict_to_elements
     age_range            <- as.numeric(sort(input$age_range))  ## REVERSED, so sort here
     max_age_type         <- input$max_age_type
     elements_by_redox    <- input$elements_by_redox
@@ -142,7 +157,7 @@ app_server <- function( input, output, session ) {
         text = "Networks with all elements, especially at more recent time frames, may be very slow - please be patient."
       )
     }
-    elements_only <- initialize_data(med()$med_data, med()$element_redox_states, elements_of_interest, force_all_elements)
+    elements_only <- initialize_data(med()$med_data, med()$element_redox_states, elements_of_interest, force_all_elements, restrict_to_elements)
     if (nrow(elements_only) == 0)
     {
       shinyWidgets::sendSweetAlert(

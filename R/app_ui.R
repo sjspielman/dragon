@@ -34,21 +34,36 @@ app_ui <- function(request) {
                         ), 
                         multiple = TRUE
             ), ## END pickerInput
-            
-              shinyWidgets::sliderTextInput("age_range","Age (Ga) range of minerals:", choices = rev(seq(0, max(med_data_cache$max_age), 0.1)), grid=T, selected=c(max(med_data_cache$max_age),0)),
-              shinyWidgets::prettyRadioButtons("max_age_type", "Use maximum or minimum age of minerals", inline = TRUE, choices = c("Maximum", "Minimum"), selected="Maximum", status="danger"),
-              shinyWidgets::prettySwitch("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger"),
-              conditionalPanel(condition = "input.elements_by_redox == true",{
-                shinyWidgets::prettySwitch("ignore_na_redox","Ignore elements with unknown redox states",value = FALSE, status="danger")
-              }),        
-              shinyWidgets::prettySwitch("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
-              shinyWidgets::prettySwitch("build_only","Build network without display",value = FALSE, status="danger"),
-              fluidRow(
-                column(12, align="center",
-                       shinyWidgets::actionBttn("go", "Initialize Network", size="md", color = "danger", style = "fill")
-                )
-              ),
-            
+            shinyWidgets::pickerInput("focal_from_mineral","Select focal elements based on mineral composition:",
+                                        # TODO: THIS SHOULD USE UPDATED MED DATA WHEN SPECIFIED - has to be a renderUI 
+                                        # TODO: SHOW FORMULAS ALSO?
+                                        choices = sort(unique(med_data_cache$mineral_name)),
+                                        choicesOpt = list(
+                                          content = sprintf("<span>%s </span>", mineral_names_formulas()) 
+                                        ),
+                                        #choices = sort(unique(med_data_cache$mineral_name)),
+                                        options = list(
+                                          `actions-box` = TRUE, 
+                                          size = 8,
+                                          `live-search` = TRUE
+                                        ), 
+                                        multiple = TRUE
+            ),
+            shinyWidgets::sliderTextInput("age_range","Age (Ga) range of minerals:", choices = rev(seq(0, max(med_data_cache$max_age), 0.1)), grid=T, selected=c(max(med_data_cache$max_age),0)),
+            shinyWidgets::prettyRadioButtons("max_age_type", "Use maximum or minimum age of minerals", inline = TRUE, choices = c("Maximum", "Minimum"), selected="Maximum", status="danger"),
+            shinyWidgets::prettySwitch("elements_by_redox","Use separate nodes for each element redox",value = FALSE, status="danger"),
+            conditionalPanel(condition = "input.elements_by_redox == true",{
+              shinyWidgets::prettySwitch("ignore_na_redox","Ignore elements with unknown redox states",value = FALSE, status="danger")
+            }),        
+            shinyWidgets::prettySwitch("force_all_elements","Force element intersection in minerals",value = FALSE, status="danger"),
+            shinyWidgets::prettySwitch("restrict_to_elements","Only consider minerals with focal element(s)",value = FALSE, status="danger"),
+            shinyWidgets::prettySwitch("build_only","Build network without display",value = FALSE, status="danger"),
+            fluidRow(
+              column(12, align="center",
+                     shinyWidgets::actionBttn("go", "Initialize Network", size="md", color = "danger", style = "fill")
+              )
+            ),
+           
             ## NETWORK LAYOUT AND CLUSTERING ---------------------------------------------------------------------------------------------
             menuItem("Network layout and clustering options",
               fluidRow(

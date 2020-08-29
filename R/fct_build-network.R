@@ -1,7 +1,23 @@
+#' Obtain an array of focal elements from provided minerals
+#' @param minerals_for_focal An array of minerals whose elements should be used as focal
+#' @param med_data The MED data
+#' @noRd
+#' @returns Array of elements
+get_focal_from_minerals <- function(minerals_for_focal, med_data = med_data_cache)
+{
+  med_data %>% 
+    dplyr::filter(mineral_name %in% minerals_for_focal) %>% 
+    tidyr::separate_rows(chemistry_elements, sep = " ") %>% 
+    dplyr::select(chemistry_elements) %>% 
+    dplyr::distinct() %>%
+    dplyr::pull(chemistry_elements)
+}
+
+
 #' Initialize a mineral-chemistry network as stand-alone network rather than for embedding 
 #' into the Shiny App.
 #' 
-#' @param elements_of_interest A array of specified elements whose minerals should be included in
+#' @param elements_of_interest An array of specified elements whose minerals should be included in
 #' the network. For all elements, specify "all".
 #' @param force_all_elements   A logical. If FALSE (default), minerals containing any of 
 #' `elements_of_interest` will be included in network. If TRUE, only minerals with full 
@@ -9,9 +25,8 @@
 #' @param elements_by_redox    A logical. If FALSE (default), element nodes will be constructed
 #' regardless of redox state. If TRUE, creates separate node for each element's redox state, 
 #' e.g. Fe2+ and Fe3+ would be separate nodes.
-#' @param ignore_na_redox A logical. If FALSE (default), include element nodes that do not have an associated
-#' redox state from the network. Set as TRUE to ignore these element nodes in the network. 
-#' This argument is ignored unless `elements_by_redox=TRUE`.
+#' @param restrict_to_elements    A logical. If FALSE (default), constructed network will _only_ 
+#' contain the specified focal element(s) 
 #' @param age_range            A array of two numbers giving inclusive range of mineral ages in Ga
 #'  to include in network. 
 #' @param max_age_type         A string indicating how mineral ages should be assessed. 
@@ -47,7 +62,7 @@
 initialize_network <- function(elements_of_interest, 
                                force_all_elements = FALSE, 
                                elements_by_redox = FALSE, 
-                               ignore_na_redox   = FALSE,
+                               restrict_to_elements = FALSE,
                                age_range         = c(0, 5),
                                max_age_type      = "Maximum",
                                cluster_algorithm = "Louvain",
@@ -76,41 +91,45 @@ initialize_network <- function(elements_of_interest,
   }
   age_range <- sort(age_range)
   
-  subset_med <- initialize_data(med_data, element_redox_states, elements_of_interest, force_all_elements)
+  subset_med <- initialize_data(med_data, element_redox_states, elements_of_interest, force_all_elements, restrict_to_elements)
   if (nrow(subset_med) == 0) stop("Network cannot be constructed with provided elements.")
   
   age_data    <- initialize_data_age(subset_med, age_range, max_age_type)
   if (nrow(age_data$elements_only_age) == 0) stop("Network cannot be constructed at specified age range.")
-
-  network_raw <- construct_network(age_data$elements_only_age, elements_by_redox, ignore_na_redox, element_redox_states)
+  
+  network_raw <- construct_network(age_data$elements_only_age, elements_by_redox, element_redox_states)
   if (nrow(network_raw$nodes) == 0) stop("Network could not be constructed. Please adjust input settings.")
   if (nrow(network_raw$edges) == 0) stop("Network could not be constructed. Please adjust input settings.")
-
+  
   clustered   <- specify_community_detect_network(network_raw$network, network_raw$nodes, "Louvain")
   return(list("network" = network_raw$network,
-               "nodes"  =  clustered$nodes,
-               "edges"  =  network_raw$edges,
-               "locality_info" = age_data$locality_info,
-               "clustering" = clustered$clustered
-              )
-        )
+              "nodes"  =  clustered$nodes,
+              "edges"  =  network_raw$edges,
+              "locality_info" = age_data$locality_info,
+              "clustering" = clustered$clustered
+  )
+  )
 }
-    
+
 
 
 #' Subset MED data to contain only elements of interest for network construction
 #'
 #' @param med_data Input Mineral Evolution Database data
 #' @param element_redox_states A tibble of elements and their associated redox states per mineral
-#' @param elements_of_interest A array of specified elements whose minerals should be included in the network. For all elements, specify "all".
-#' @param force_all_elements   A logical. If FALSE (default), minerals containing any of `elements_of_interest` will be included in network. If TRUE, only minerals with full intersection of all specified elements will be included in network.
-#' @param max_age_type         A string indicating how mineral ages should be assessed. If "Maximum" (default), filters minerals using maximum known ages at localities. If "Minimum", filters minerals using minimum known ages at localities. 
+#' @param elements_of_interest A array of specified elements whose minerals should be included in the network. 
+#' For all elements, specify "all".
+#' @param force_all_elements   A logical. If FALSE (default), minerals containing any of `elements_of_interest` 
+#' will be included in network. If TRUE, only minerals with full intersection of all specified elements will be included in network.
+#' @param restrict_to_elements A logical. If FALSE (default), constructed network will _only_ 
+#' contain the specified focal element(s) 
+#' @param max_age_type   A string indicating how mineral ages should be assessed. If "Maximum" (default), filters minerals using maximum known ages at localities. If "Minimum", filters minerals using minimum known ages at localities. 
 #'
 #' @returns Tibble subsetted from MED containing only those minerals with specified element settings
 #' @noRd
-initialize_data <- function(med_data, element_redox_states, elements_of_interest, force_all_elements = FALSE)
+initialize_data <- function(med_data, element_redox_states, elements_of_interest, force_all_elements = FALSE, restrict_to_elements = FALSE)
 { 
-
+  
   ## Must have all elements
   if (force_all_elements)
   {
@@ -120,19 +139,51 @@ initialize_data <- function(med_data, element_redox_states, elements_of_interest
       dplyr::group_by(mineral_name) %>%
       dplyr::distinct() %>% ##!!!!!!!!
       dplyr::mutate(has_element = ifelse( sum(element %in% elements_of_interest) == n_elements, TRUE, FALSE)) %>% 
-      dplyr::filter(has_element == TRUE) -> elements_only_raw
+      dplyr::filter(has_element == TRUE) %>%
+      dplyr::select(-has_element) -> elements_only_raw
+    
+    if (restrict_to_elements){
+      
+      # number of elements per mineral
+      elements_only_raw %>%
+        dplyr::count(mineral_name) -> elements_per_mineral
+      
+      # number of elements per mineral when only the elements_of_interest are considered.
+      # only keep intersection
+      elements_only_raw %>% 
+        dplyr::filter(element %in% elements_of_interest) %>% 
+        dplyr::count(mineral_name) %>%
+        dplyr::intersect(elements_per_mineral) %>%
+        dplyr::pull(mineral_name) -> minerals_to_keep
+      
+      elements_only_raw %>%
+        dplyr::filter(mineral_name %in% minerals_to_keep) -> elements_only_raw
+    }
   } else 
   { ## Has at least one element
     element_redox_states %>% 
       dplyr::select(-element_redox_mineral) %>%
       dplyr::group_by(mineral_name) %>%
       dplyr::filter(element %in% elements_of_interest) -> elements_only_raw
+    
+    if (restrict_to_elements) {
+      element_redox_states %>% 
+        dplyr::select(-element_redox_mineral) %>%
+        dplyr::group_by(mineral_name) %>%
+        dplyr::filter(!(element %in% elements_of_interest)) %>%
+        dplyr::select(mineral_name) %>%
+        dplyr::distinct() %>%
+        dplyr::pull(mineral_name) -> exclude_these_minerals
+      
+      elements_only_raw %>%
+        dplyr::filter(!(mineral_name %in% exclude_these_minerals)) -> elements_only_raw
+    }
   }
+  
   elements_only_raw %>%
     dplyr::ungroup() %>%
     dplyr::select(mineral_name) %>%
-    dplyr::inner_join(med_data) -> elements_only
-  elements_only
+    dplyr::inner_join(med_data) 
 }
 
 #' Subset element-filtered data to contain only minerals in specified age range

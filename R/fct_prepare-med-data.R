@@ -52,8 +52,11 @@ fetch_med_data <- function()
       ## ima_chemistry formula to HTML
       dplyr::rowwise() %>%
       dplyr::mutate(ima_chemistry = stringr::str_replace_all(ima_chemistry, 
-                                                             "_(\\d+\\.*\\d*)_", 
-                                                             "<sub>\\1</sub>")) %>%
+                                                             "_(\\d+\\.*-*\\d*)_", 
+                                                             "<sub>\\1</sub>"), 
+                    ima_chemistry = stringr::str_replace_all(ima_chemistry, 
+                                                             "\\^(\\d[\\+-])\\^", 
+                                                             "<sup>\\1</sup>")) %>%
       dplyr::ungroup()
   }
 }
