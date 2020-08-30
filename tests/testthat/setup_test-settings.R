@@ -2,6 +2,7 @@
 ## Note: Testing also _does_ test these functions. 
 
 ## Make testdata files accessible ---------
+#testdata_path <- "../../inst/testdata/" 
 testdata_path <- system.file("testdata",package="dragon")
 
 ## Read in testdata CSV files and graph  --------------------------------
@@ -13,14 +14,6 @@ true_mineral_nodes <- readr::read_csv(file.path(testdata_path, "true_mineral_nod
 true_styled_nodes  <- readr::read_csv(file.path(testdata_path, "styled_nodes.csv.zip"), col_types = readr::cols())
 true_styled_edges  <- readr::read_csv(file.path(testdata_path, "styled_edges.csv.zip"), col_types = readr::cols())
 true_locality_info <- readr::read_csv(file.path(testdata_path, "locality_info.csv.zip"), col_types = readr::cols())
-
-true_node_names <- sort(names(true_nodes))
-true_node_names_precluster <- true_node_names[true_node_names != "cluster_ID" & true_node_names != "cluster_algorithm"]
-true_edge_names <- sort(names(true_edges))
-true_styled_node_names <- sort(names(true_styled_nodes))
-true_styled_edge_names <- sort(names(true_styled_edges))
-true_locality_names <- sort(names(true_locality_info))
-true_mineral_node_names <- sort(names(true_mineral_nodes))
 
 ## Variables about the graph to be tested --------------------------------
 true_modularity      <- 0.4432351 
@@ -133,4 +126,25 @@ true_edge_color_by_vals <- c("#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E
 true_point_color   <- red
 true_point_size    <- 2.33 
 true_bestfit_color <- orange
+
+## Expected variables in certain dfs -----------------------------------
+true_node_names            <- sort(names(true_nodes))
+true_node_names_precluster <- true_node_names[true_node_names != "cluster_ID" & true_node_names != "cluster_algorithm"]
+true_edge_names            <- sort(names(true_edges))
+true_styled_node_names     <- sort(names(true_styled_nodes))
+true_styled_edge_names     <- sort(names(true_styled_edges))
+true_locality_names        <- sort(names(true_locality_info))
+true_mineral_node_names    <- sort(names(true_mineral_nodes))
+
+
+initialize_data_names <- sort(c("mineral_name", "mineral_id", "mindat_id", "locality_longname" , "age_type", "rruff_chemistry", "ima_chemistry", "min_age","max_age", "chemistry_elements"))
+initialize_data_age_names <- sort(c("mineral_name", "mineral_id", "max_age", "num_localities_mineral", "ima_chemistry", "rruff_chemistry", "chemistry_elements"))
+
+
+
+expected_element_variables <- c("element_hsab", "atomic_mass", "number_of_protons", "table_period", "table_group", "atomic_radius", "pauling", "metal_type", "element_density", "element_specific_heat", "element_name", "element_redox_network")
+expected_mineral_variables <- c( "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "w_mean_pauling", "cov_pauling", "w_cov_pauling")
+expected_shared_variables <- c("cluster_ID", "network_degree", "closeness", "network_degree_norm")
+
+
 

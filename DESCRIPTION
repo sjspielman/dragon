@@ -49,6 +49,7 @@ Suggests:
     testthat (>= 2.1.0),
     processx,
     knitr,
+    zip,
     rmarkdown
 VignetteBuilder: knitr
 URL: https://github.com/sjspielman/dragon

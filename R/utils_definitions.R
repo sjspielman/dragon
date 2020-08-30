@@ -38,14 +38,6 @@ dragon_github_issue_url <- "https://github.com/spielmanlab/dragon/issues"
 error_choices <- c("Oh no!", "Sorry, that's not gonna work.", "Try again!", "Womp womp :(", "No dice!", "Uh oh!", "Woopsies!")
 
 
-mineral_names_formulas <- function(){
-med_data_cache %>% 
-  dplyr::select(mineral_name, ima_chemistry) %>% 
-  dplyr::distinct() %>% 
-  dplyr::arrange(mineral_name) %>%
-  dplyr::mutate(both = paste0(mineral_name, " (", ima_chemistry, ")")) %>% 
-  dplyr::pull(both) 
-}
 #' Tibble of element metadata
 #' @noRd
 element_info <- tibble::tribble(

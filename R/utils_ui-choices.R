@@ -1,6 +1,18 @@
 
 ## Style UI choices ------------------------------------------------------------
 
+#' Combined string of mineral names and their formulas for UI choosing focal from minerals
+#' @noRd
+mineral_names_formulas <- function(med_data = med_data_cache){
+  med_data %>% 
+    dplyr::select(mineral_name, ima_chemistry) %>% 
+    dplyr::distinct() %>% 
+    dplyr::arrange(mineral_name) %>%
+    dplyr::mutate(both = paste0(mineral_name, " (", ima_chemistry, ")")) %>% 
+    dplyr::pull(both) 
+}
+
+
 #' UI options for selecting a color scheme for minerals in the TIMELINE
 #' @noRd
 mineral_timeline_color_by_choices <- setNames(c("singlecolor",

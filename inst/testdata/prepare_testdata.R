@@ -1,4 +1,5 @@
 library(dragon)
+library(zip)
 
 ################### THIS IS ALL ALSO IN THE SETUP TEST SUITE #############################
 ##########################################################################################
@@ -39,6 +40,10 @@ true_highlight_color     <- yellow
 true_special_element_id <- c("P", "O-2", "H+1", "Fe+2", "Fe", "Fe+3") ## the three iron focals and P/O/H redoxes
 true_custom_selection_color_1   <- orange
 true_custom_selection_color_2   <- black
+true_custom_element_colors <- c("P" = true_custom_selection_color_1,
+                                "O-2" = true_custom_selection_color_1,
+                                "H+1" = true_custom_selection_color_2)
+
 true_custom_selection_set_1 <- c("P", "O-2")
 true_custom_selection_set_2 <- c("H+1")
 
@@ -63,8 +68,7 @@ true_style_options <- list("color_by_cluster"  = FALSE,
                            "elements_by_redox"        = TRUE, ## IT'S TRUE
                            "highlight_element"        = TRUE,
                            "highlight_color"          = true_highlight_color,
-                           "custom_selection_element" = true_custom_selection_element,
-                           "custom_selection_color"   = true_custom_selection_color,
+                           "custom_element_colors"    = true_custom_element_colors,
                            "na_color"                 = true_na_color,
                            ## Sizes
                            "element_size_by"  = "singlesize", ## num_localities 
@@ -86,19 +90,33 @@ true_style_options <- list("color_by_cluster"  = FALSE,
 network_by_redox <- dragon::initialize_network(focal, 
                                                force_all_elements = FALSE, 
                                                elements_by_redox = TRUE, 
+                                               restrict_to_elements = FALSE, 
+                                               ignore_na_redox = FALSE,
                                                age_range         = c(4, 5),
                                                max_age_type      = "Maximum",
-                                               cluster_algorithm = "Louvain")
+                                               cluster_algorithm = "Louvain",
+                                               use_data_cache    = TRUE)
+#outpath <- "./"
 outpath <- system.file("testdata", package="dragon")
-readr::write_csv(network_by_redox$locality_info, file.path(outpath, "locality_info.csv"))
-readr::write_csv(network_by_redox$edges, file.path(outpath, "edges_by_redox.csv"))
-readr::write_csv(network_by_redox$nodes, file.path(outpath, "nodes_by_redox.csv"))
-igraph::write_graph(network_by_redox$network, file.path(outpath,"graph_by_redox.igraph"), format="ncol")
 
-subset_mineral_nodes(network_by_redox$nodes) %>% readr::write_csv(file.path(outpath, "true_mineral_nodes.csv"))
 
+write_zip_clean <- function(df, file){
+  readr::write_csv(df, file)
+  zip::zip(paste0(file, ".zip"), file)
+  file.remove(file)
+}
+
+write_zip_clean(network_by_redox$locality_info, file.path(outpath, "locality_info.csv"))
+write_zip_clean(network_by_redox$edges, file.path(outpath, "edges_by_redox.csv"))
+write_zip_clean(network_by_redox$nodes, file.path(outpath, "nodes_by_redox.csv"))
+
+subset_mineral_nodes(network_by_redox$nodes) %>% 
+  write_zip_clean(file.path(outpath, "true_mineral_nodes.csv"))
+  
 true_styled_nodes <- style_nodes(network_by_redox$nodes, true_style_options)
 true_styled_edges <- style_edges(network_by_redox$edges, true_style_options)
+write_zip_clean(true_styled_nodes$styled_nodes, file.path(outpath, "styled_nodes.csv"))
+write_zip_clean(true_styled_edges$styled_edges, file.path(outpath, "styled_edges.csv"))
 
-readr::write_csv(true_styled_nodes$styled_nodes, file.path(outpath, "styled_nodes.csv"))
-readr::write_csv(true_styled_edges$styled_edges, file.path(outpath, "styled_edges.csv"))
+igraph::write_graph(network_by_redox$network, file.path(outpath,"graph_by_redox.igraph"), format="ncol")
+

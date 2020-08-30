@@ -27,6 +27,8 @@ get_focal_from_minerals <- function(minerals_for_focal, med_data = med_data_cach
 #' e.g. Fe2+ and Fe3+ would be separate nodes.
 #' @param restrict_to_elements    A logical. If FALSE (default), constructed network will _only_ 
 #' contain the specified focal element(s) 
+#' @param ignore_na_redox A logical. If TRUE and elements_by_redox is TRUE, element nodes 
+#' without redox states will be removed from the network.
 #' @param age_range            A array of two numbers giving inclusive range of mineral ages in Ga
 #'  to include in network. 
 #' @param max_age_type         A string indicating how mineral ages should be assessed. 
@@ -63,6 +65,7 @@ initialize_network <- function(elements_of_interest,
                                force_all_elements = FALSE, 
                                elements_by_redox = FALSE, 
                                restrict_to_elements = FALSE,
+                               ignore_na_redox = FALSE,
                                age_range         = c(0, 5),
                                max_age_type      = "Maximum",
                                cluster_algorithm = "Louvain",
@@ -73,8 +76,7 @@ initialize_network <- function(elements_of_interest,
   {
     med_data <- med_data_cache
     element_redox_states <- element_redox_states_cache
-  } else
-  {
+  } else {
     print("ALERT:  Downloading data from Mineral Evolution Database. Please be patient! This may/will take several minutes, or longer depending on your internet connection.")
     med_data <- fetch_med_data()
     if(med_data == FALSE){
@@ -93,11 +95,11 @@ initialize_network <- function(elements_of_interest,
   
   subset_med <- initialize_data(med_data, element_redox_states, elements_of_interest, force_all_elements, restrict_to_elements)
   if (nrow(subset_med) == 0) stop("Network cannot be constructed with provided elements.")
-  
+
   age_data    <- initialize_data_age(subset_med, age_range, max_age_type)
   if (nrow(age_data$elements_only_age) == 0) stop("Network cannot be constructed at specified age range.")
   
-  network_raw <- construct_network(age_data$elements_only_age, elements_by_redox, element_redox_states)
+  network_raw <- construct_network(age_data$elements_only_age, elements_by_redox, ignore_na_redox, element_redox_states)
   if (nrow(network_raw$nodes) == 0) stop("Network could not be constructed. Please adjust input settings.")
   if (nrow(network_raw$edges) == 0) stop("Network could not be constructed. Please adjust input settings.")
   
