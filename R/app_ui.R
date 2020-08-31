@@ -19,7 +19,7 @@ app_ui <- function(request) {
                      headerText = "Information:",
                      notificationItem("You are using dragon version 0.3.0", icon = icon("box-open")),
                      notificationItem("Source Code", icon = icon("github"), href = "http://github.com/spielmanlab/dragon"),
-                     notificationItem("IMA Database of Mineral Properties", icon = icon("globe"), href =  "http://rruff.info/ima/")
+                     notificationItem("IMA Database of Mineral Properties", icon = icon("globe"), href =  "https://rruff.info/ima/")
                     )
         ), ## END dashboardHeader
         dashboardSidebar(width = 340,

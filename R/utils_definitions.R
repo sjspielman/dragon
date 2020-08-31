@@ -12,7 +12,7 @@ if (future::supportsMulticore() == FALSE) future::plan(future::multisession)
 
 #' Lead portion of MED URL 
 #' @noRd
-med_exporting_url <- "http://rruff.info/mineral_list/MED/exporting/"
+med_exporting_url <- "https://rruff.info/mineral_list/MED/exporting/"
 
 #' URL of `tbl_mineral.csv` data from MED
 #' @noRd
