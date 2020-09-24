@@ -28,17 +28,26 @@ The `dragon` (**D**eep-time **R**edox **A**nalysis of the **G**eobiology **O**nt
 If you use dragon, please cite the following publications:
 
 + The `dragon` library
-  + Forthcoming
+  + Spielman, Stephanie J. and Moore, Eli K. 2020. "dragon: A New Tool for Exploring Redox Evolution Preserved in the Mineral Record."”" *Frontiers in Earth Science*. doi:10.3389/feart.2020.585087.
 + The MED database
   + Golden, Joshua J., Downs, Robert T., Hazen, Robert M., Pires, Alexander J., Ralph, Jolyon. 2019. Mineral Evolution Database: Data-Driven Age Assignment, How Does a Mineral Get an Age?” In GSA Annual Meeting. Phoenix, Arizona. https://doi.org/10.1130/abs/2019AM-334056.
 
 
 Or, in LaTeX:
 ```
-# dragon preprint forthcoming
+# dragon
+@article{  ,
+  author  = {Spielman, Stephanie J. and Moore, Eli K.},   
+  title   = {dragon: A New Tool for Exploring Redox Evolution Preserved in the Mineral Record},      
+	journal = {Frontiers in Earth Science},      
+	volume  = {8},    
+	pages   = {414},
+	year    = {2020},
+	doi     = {10.3389/feart.2020.585087}
+}
 
 # MED 
-@inproceedings{med,
+@inproceedings{ ,
 	location = {Phoenix, Arizona},
 	title = {Mineral Evolution Database: Data-Driven Age Assignment, How Does a Mineral Get an Age?},
 	doi = {10.1130/abs/2019AM-334056},
@@ -52,14 +61,19 @@ Or, in LaTeX:
 
 `dragon` can be used freely online. Please visit the `dragon` github page at [https://github.com/spielmanlab/dragon](https://github.com/spielmanlab/dragon), which will contain the current link to the free online `dragon` server without any download. <!-- spielmanlab.github.io/dragon -->. 
 
-Alternatively, the current release of `dragon` can be installed from CRAN, or the bleeding edge version can be installed using the `remotes` library:
+Alternatively, the current release of `dragon` can be installed from CRAN, or the bleeding edge development version can be installed using the `remotes` library:
 ```{r}
 ## Install from CRAN:
 install.packages("dragon")
 
-## Install from github:
+## Install from github (current release)
 library(remotes)
 remotes::install_github("spielmanlab/dragon")
+
+
+## Install from github for experimental features:
+library(remotes)
+remotes::install_github("spielmanlab/dragon", ref = "dev")
 ```
 
 To run `dragon` locally on your computer after installing the package, simply load the library and issue either command, `run_dragon()` or `run_app()`:

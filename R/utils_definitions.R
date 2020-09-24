@@ -12,7 +12,7 @@ if (future::supportsMulticore() == FALSE) future::plan(future::multisession)
 
 #' Lead portion of MED URL 
 #' @noRd
-med_exporting_url <- "http://rruff.info/mineral_list/MED/exporting/"
+med_exporting_url <- "https://rruff.info/mineral_list/MED/exporting/"
 
 #' URL of `tbl_mineral.csv` data from MED
 #' @noRd
@@ -26,12 +26,33 @@ med_m2_url        <- paste0(med_exporting_url, "tbl_locality_age_cache_alt.csv")
 #' @noRd
 dragon_github_issue_url <- "https://github.com/spielmanlab/dragon/issues"
 
-## Explicit pipe and operator definitions ---------------------------------------------------------
-`%>%`    <- magrittr::`%>%`
-`%<>%`   <- magrittr::`%>%`
-`%...>%` <- promises::`%...>%`
-`:=`     <- rlang::`:=`
-`!!`     <- rlang::`!!`
+## Explicit pipe definitions ---------------------------------------------------------
+#' Pipe operator
+#'
+#' See \code{magrittr::\link[magrittr:pipe]{\%>\%}} for details.
+#'
+#' @name %>%
+#' @keywords internal
+#' @noRd
+#' @importFrom magrittr %>%
+NULL
+
+#' Pipe assignment operator
+#'
+#' @name %>%
+#' @keywords internal
+#' @noRd
+#' @importFrom magrittr %<>%
+NULL
+
+#' Promises pipe operator
+#'
+#' @name %...>%
+#' @keywords internal
+#' @noRd
+#' @importFrom promises %...>%
+NULL
+
 
 #' Enjoyable error messages for randomized use in sweetAlerts
 #' @noRd
@@ -116,5 +137,6 @@ element_info <- tibble::tribble(
   "Ytterbium", "Yb", "Hard acid", 173.054, 70, 6, NA, 2.40, 1.10, "Lanthanide", 6.97e+00, 0.155, 
   "Zinc", "Zn", "Int. acid", 65.380, 30, 4, 12, 1.50, 1.65, "Transition Metal", 7.13e+00, 0.388, 
   "Zirconium", "Zr", "Hard acid", 91.224, 40, 5, 4, 2.20, 1.33, "Transition Metal", 6.51e+00, 0.278)
+
 
 

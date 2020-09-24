@@ -1,13 +1,13 @@
 Package: dragon
 Title: Deep Time Redox Analysis of the Geobiology Ontology Network
-Version: 1.0.1
+Version: 1.0.3
 Authors@R: person("Stephanie J.", "Spielman", 
                   email = "spielman@rowan.edu", 
                   role = c("aut", "cre"),
                   comment = c(ORCID = "0000-0002-9090-4788"))
 Description: Create, visualize, manipulate, and analyze bipartite mineral-chemistry
     networks for set of focal element(s) across deep-time on Earth. The method is 
-    described in Spielman and Moore (2020) <doi:10.31223/osf.io/z7k9q>.
+    described in Spielman and Moore (2020) <doi:10.3389/feart.2020.585087>.
 License: GPL-3
 Imports: 
     config,
@@ -33,6 +33,7 @@ Imports:
     colorspace (>= 1.4),
     visNetwork (>= 2.0.9),
     igraph (>= 0.4),
+    rlang,
     htmltools,
     stats,
     promises,

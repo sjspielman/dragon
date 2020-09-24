@@ -24,7 +24,7 @@ test_that("fct_prepare-rruff-data::try_url() works", {
   expect_true(should_work$success)
   expect_true(typeof(should_work$content) == "list")
   
-  should_fail <- try_url("http://rruff.infottt", "html")
+  should_fail <- try_url("https://rruff.infottt", "html")
   expect_true(!(should_fail$success))
   expect_true(!(should_fail$content))
 })
