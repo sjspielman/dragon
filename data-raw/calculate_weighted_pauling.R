@@ -36,18 +36,20 @@ med_data_raw %>%
 ### Step 1: Get info from med_data_cache and replace where known from experts or from step 0 -------------------------------------------
 med_data_raw %>%
   dplyr::mutate(chem = case_when(mineral_name == "Ferrotochilinite"  ~ "(Fe^2+^S^2-^)_6_(Fe^2+^(OH)_2_)_5_", # 6Fe^2+^S^2-^·5Fe^2+^(OH)_2_
-                                 mineral_name == "Cousinite"         ~ "MgU_2_(MoO_4_)_2_(OH)_6",  #  "MgU_2_(MoO_4_)_2_(OH)_6_(?)"   
-                                 mineral_name == "Pigotite"          ~ "Al_4_C_6_H_5_O_10", # "Al_4_C_6_H_5_O_10_(?)" 
+                                 mineral_name == "Cousinite"         ~ "MgU_2_(MoO_4_)_2_(OH)_6_",  #  "MgU_2_(MoO_4_)_2_(OH)_6_(?)"   
+                                 mineral_name == "Pigotite"          ~ "Al_4_C_6_H_5_O_10_", # "Al_4_C_6_H_5_O_10_(?)" 
                                  mineral_name == "Renierite"         ~ "(Cu^1+^,Cu^2+^,Cu^2+^,Zn^2+^)_11_(Fe^2+^,Fe^3+^)_4_(Ge^4+^,As^5+^)_2_S^2-^_16_", #(Cu^1+^,Cu^2+^Zn^2+^)_11_(Fe^2+^,Fe^3+^)_4_(Ge^4+^,As^5+^)_2_S^2-^_16_
                                  mineral_name == "Vladimirivanovite" ~ "Na_6_Ca_2_[Al_6_Si_6_O_24_](S^6+^O_4_,S_3_,S_2_,Cl)_2_·H_2_O", # Na_6_Ca_2_[Al_6_Si_6_O_24_](S^6+^O_4_,(S_3_)^1-^,(S_2_)^2-^,Cl)_2_·H_2_O 
                                  # scalars
                                  mineral_name == "Haapalaite"        ~ "(Fe^2+^,Ni^2+^)_2_S^2-^_2_(Mg,Fe^2+^)_1.61_(OH)_3.22_", #2[(Fe^2+^,Ni^2+^)S^2-^]·1.61[(Mg,Fe^2+^)(OH)_2_]
-                                 mineral_name == "Metakottigite"     ~ "(Zn^2+^,Fe^3+^)_3_(As^5+^O_4_)_2(H_2_O,OH)_8_", # (Zn^2+^,Fe^3+^)_3_(As^5+^O_4_)_2_·8(H_2_O,OH)
-                                 mineral_name == "Renardite"         ~  "Pb(UO_2_)_4_(PO_4_)_2_(OH)_4_·7H_2_O", # Pb(UO_2_)_4_(PO_4_)_2_(OH)_4_·7(H_2_O) 
+                                 mineral_name == "Metakottigite"     ~ "(Zn^2+^,Fe^3+^)_3_(As^5+^O_4_)_2_(H_2_O,OH)_8_", # (Zn^2+^,Fe^3+^)_3_(As^5+^O_4_)_2_·8(H_2_O,OH)
                                  mineral_name == "Tochilinite"       ~ "(Fe^2+^_0.9_S^2-^)_6_(Mg,Fe^2+^)_5(OH)_10_", #6(Fe^2+^_0.9_S^2-^)·5[(Mg,Fe^2+^)(OH)_2_] 
                                  mineral_name == "Uranospathite"     ~ "(Al,)(U^6+^O_2_)_2_F(PO_4_)_2_(H_2_O,F)_20_", #(Al,[box])(U^6+^O_2_)_2_F(PO_4_)_2_·20(H_2_O,F)
                                  mineral_name == "Valleriite"        ~ "(Fe,Cu)_2_S_2_(Mg,Al)_1.53_(OH)_3.06_", # 2[(Fe,Cu)S]·1.53[(Mg,Al)(OH)_2_]  
                                  mineral_name == "Ferrovalleriite"   ~ "(Fe,Cu)_2_S_2_(Fe^2+^,Al,Mg)_1.53_(OH)_3.06_", #2(Fe,Cu)S·1.53[(Fe^2+^,Al,Mg)(OH)_2_]  # I THINK FORMULA IS WRONG AND SHOULD HAVE BRACES AROUND (Fe,Cu)S !!!
+                                 # observed wrong RRUFF
+                                 mineral_name == "Afghanite"         ~ "(Na,K)_22_Ca_10_Si_24_Al_24_O_96_(S^6+^O_4_)_6_Cl_6_", #Na_22_Ca_10_(Si_24_Al_24_)O_96_(S^6+^O_4_)_6_Cl_6_
+                                 mineral_name == "Aeschynite-(Y)"    ~ "(Y^3+^,Ca,Ln,Th^4+^)(Ti^4+^,Nb^5+^)_2_(O,OH)_6_", # "(Y^3+^,Ca,Ln,Th^4+^)(Ti^4+^,Nb^5+^)_2_(O,OH)_6_"
                                  TRUE ~ chem)) -> med_data
   
 
@@ -153,12 +155,12 @@ full_counts <- tibble::tibble(element = as.character(),
 for (min_name in sort(med_cleaned_rangefrac_subwater$mineral_name)){
   
   print(min_name)
-  #min_name <- "Vladimirivanovite"
+  #min_name <- "Cousinite"
   med_cleaned_rangefrac_subwater %>%
     dplyr::filter(mineral_name == min_name) %>%
     dplyr::pull(chem) -> pulled_chem
 
-  #"Mg_4_(PO_4_)_2_(Aa,O)(F,)"
+  #"[1] "MgU_2_(MoO_4_)_2_Aa_6"
                 
   if (stringr::str_count(pulled_chem, ",") > 0) pulled_chem <- clean_comma_parens(pulled_chem)
   
@@ -217,6 +219,34 @@ full_counts %>%
   dplyr::arrange(mineral_name, element) %>%
   dplyr::left_join(med_data_raw) -> final_counts_possible
 
+## CHECKS:
+
+# Correct number of elements per mineral?
+final_counts_possible %>%
+  dplyr::count(mineral_name) -> observed_counts
+
+med_data_cache %>%
+  dplyr::select(mineral_name, chemistry_elements) %>%
+  dplyr::distinct() %>% 
+  dplyr::filter(mineral_name %in% observed_counts$mineral_name) %>% 
+  tidyr::separate_rows(chemistry_elements) %>%
+  dplyr::count(mineral_name) -> expected_counts
+
+setdiff(observed_counts, expected_counts) %>%
+  dplyr::left_join(med_data_cache) %>%
+  dplyr::select(mineral_name, rruff_chemistry, ima_chemistry, chemistry_elements) %>%
+  dplyr::distinct() %>% write_csv("rruff_inconsistent_formula_elements.csv")
+  
+
+final_counts_possible %>%
+  dplyr::select(mineral_name, element) %>%
+  dplyr::anti_join(expected) %>%
+  dplyr::left_join(med_data_raw) %>% write_csv("missing.csv")
+
+
+## TODO: some checks
+# check a couple minerals
+# check that the elements in each mineral are consistent
 
 readr::write_csv(final_counts_possible, "element_counts_per_mineral.csv")
 stop()
