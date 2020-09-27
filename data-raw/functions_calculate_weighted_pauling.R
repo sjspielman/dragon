@@ -47,7 +47,6 @@ clean_comma_parens <- function(chemform){
   #comma_chunks <- c("(NH_2_,K)")
   #comma_chunk <- "(NH_2_,K)"
   
-  
   # If any parens, replace with count versions
   comma_chunks <- c(stringr::str_extract_all(chemform, "\\((\\w+,[\\w,]*)\\)" )[[1]],
                     stringr::str_extract_all(chemform, "\\((,[\\w,]*)\\)" )[[1]])
@@ -65,13 +64,20 @@ clean_comma_parens <- function(chemform){
     n_parts <- length(raw_n_parts[raw_n_parts != ""])
     split_comma <- stringr::str_split(temp_chunk, ",")[[1]]
     
+    # TODO: What if WE HAVE THE SAME ELEMENT INSIDE A CHUNK??????? CURRENTLY THEY ARE EQUALLY WEIGHTED BUT THIS MAY NOT BE IDEAL.
+    # FOR EXAMPLE:  "(Ti,Fe,Fe)". IS THIS 1/3 Ti and 2/3 Fe or is this 1/2 Ti and 1/2 Fe?
+  
+    #table(split_comma) %>% 
+    #  tibble::as_tibble() %>%
+    #  dplyr::pull(split_comma) %>%
+    #  unique() -> unique_elements_in_
+
+    
     for (chunk in split_comma){
       
       ## count number of atoms in the segment -------------------------------
       n_atoms <- count_atoms(chunk)
 
-      
-      
       #print(chunk)
       new_chunk <- parse_subset(chunk, (1/n_parts)/(n_atoms))
       
@@ -137,6 +143,8 @@ replace_number_ranges_fractions <- function(mineral_formula)
 parse_all_paren <- function(chemform){
   while (stringr::str_detect(chemform, "\\(")){
     chemform <- replace_individual_paren(chemform)
+    #print(chemform)
+    #print(stringr::str_detect(chemform, "\\("))
   }
   chemform
 }

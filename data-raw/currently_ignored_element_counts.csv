@@ -1,122 +1,132 @@
-chem,mineral_name
-"(Fe,Ni)_8_(Aa,O)_16_Cl_1.25_·nH_2_O",Akaganeite
-Cu_1-x_As_x_(x≈1/7),Algodonite
-Ag_1-x_Sb_x_(x=0.09-0.16),Allargentum
-"Mn(O,Aa)_2_·(Co,Ni,Mg,Ca)_x_Aa_2x_·nH_2_O",Asbolane
-Pb_6-3x_Bi_2+x_S_9_,Aschamalmite
-"(Na,K)_x_V_x_V_6-x_O_15_(0.5<x<0.9)",Bannermanite
-Ca_4_Be_2+x_Al_2-x_Si_9_O_26-x_Aa_2+x_(x=0to1),Bavenite
-"Be_3_(Sc,Fe,Mg)_2_Si_6_O_18_·Na_0.32_·nH_2_O",Bazzite
-"(Na,Ca)_0.3_Al_2_(Si,Al)_4_O_10_Aa_2_·nH_2_O",Beidellite
-Cu_2-x_Se(x≈0.12),Berzelianite
-"Pd_1+x_(As,Pb)_2_(x=0.0-0.2)",Borishanskiite
-Cu_36_(NO_3_)_2_Cl_6_Aa_64_·nH_2_O,Buttgenbachite
-(Ca_1-x_Na_x_)_2_(UO_2_)_3_(MoO_4_)_2_Aa_6-x_·nH_2_O,Calcurmolite
-"(K,Sr,Ba,Mn)_15-16_(Ca,Na)_32_Si_70_(O,Aa)_180_(Aa,F)_4_·nH_2_O",Charoite
-(Cu_2-x_Al_x_)H_2-x_Si_2_O_5_Aa_4_·nH_2_O,Chrysocolla
-Na(UO_2_)OAa·nH_2_O,Clarkeite
-U(SiO_4_)·nH_2_O,Coffinite
-Sb_6+x_O_8+x_(SO_4_)Aa_x_(H_2_O)_1-x_(x=0.3),Coquandite
-"(Ca,Na,K)_1-x_(Mg,Fe,Al)_9_(Si,Al)_8_O_20_Aa_10_·nH_2_O",Corrensite
-"(Na,Ca,K)_1-x_(V,V,Fe)_8_O_20_·4H_2_O",Corvusite
-"(Pt,Pb)Bi_3_(S,Se)_4-x_(x=0.4-0-8)",Crerarite
-Pb_3+x_((UO_2_)_4_O_4+x_Aa_3-x_)_2_·2H_2_O,Curite
-"Li_1-x_(Fe,Mn)PO_4_",Ferrisicklerite
-Pb_2.4_Fe_2_Si_4_O_10_(CO_3_)_1.7_Aa_3_·nH_2_O,Ferrisurite
-Pb_1-x_O_3-2x_(UO_2_)_4_Aa_4+2x_·4H_2_O,Fourmarierite
-((NHg_2_)_2_)(SO_4_)(H_2_O)_<i>x</i>_,Gianellaite
-"Zn_1-x_Al_x_(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n>3x/2)",Glaucocerinite
-"(Na,Ca)_2+x_(V,V)_6_O_16_·4H_2_O",Grantsite
-Pb_2_(UO_2_)(AsO_4_)_2_·nH_2_O,Hallimondite
-"(Cu,Ag)_3+x_Te_2_(x~0.4)",Henryite
-"(Ni_1-x_Fe_x_)(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n<3x/2)",Honessite
-"K(Mg,Fe)_6_(Si,Al)_8_O_20_Aa_4_·nH_2_O",Hydrobiotite
-"(Ni_1-x_Fe_x_)(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n>3x/2)",Hydrohonessite
-"(Cu_1-x_Al_x_)(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n>3x/2)",Hydrowoodwardite
-"(Na,H_3_O)_15_(Ca,Mn,Ce)_6_Fe_2_Zr_3_Si_24_O_66_(O,Aa)_6_Cl·nH_2_O",Ikranite
-Ni_1-x_Co_x_Aa_2-x_(SO_4_)_x_·nH_2_O(x≤1/3;n≤(1-x)),Jamborite
-KBa_2_Ti_2_(Si_5_Al)O_18_·nH_2_O,Jonesite
-NaFe_9+x_(PO_4_)_6_Aa_11_·3H_2_O(x≈1/3),Kidwellite
-"Hg_2_N(Cl,SO_4_)·nH_2_O",Kleinite
-"(Ni,Zn)_x_VO_4_·nH_2_O",Kolovratite
-"(Ca,Sr,Na)_6-x_(Nb,Ti)_6_(Si_4_O_12_)(O,Aa,F)_16_·nH_2_O",Komarovite
-"Pd(Te,Bi)_2-x_(x≈0.4)",Kotulskite
-"Na_4_K_4_Ba_2+x_Ti_8_(Si_4_O_12_)_4_(O,Aa)_8_·8H_2_O",Lemmleinite-Ba
-Pb_3-2x_Ag_x_Bi_2+x_S_6_,Lillianite
-"Pd_5+x_(Sb,As)_2-x_(x=0.1-0.2)",Mertieite-I
-Ca(UO_2_)_2_Si_6_O_15_·nH_2_O,Metahaiweeite
-PbU_7_O_22_·nH_2_O(n&lt;12),Metavandendriesscheite
-KCa_2_(Be_2_AlSi_12_O_30_)·xH_2_O,Milarite
-SiO_2_·nH_2_O,Moganite
-"(Na,Ca)_0.3_(Al,Mg)_2_Si_4_O_10_Aa_2_·nH_2_O",Montmorillonite
-Cu(C_2_)O_4_·nH_2_O,Moolooite
-"(Mg_1-x_Fe_x_)(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n>3x/2)",Mountkeithite
-Al_4+2x_Si_2-2x_O_10-x_(x≈0.4),Mullite
-"Na_0.3_Fe_2_(Si,Al)_4_O_10_Aa_2_·nH_2_O",Nontronite
-Mn_x_Mn_1-x_O_2-2x_Aa_2x_,Nsutite
-SiO_2_·<i>n</i>H_2_O,Opal
-CuFeS_2_·nH_2_O,Orickite
-"NiAa_2-x_(SO_4_,CO_3_)_0.5x_",Paraotwayite
-Fe_x_(AsO_4_)_y_(SO_4_)_z_·nH_2_O,Pitticite
-Cs(Si_2_Al)O_6_·nH_2_O,Pollucite
-Ag_2_Pb_12-x_Tl_x/2_As_18+x/2_S_40_,Rathite
-"(Fe,Mg)_x_Pb_8.6_(UO_2_)_36_O_36_Aa_24_·41H_2_O",Richetite
-Ca_2_BeAl_2_Si_4_O_13_Aa_2_·nH_2_O(n&lt;2.5),Roggianite
-Pb_x_Cu_y_Al_z_(PO_4_)_m_·nH_2_O,Rosieresite
-"(Na,Ca)_9_(Si,Al)_12_O_24_(Aa,SO_4_,CO_3_,Cl)_4_·nH_2_O",Sacrofanite
-"Na_3_K_2_(Mn,Fe,Na)_4_(Si_9_(O,Aa)_27_)Aa_2_·nH_2_O",Shafranovskite
-"(Ca,Na)_x_Mg_3-y_Si_4_O_10_Aa_2_",Stevensite
-"(K,Ca,Na)(Fe,Mg,Al,Fe)_8_(Si,Al)_12_(O,Aa)_36_·nH_2_O",Stilpnomelane
-Nd_0.333_((UO_2_)(SiO_3_Aa))(H_2_O)_~2.5_,Swamboite-(Nd)
-"Ca_0.2_(Li,Al,Mg,Fe,Fe)_3_(Si,Al)_4_O_10_(Aa,F)_2_·nH_2_O",Swinefordite
-"(Mn,Ca)_2x_Mn_1-x_O_2_·0.7H_2_O",Takanelite
-"(Ca,K,Na)_x_Mn_6_(Si,Al)_10_O_24_Aa_4_·nH_2_O(x=1-2;n=7-11)",Tamaite
-"Ba_4_(Ti,Fe,Mg)_4_(O,Aa)_2_(B_2_Si_8_O_27_)Cl_x_",Titantaramellite
-Ca_5_Si_6_O_16_Aa_2_·nH_2_O,Tobermorite
-"(Na,Ca,K,Ba,Sr)_1-x_(Mn,Mn,Mg,Al)_6_O_12_·3-4H_2_O",Todorokite
-"(K,)(Ca,Na)_2_ThSi_8_O_20_·nH_2_O",Turkestanite
-"(Mn,Fe,Ca,Na)(O,Aa)_2_·nH_2_O",Vernadite
-Cu_2-x_Te,Weissite
-"(Cu,Al)_9_(SO_4_)_2_Aa_18_·nH_2_O",Woodwardite
-Mg_0.5_ZnFe(TeO_3_)_3_·<i>n</i>H_2_O(3≤<i>n</i>≤4.5),Zemannite
-"(Zn,Al)_9_(SO_4_)_2_Aa_18_·nH_2_O",Zincaluminite
-Zn_1-x_Al_x_Aa_2_(SO_4_)_x/2_·nH_2_O(x=0.32-0.50),Zincowoodwardite
-"(Ti,Ca,Zr)O_2-x_",Zirkelite
-"(Ca,K,Na)(Mn,Fe)_10_(Si,Al)_16_O_38_Aa_8_·nH_2_O",Bannisterite
-Th_x_Ba_1-2x_(UO_2_)_2_Si_5_O_13_·3H_2_O,Coutinhoite
-Na_2_Ba_6_Ce_2_FeTi_3_Si_12_O_36_Aa_10_·nH_2_O,Diversilite-(Ce)
-MoMo_2_O_8_·nH_2_O,Ilsemannite
-"(Na,Ce,Ba)_10_Ti_5_Si_14_O_22_Aa_44_·nH_2_O",Ilmajokite
-Zn_8-x_Al_x_Aa_16_(SO_4_)_x/2+y/2_Na_y_(H_2_O)_6_,Natroglaucocerinite
-"(Ca,K,Na)_2-x_(Ti,Nb)_2_Si_4_O_12_(Aa,O)_2_·4H_2_O",Tsepinite-Ca
-UO_3_·(2-x)H_2_O,Paraschoepite
-"(Ba,Na,K)_2-x_(Ti,Nb)_2_(Si_4_O_12_)(Aa,O)_2_·4H_2_O",Paratsepinite-Ba
-"(K,Na,Ca)_7.5_(Mn,Mg)_49_Si_72_O_168_Aa_50_·nH_2_O",Parsettensite
-"(K_1-x__x_)(Ca,Na)_2_USi_8_O_20_(x~0.5)",Arapovite
-"Ba_2_Al_3_(Si,Al)_4_O_10_(CO_3_)Aa_6_·nH_2_O",Niksergievite
-"(Y,Ee,Ca,Na)_15_(Al,Fe)Ca_x_As_1-x_(Si,As)Si_6_B_3_(O,F)_48_",Hundholmenite-(Y)
-"(Ca,Cu,Na,Fe,Al)_12_Al_2_(AsO_4_)_8_(Aa,Cl)_x_·nH_2_O",Barahonaite-(Al)
-"(K,Ca)_3-x_Fe((Si,Al)_13_O_25_(Aa,O)_4_)·7H_2_O",Gunterblassite
-"SiO_2_·n(CH_4_,C_2_H_6_,C_3_H_8_,C_4_H_10_);(n_max_=3/17)",Chibaite
-NaCe_2_(CO_3_)_2_((CO_3_)_1-x_F_2x_)F,Arisite-(Ce)
-NaLa_2_(CO_3_)_2_((CO_3_)_1-x_F_2x_)F,Arisite-(La)
-BiMo_(2-5x)_Mo_6x_O_7_Aa·H_2_O(0≤x≤0.4),Gelosaite
-Pb_15-2x_Sb_14+2x_S_36_O_x_;(x~0.2),Chovanite
-K_4_Ca_2_(AlSi_7_O_17_(O_2-x_Aa_x_))((H_2_O)_2-x_Aa_x_)Cl(x=0-2),Fivegite
-"Na_8_(Al_6_Si_6_O_24_)(PO_4_,CO_3_)_1-x_·3H_2_O;(x<0.5)",Depmeierite
-"Ba_2-x_(VAa)_x_V_9_(Fe,Fe)_2_Si_2_O_22_",Greenwoodite
-"Tl_5-x_Pb_2x_(Sb,As)_21-x_S_34_(x~1.2-1.5)",Protochabourneite
-"(Nb,Mo,W)S_2_·(Mg_1-x_Al_x_)Aa_2+x_",Ekplexite
-Sr_2_Ca_7-x_Na_2x_(Si_4_O_10_)_4_Aa_2_(H_2_O)_15-x_,Cairncrossite
-"(Mo,Nb)S_2_·(Mg_1-x_Al_x_)Aa_2+x_",Kaskasite
-"(Mo,Nb)S_2_·(Mn_1-x_Al_x_)Aa_2+x_",Manganokaskasite
-CaCu_3_Cl_2_Aa_6_·nH_2_O(n~0.7),Centennialite
-Pd_7-x_SnTe_2_(0.3≤x≤0.8),Kojonenite
-SiO_2_·<i>n</i>C_x_H_2x+2_,Bosoite
-"Na_5+x_Ti_4_(Si_2_O_7_)_2_(PO_3_Aa)_2-y_(PO_2_Aa_2_)_y_O_2_((Aa,F)_2-x_O_z_),(0<x<2,0<y<1,0<z<1)",Betalomonosovite
-"NaTi_3_(Ti,Na,Fe,Mn)_4_(Si_2_O_7_)_2_O_4_(Aa,H_2_O)_4_·nH_2_O",Selivanovaite
-Ag_x_Pb_40-2x_As_48+x_S_112_(3<x<4),Argentoliveingite
-Ca_2x_Mn_1-x_O_2_·1.5-2H_2_O(x=0.05-0.08),Lagalyite
-"Mg_12_(V,Mo,W)_1.5_O_6_((BO_3_)_6-x_((P,As)O_4_)_x_F_2-x_)(x<1)",Rhabdoborite-(V)
-"Mg_12_(W,V)_1.5_O_6_((BO_3_)_6-x_((P,As)O_4_)_x_F_2-x_)(x<1)",Rhabdoborite-(W)
-Fe_4_(PO_4_)_3_(SO_4_)Aa·nH_2_O(15≤n≤24),Bohuslavite
+ima,rruff,mineral_name,chem
+"(Fe^3+^,Ni^2+^)_8_(OH,O)_16_Cl_1.25_·nH_2_O","(Fe^3+^,Ni^2+^)_8_(OH,O)_16_Cl_1.25_·nH_2_O",Akaganeite,"(Fe,Ni)_8_(Aa,O)_16_Cl_1.25_·nH_2_O"
+Cu_1-x_As_x_ (x ≈ 0.15),Cu_1-x_As_x_ (x ≈ 1/7),Algodonite,Cu_1-x_As_x_(x≈0.15)
+Ag_1-x_Sb_x_ (x ≈ 0.09-0.16),Ag_1-x_Sb_x_ (x=0.09-0.16),Allargentum,Ag_1-x_Sb_x_(x≈0.09-0.16)
+"Mn^4+^(O,OH)_2_·(Co,Ni,Mg,Ca)_x_(OH)_2x_·nH_2_O","Mn^4+^(O,OH)_2_·(Co^3+^,Ni^2+^,Mg,Ca)_x_(OH)_2x_·nH_2_O",Asbolane,"Mn(O,Aa)_2_·(Co,Ni,Mg,Ca)_x_Aa_2x_·nH_2_O"
+Pb_6-3x_Bi_2+x_S_9_,Pb_6-3x_Bi_2+x_S_9_,Aschamalmite,Pb_6-3x_Bi_2+x_S_9_
+"(Na,K)_x_V^4+^_x_V^5+^_6-x_O_15_ (0.5<x<0.9)","(Na,K)_x_V^4+^_x_V^5+^_6-x_O_15_ (0.5<x<0.9)",Bannermanite,"(Na,K)_x_V_x_V_6-x_O_15_(0.5<x<0.9)"
+Ca_4_Be_2+x_Al_2-x_Si_9_O_26-x_(OH)_2+x_ (x = 0 to 1),Ca_4_Be_2+x_Al_2-x_Si_9_O_26-x_(OH)_2+x_ (x = 0 to 1),Bavenite,Ca_4_Be_2+x_Al_2-x_Si_9_O_26-x_Aa_2+x_(x=0to1)
+"Be_3_(Sc,Fe^3+^,Mg)_2_Si_6_O_18_·Na_0.32_·nH_2_O","Be_3_(Sc^3+^,Fe^3+^,Mg)_2_Si_6_O_18_·Na_0.32_·nH_2_O",Bazzite,"Be_3_(Sc,Fe,Mg)_2_Si_6_O_18_·Na_0.32_·nH_2_O"
+"(Na,Ca)_0.3_Al_2_(Si,Al)_4_O_10_(OH)_2_·nH_2_O","(Na,Ca)_0.3_Al_2_(Si,Al)_4_O_10_(OH)_2_·nH_2_O",Beidellite,"(Na,Ca)_0.3_Al_2_(Si,Al)_4_O_10_Aa_2_·nH_2_O"
+Cu_2-x_Se (x ≈ 0.12),Cu_2-x_Se (x ≈ 0.12),Berzelianite,Cu_2-x_Se(x≈0.12)
+"Pd_1+x_(As,Pb)_2_ (x = 0.0-0.2)","Pd_1+x_(As,Pb)_2_ (x = 0.0-0.2)",Borishanskiite,"Pd_1+x_(As,Pb)_2_(x=0.0-0.2)"
+Cu_36_(NO_3_)_2_Cl_8_(OH)_62_·nH_2_O,Cu^2+^_36_(N^5+^O_3_)_2_Cl_6_(OH)_64_·nH_2_O,Buttgenbachite,Cu_36_(NO_3_)_2_Cl_8_Aa_62_·nH_2_O
+(Ca_1-x_Na_x_)_2_(UO_2_)_3_(MoO_4_)_2_(OH)_6-x_·nH_2_O,(Ca_1-x_Na_x_)_2_(U^6+^O_2_)_3_(Mo^6+^O_4_)_2_(OH)_6-x_·nH_2_O,Calcurmolite,(Ca_1-x_Na_x_)_2_(UO_2_)_3_(MoO_4_)_2_Aa_6-x_·nH_2_O
+"(Ni_1-x_Al_x_)(SO_4_)_x/2_(OH)_2_·nH_2_O (x < 0.5, n > 3x/2)",Ni^2+^_14_Al_9_(SO_4_)_6_(OH)_43_·7H_2_O,Carrboydite,"(Ni_1-x_Al_x_)(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n>3x/2)"
+"(K,Sr,Ba,Mn)_15-16_(Ca,Na)_32_[Si_70_(O,OH)_180_](OH,F)_4_·nH_2_O","(K,Sr,Ba,Mn^2+^)_15-16_(Ca,Na)_32_Si_70_(O,OH)_180_(OH,F)_4_·nH_2_O",Charoite,"(K,Sr,Ba,Mn)_15-16_(Ca,Na)_32_(Si_70_(O,Aa)_180_)(Aa,F)_4_·nH_2_O"
+(Cu_2-x_Al_x_)H_2-x_Si_2_O_5_(OH)_4_·nH_2_O,(Cu^2+^_2-x_Al_x_)H_2-x_Si_2_O_5_(OH)_4_·nH_2_O,Chrysocolla,(Cu_2-x_Al_x_)H_2-x_Si_2_O_5_Aa_4_·nH_2_O
+Na(UO_2_)O(OH)·nH_2_O,Na(UO_2_)O(OH)·nH_2_O,Clarkeite,Na(UO_2_)OAa·nH_2_O
+U(SiO_4_)·nH_2_O,U^4+^(SiO_4_)·nH_2_O,Coffinite,U(SiO_4_)·nH_2_O
+Sb^3+^_6+x_O_8+x_(SO_4_)(OH)_x_(H_2_O)_1-x_ (x = 0.3),Sb^3+^_6+x_O_8+x_(S^6+^O_4_)(OH)_x_(H_2_O)_1-x_ (x = 0.3),Coquandite,Sb_6+x_O_8+x_(SO_4_)Aa_x_(H_2_O)_1-x_(x=0.3)
+"(Ca,Na,K)_1-x_(Mg,Fe,Al)_9_(Si,Al)_8_O_20_(OH)_10_·nH_2_O","(Ca,Na,K)_1-x_(Mg,Fe^2+^,Al)_9_(Si,Al)_8_O_20_(OH)_10_·nH_2_O",Corrensite,"(Ca,Na,K)_1-x_(Mg,Fe,Al)_9_(Si,Al)_8_O_20_Aa_10_·nH_2_O"
+"(Na,Ca,K)_1-x_(V^5+^,V^4+^,Fe^2+^)_8_O_20_·4H_2_O","(Na,Ca,K)_1-x_(V^5+^,V^4+^,Fe^2+^)_8_O_20_·4H_2_O",Corvusite,"(Na,Ca,K)_1-x_(V,V,Fe)_8_O_20_·4H_2_O"
+"(Pt,Pb)Bi_3_(S,Se)_4-x_ (x = 0.4-0-8)","(Pt,Pb)Bi_3_(S,Se)_4-x_ (x = 0.4-0-8)",Crerarite,"(Pt,Pb)Bi_3_(S,Se)_4-x_(x=0.4-0-8)"
+Pb_3+x_[(UO_2_)_4_O_4+x_(OH)_3-x_]_2_·2H_2_O,Pb_3+x_[(UO_2_)_4_O_4+x_(OH)_3-x_]_2_·2H_2_O,Curite,Pb_3+x_((UO_2_)_4_O_4+x_Aa_3-x_)_2_·2H_2_O
+Ag_3+x_Sb_1-x_ (x ≈ 0.2),Ag_3.2_Sb_0.8_,Dyscrasite,Ag_3+x_Sb_1-x_(x≈0.2)
+"(Na,K,Ca)_x_Mn_6_(Si,Al)_10_O_24_(OH)_4_·nH_2_O (x = 1-2; n = 7-11)","(Na,K,Ca)_1-2_Mn^2+^_6_(Si,Al)_10_O_24_(OH)_4_·7-11H_2_O",Eggletonite,"(Na,K,Ca)_x_Mn_6_(Si,Al)_10_O_24_Aa_4_·nH_2_O(x=1-2;n=7-11)"
+"Li_1-x_(Fe^3+^,Mn^2+^)(PO_4_)","Li_1-x_(Fe^3+^,Mn^2+^)PO_4_",Ferrisicklerite,"Li_1-x_(Fe,Mn)(PO_4_)"
+Pb_2.4_Fe^3+^_2_Si_4_O_10_(CO_3_)_1.7_(OH)_3_·nH_2_O,Pb^2+^_2.4_Fe^3+^_2_Si_4_O_10_(CO_3_)_1.7_(OH)_3_·nH_2_O,Ferrisurite,Pb_2.4_Fe_2_Si_4_O_10_(CO_3_)_1.7_Aa_3_·nH_2_O
+Pb_1-x_O_3-2x_(UO_2_)_4_(OH)_4+2x_·4H_2_O,Pb^2+^_1-x_O_3-2x_(U^6+^O_2_)_4_(OH)_4+2x_·4H_2_O,Fourmarierite,Pb_1-x_O_3-2x_(UO_2_)_4_Aa_4+2x_·4H_2_O
+"(K,Na)_x_Mn^2+^_6_(Si,Al)_10_O_24_(OH)_4_·nH_2_O (x = 1-2; n = 7-11)","(K,Na)_1-2_Mn^2+^_6_(Si,Al)_10_O_24_(OH)_4_·7-11H_2_O",Ganophyllite,"(K,Na)_x_Mn_6_(Si,Al)_10_O_24_Aa_4_·nH_2_O(x=1-2;n=7-11)"
+(Hg_2_N)_2_(SO_4_)(H_2_O)_x_,[(N^3-^Hg^2+^_2_)_2_](S^6+^O_4_)(H_2_O)_<i>x</i>_,Gianellaite,(Hg_2_N)_2_(SO_4_)(H_2_O)_x_
+"(Zn_1-x_Al_x_)(SO_4_)_x/2_(OH)_2_·nH_2_O (x < 0.5, n > 3x/2)","Zn^2+^_1-x_Al_x_(S^6+^O_4_)_x/2_(OH)_2_·nH_2_O  (x<0.5, n>3x/2)",Glaucocerinite,"(Zn_1-x_Al_x_)(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n>3x/2)"
+"(Na,Ca)_2+x_(V^5+^,V^4+^)_6_O_16_·4H_2_O","(Na,Ca)_2+x_(V^5+^,V^4+^)_6_O_16_·4H_2_O",Grantsite,"(Na,Ca)_2+x_(V,V)_6_O_16_·4H_2_O"
+Pb_2_(UO_2_)(AsO_4_)_2_·nH_2_O,Pb^2+^_2_(U^6+^O_2_)(As^5+^O_4_)_2_·nH_2_O,Hallimondite,Pb_2_(UO_2_)(AsO_4_)_2_·nH_2_O
+"Na_0.3_(Mg,Li)_3_Si_4_O_10_(F,OH)_2_·nH_2_O","Na_0.3_(Mg,Li)_3_Si_4_O_10_(OH)_2_",Hectorite,"Na_0.3_(Mg,Li)_3_Si_4_O_10_(F,Aa)_2_·nH_2_O"
+"(Cu,Ag)_3+x_Te_2_ (x~0.4)","(Cu,Ag)_3+x_Te_2_ (x~0.4)",Henryite,"(Cu,Ag)_3+x_Te_2_(x~0.4)"
+"(Ni_1-x_Fe^3+^_x_)(SO_4_)_x/2_(OH)_2_·nH_2_O (x < 0.5, n < 3x/2)","(Ni^2+^_1-x_Fe^3+^_x_)(SO_4_)_x/2_(OH)_2_·nH_2_O (x < 0.5, n < 3x/2)",Honessite,"(Ni_1-x_Fe_x_)(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n<3x/2)"
+"K(Mg,Fe^2+^)_6_(Si,Al)_8_O_20_(OH)_4_·nH_2_O","K(Mg,Fe^2+^)_6_(Si,Al)_8_O_20_(OH)_4_·nH_2_O",Hydrobiotite,"K(Mg,Fe)_6_(Si,Al)_8_O_20_Aa_4_·nH_2_O"
+"(Ni_1-x_Fe^3+^_x_)(SO_4_)_x/2_(OH)_2_·nH_2_O (x < 0.5, n > 3x/2)","(Ni^2+^_1-x_Fe^3+^_x_)(S^6+^O_4_)_x/2_(OH)_2_·nH_2_O (x < 0.5, n > 3x/2)",Hydrohonessite,"(Ni_1-x_Fe_x_)(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n>3x/2)"
+"(Cu_1-x_Al_x_)(SO_4_)_x/2_(OH)_2_·nH_2_O (x < 0.5, n > 3x/2)","(Cu^2+^_1-x_Al_x_)(S^6+^O_4_)_x/2_(OH)_2_·nH_2_O (x < 0.5, n > 3x/2)",Hydrowoodwardite,"(Cu_1-x_Al_x_)(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n>3x/2)"
+"(Na,H_3_O)_15_(Ca,Mn,REE)_6_Fe^3+^_2_Zr_3_Si_24_O_66_(O,OH)_6_Cl·nH_2_O","(Na,H_3_O)_15_(Ca,Mn^2+^,Ce^3+^)_6_Fe^3+^_2_Zr^4+^_3_Si_24_O_66_(O,OH)_6_Cl·nH_2_O",Ikranite,"(Na,H_3_O)_15_(Ca,Mn,Ee)_6_Fe_2_Zr_3_Si_24_O_66_(O,Aa)_6_Cl·nH_2_O"
+Ni^2+^_1-x_Co^3+^_x_(OH)_2-x_(SO_4_)_x_·nH_2_O [x ≤ 1/3 n; ≤ (1-x)],Ni^2+^_1-x_Co^3+^_x_(OH)_2-x_(S^6+^O_4_)_x_·nH_2_O [x ≤ 1/3; n ≤ (1-x)],Jamborite,Ni_1-x_Co_x_Aa_2-x_(SO_4_)_x_·nH_2_O(x≤1/3n;≤(1-x))
+"Cu_x_Pb_2+x_(Sb,Bi)_2-x_S_5_ (x ≈ 0.15)","Cu_0.15_Pb_2.15_(Sb,Bi)_1.85_S_5_",Jaskolskiite,"Cu_x_Pb_2+x_(Sb,Bi)_2-x_S_5_(x≈0.15)"
+KBa_2_Ti_2_(Si_5_Al)O_18_·nH_2_O,KBa_2_Ti^4+^_2_(Si_5_Al)O_18_·nH_2_O,Jonesite,KBa_2_Ti_2_(Si_5_Al)O_18_·nH_2_O
+NaFe^3+^_9+x_(PO_4_)_6_(OH)_11_·3H_2_O (x ≈ 0.33),NaFe^3+^_9+x_(PO_4_)_6_(OH)_11_·3H_2_O (x ≈ 1/3),Kidwellite,NaFe_9+x_(PO_4_)_6_Aa_11_·3H_2_O(x≈0.33)
+"(Hg_2_N)(Cl,SO_4_)·nH_2_O","Hg_2_N(Cl,SO_4_)·nH_2_O",Kleinite,"(Hg_2_N)(Cl,SO_4_)·nH_2_O"
+"(Ni,Zn)_x_(VO_4_)·nH_2_O","(Ni^2+^,Zn^2+^)_x_V^5+^O_4_·nH_2_O",Kolovratite,"(Ni,Zn)_x_(VO_4_)·nH_2_O"
+"(Ca,Sr,Na)_6-x_(Nb,Ti)_6_(Si_4_O_12_)(O,OH,F)_16_·nH_2_O","(Ca,Sr,Na)_6-x_(Nb^5+^,Ti^4+^)_6_(Si_4_O_12_)(O,OH,F)_16_·nH_2_O",Komarovite,"(Ca,Sr,Na)_6-x_(Nb,Ti)_6_(Si_4_O_12_)(O,Aa,F)_16_·nH_2_O"
+"Pd(Te,Bi)_2-x_ (x ≈ 0.4)","Pd(Te,Bi)_2-x_ (x ≈ 0.4)",Kotulskite,"Pd(Te,Bi)_2-x_(x≈0.4)"
+"Na_4_K_4_Ba_2+x_Ti_8_(Si_4_O_12_)_4_(OH,O)_8_·8H_2_O","Na_4_K_4_Ba_2+x_Ti^4+^_8_(Si_4_O_12_)_4_(O,OH)_8_·8H_2_O",Lemmleinite-Ba,"Na_4_K_4_Ba_2+x_Ti_8_(Si_4_O_12_)_4_(Aa,O)_8_·8H_2_O"
+Pb_3-2x_Ag_x_Bi_2+x_S_6_,Pb_3-2x_Ag_x_Bi_2+x_S_6_,Lillianite,Pb_3-2x_Ag_x_Bi_2+x_S_6_
+"(Fe,Ni)_1+x_S (x = 0-0.07)","(Fe,Ni)_1-1.07_S",Mackinawite,"(Fe,Ni)_1+x_S(x=0-0.07)"
+"Pd_5+x_(Sb,As)_2-x_ (x = 0.1-0.2)","Pd_5+x_(Sb,As)_2-x_ (x = 0.1-0.2)",Mertieite-I,"Pd_5+x_(Sb,As)_2-x_(x=0.1-0.2)"
+Ca(UO_2_)_2_Si_6_O_15_·nH_2_O,Ca(UO_2_)_2_Si_6_O_15_·nH_2_O,Metahaiweeite,Ca(UO_2_)_2_Si_6_O_15_·nH_2_O
+PbU_7_O_22_·nH_2_O,PbU_7_O_22_·nH_2_O (n &lt; 12),Metavandendriesscheite,PbU_7_O_22_·nH_2_O
+"K_1.5-x_(Ca,Y,REE)_5_[Si_6_O_15_][Si_2_O_7_](OH,F)_2_·yH_2_O",KCa_6_Si_8_O_22_(OH),Miserite,"K_1.5-x_(Ca,Y,Ee)_5_(Si_6_O_15_)(Si_2_O_7_)(Aa,F)_2_·yH_2_O"
+SiO_2_·nH_2_O,SiO_2_·nH_2_O,Moganite,SiO_2_·nH_2_O
+"(Na,Ca)_0.3_(Al,Mg)_2_Si_4_O_10_(OH)_2_·nH_2_O","(Na,Ca)_0.3_(Al,Mg)_2_Si_4_O_10_(OH)_2_·nH_2_O",Montmorillonite,"(Na,Ca)_0.3_(Al,Mg)_2_Si_4_O_10_Aa_2_·nH_2_O"
+Cu(C_2_O_4_)·nH_2_O,Cu^2+^(C_2_)^6+^O_4_·nH_2_O,Moolooite,Cu(C_2_O_4_)·nH_2_O
+"(Mg_1-x_Fe^3+^_x_)(SO_4_)_x/2_(OH)_2_·nH_2_O (x < 0.5, n > 3x/2)","(Mg_1-x_Fe^3+^_x_)(S^6+^O_4_)_x/2_(OH)_2_·nH_2_O (x < 0.5, n > 3x/2)",Mountkeithite,"(Mg_1-x_Fe_x_)(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n>3x/2)"
+Al_4+2x_Si_2-2x_O_10-x_ (x ≈ 0.4),Al_4+2x_Si_2-2x_O_10-x_ (x ≈ 0.4),Mullite,Al_4+2x_Si_2-2x_O_10-x_(x≈0.4)
+"Na_0.3_Fe^3+^_2_(Si,Al)_4_O_10_(OH)_2_·nH_2_O","Na_0.3_Fe^3+^_2_(Si,Al)_4_O_10_(OH)_2_·nH_2_O",Nontronite,"Na_0.3_Fe_2_(Si,Al)_4_O_10_Aa_2_·nH_2_O"
+Mn^2+^_x_Mn^4+^_1-x_O_2-2x_(OH)_2x_,Mn^2+^_x_Mn^4+^_1-x_O_2-2x_(OH)_2x_,Nsutite,Mn_x_Mn_1-x_O_2-2x_Aa_2x_
+SiO_2_·<i>n</i>H_2_O,SiO_2_·<i>n</i>H_2_O,Opal,SiO_2_·<i>n</i>H_2_O
+Ni_5-x_As_2_ (x = 0.23),Ni_4.77_As_2_,Orcelite,Ni_5-x_As_2_(x=0.23)
+CuFeS_2_·nH_2_O,CuFeS_2_·nH_2_O,Orickite,CuFeS_2_·nH_2_O
+"Ni(OH)_2-x_(SO_4_,CO_3_)_0.5x_","Ni^2+^(OH)_2-x_(S^6+^O_4_,C^4+^O_3_)_0.5x_",Paraotwayite,"NiAa_2-x_(SO_4_,CO_3_)_0.5x_"
+Cs(Si_2_Al)O_6_·nH_2_O,Cs(Si_2_Al)O_6_·nH_2_O,Pollucite,Cs(Si_2_Al)O_6_·nH_2_O
+Ag_2_Pb_12-x_Tl_x/2_As_18+x/2_S_40_,Ag_2_Pb_12-x_Tl_x/2_As_18+x/2_S_40_,Rathite,Ag_2_Pb_12-x_Tl_x/2_As_18+x/2_S_40_
+"(Fe^3+^,Mg)_x_Pb^2+^_8.6_(UO_2_)_36_O_36_(OH)_24_·41H_2_O","(Fe^3+^,Mg)_x_Pb^2+^_8.6_(UO_2_)_36_O_36_(OH)_24_·41H_2_O",Richetite,"(Fe,Mg)_x_Pb_8.6_(UO_2_)_36_O_36_Aa_24_·41H_2_O"
+Cu_3-x_Te_2_,Cu_2.64-3.00_Te_2_,Rickardite,Cu_3-x_Te_2_
+Ca_2_BeAl_2_Si_4_O_13_(OH)_2_·nH_2_O (n &lt; 2.5),Ca_2_BeAl_2_Si_4_O_13_(OH)_2_·nH_2_O (n &lt; 2.5),Roggianite,Ca_2_BeAl_2_Si_4_O_13_Aa_2_·nH_2_O(n&lt;2.5)
+"Na_3_K_2_(Mn,Fe,Na)_4_[Si_9_(O,OH)_27_](OH)_2_·nH_2_O","Na_3_K_2_(Mn^2+^,Fe^3+^,Na)_4_[Si_9_(O,OH)_27_](OH)_2_·nH_2_O",Shafranovskite,"Na_3_K_2_(Mn,Fe,Na)_4_(Si_9_(O,Aa)_27_)Aa_2_·nH_2_O"
+"(Fe,Ni)_3+x_S_4_ (x ≈ 0-0.3)","(Fe,Ni)_3-3.3_S_4_",Smythite,"(Fe,Ni)_3+x_S_4_(x≈0-0.3)"
+"Cu_1+x_(Sn,Sb)","Cu_1.1-1.2_(Sn,Sb)",Sorosite,"Cu_1+x_(Sn,Sb)"
+"(Ca,Na)_x_Mg_3-y_Si_4_O_10_(OH)_2_","(Ca,Na)_x_Mg_3-y_Si_4_O_10_(OH)_2_",Stevensite,"(Ca,Na)_x_Mg_3-y_Si_4_O_10_Aa_2_"
+"(K,Ca,Na)(Fe,Mg,Al)_8_(Si,Al)_12_(O,OH)_36_·nH_2_O","(K,Ca,Na)(Fe^2+^,Mg,Al,Fe^3+^)_8_(Si,Al)_12_(O,OH)_36_·nH_2_O",Stilpnomelane,"(K,Ca,Na)(Fe,Mg,Al)_8_(Si,Al)_12_(O,Aa)_36_·nH_2_O"
+Ag_5-x_Te_3_ (x = 0.24-0.36),Ag_4.64-4.76_Te_3_,Stutzite,Ag_5-x_Te_3_(x=0.24-0.36)
+Nd_0.333_[(UO_2_)(SiO_3_OH)](H_2_O)_~2.5_,Nd^3+^_0.333_[(U^6+^O_2_)(SiO_3_OH)](H_2_O)_~2.5_,Swamboite-(Nd),Nd_0.333_((UO_2_)(SiO_3_Aa))(H_2_O)_~2.5_
+"Ca_0.2_(Li,Al,Mg,Fe)_3_(Si,Al)_4_O_10_(OH,F)_2_·nH_2_O","Ca_0.2_(Li,Al,Mg,Fe^3+^,Fe^2+^)_3_(Si,Al)_4_O_10_(OH,F)_2_·nH_2_O",Swinefordite,"Ca_0.2_(Li,Al,Mg,Fe)_3_(Si,Al)_4_O_10_(Aa,F)_2_·nH_2_O"
+"(Mn^2+^,Ca)_2x_(Mn^4+^)_1-x_O_2_·0.7H_2_O","(Mn^2+^,Ca)_2x_Mn^4+^_1-x_O_2_·0.7H_2_O",Takanelite,"(Mn,Ca)_2x_(Mn)_1-x_O_2_·0.7H_2_O"
+"(Ca,K,Na)_x_Mn_6_(Si,Al)_10_O_24_(OH)_4_·nH_2_O (x = 1-2; n = 7-11)","(Ca,K,Na)_x_Mn^2+^_6_(Si,Al)_10_O_24_(OH)_4_·nH_2_O (x = 1-2; n = 7-11)",Tamaite,"(Ca,K,Na)_x_Mn_6_(Si,Al)_10_O_24_Aa_4_·nH_2_O(x=1-2;n=7-11)"
+"Ba_4_(Fe^3+^,Ti)_4_O_2_[B_2_Si_8_O_27_]Cl_x_","Ba_4_(Fe^3+^,Ti^4+^)_4_O_2_[B_2_Si_8_O_27_]Cl_0-1_",Taramellite,"Ba_4_(Fe,Ti)_4_O_2_(B_2_Si_8_O_27_)Cl_x_"
+"Ba_4_(Ti,Fe^3+^,Mg)_4_(O,OH)_2_[B_2_Si_8_O_27_]Cl_x_","Ba_4_(Ti^4+^,Fe^3+^,Mg)_4_(O,OH)_2_[B_2_Si_8_O_27_]Cl_x_",Titantaramellite,"Ba_4_(Ti,Fe,Mg)_4_(O,Aa)_2_(B_2_Si_8_O_27_)Cl_x_"
+Ca_4_Si_6_O_17_(H_2_O)_2_·(Ca·3H_2_O),Ca_5_Si_6_O_16_(OH)_2_·nH_2_O,Tobermorite,Ca_5_Si_6_O_16_Aa_2_·nH_2_O
+"(Na,Ca,K,Ba,Sr)_1-x_(Mn,Mg,Al)_6_O_12_·3-4H_2_O","(Na,Ca,K,Ba,Sr)_1-x_(Mn^4+^,Mn^3+^,Mg,Al)_6_O_12_·3-4H_2_O",Todorokite,"(Na,Ca,K,Ba,Sr)_1-x_(Mn,Mg,Al)_6_O_12_·3-4H_2_O"
+"(K,[box])(Ca,Na)_2_ThSi_8_O_20_·nH_2_O","(K,[box])(Ca,Na)_2_ThSi_8_O_20_·nH_2_O",Turkestanite,"(K,)(Ca,Na)_2_ThSi_8_O_20_·nH_2_O"
+"(Mn,Fe,Ca,Na)(O,OH)_2_·nH_2_O","(Mn^4+^,Fe^3+^,Ca,Na)(O,OH)_2_·nH_2_O",Vernadite,"(Mn,Fe,Ca,Na)(O,Aa)_2_·nH_2_O"
+Cu_2-x_Te,Cu_2-x_Te,Weissite,Cu_2-x_Te
+"(Cu_1-x_Al_x_)(SO_4_)_x/2_(OH)_2_·nH_2_O (x < 0.5, n < 3x/2)","(Cu^2+^,Al)_9_(S^6+^O_4_)_2_(OH)_18_·nH_2_O",Woodwardite,"(Cu_1-x_Al_x_)(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n<3x/2)"
+Mg_0.5_ZnFe^3+^(Te^4+^O_3_)_3_·<i>n</i>H_2_O (3≤<i>n</i>≤4.5),Mg_0.5_Zn^2+^Fe^3+^(Te^4+^O_3_)_3_·<i>n</i>H_2_O (3≤<i>n</i>≤4.5),Zemannite,Mg_0.5_ZnFe(TeO_3_)_3_·<i>n</i>H_2_O(3≤<i>n</i>≤4.5)
+"(Zn_1-x_Al_x_)(SO_4_)_x/2_(OH)_2_·nH_2_O (x < 0.5, n > 3x/2)","(Zn^2+^,Al)_9_(S^6+^O_4_)_2_(OH)_18_·nH_2_O",Zincaluminite,"(Zn_1-x_Al_x_)(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n>3x/2)"
+"(Zn_1-x_Al_x_)(SO_4_)_x/2_(OH)_2_·nH_2_O (x < 0.5, n < 3x/2)",Zn^2+^_1-x_Al_x_(OH)_2_(S^6+^O_4_)_x/2_·nH_2_O (x=0.32-0.50),Zincowoodwardite,"(Zn_1-x_Al_x_)(SO_4_)_x/2_Aa_2_·nH_2_O(x<0.5,n<3x/2)"
+"(Ti,Ca,Zr)O_2-x_","(Ti^4+^,Ca,Zr^4+^)O_2-x_",Zirkelite,"(Ti,Ca,Zr)O_2-x_"
+"(Ca,K,Na)(Mn^2+^,Fe^2+^)_10_(Si,Al)_16_O_38_(OH)_8_·nH_2_O","(Ca,K,Na)(Mn^2+^,Fe^2+^)_10_(Si,Al)_16_O_38_(OH)_8_·nH_2_O",Bannisterite,"(Ca,K,Na)(Mn,Fe)_10_(Si,Al)_16_O_38_Aa_8_·nH_2_O"
+Th_x_Ba_1-2x_(UO_2_)_2_Si_5_O_13_·3H_2_O,Th_x_Ba_1-2x_(UO_2_)_2_Si_5_O_13_·3H_2_O,Coutinhoite,Th_x_Ba_1-2x_(UO_2_)_2_Si_5_O_13_·3H_2_O
+Na_2_Ba_6_Ce_2_Fe^2+^Ti_3_Si_12_O_36_(OH)_10_·nH_2_O,Na_2_Ba_6_Ce^3+^_2_Fe^2+^Ti^4+^_3_Si_12_O_36_(OH)_10_·nH_2_O,Diversilite-(Ce),Na_2_Ba_6_Ce_2_FeTi_3_Si_12_O_36_Aa_10_·nH_2_O
+Mo_3_O_8_·nH_2_O ,Mo^4+^Mo^6+^_2_O_8_·nH_2_O,Ilsemannite,Mo_3_O_8_·nH_2_O
+"(Na,Ce,Ba)_10_Ti_5_Si_14_O_22_(OH)_44_·nH_2_O","(Na,Ce^3+^,Ba)_10_Ti^4+^_5_Si_14_O_22_(OH)_44_·nH_2_O",Ilmajokite,"(Na,Ce,Ba)_10_Ti_5_Si_14_O_22_Aa_44_·nH_2_O"
+"(Ca,K,Na)_2-x_(Ti,Nb)_2_(Si_4_O_12_)(OH,O)_2_·4H_2_O","(Ca,K,Na)_2-x_(Ti^4+^,Nb^5+^)_2_Si_4_O_12_(OH,O)_2_·4H_2_O",Tsepinite-Ca,"(Ca,K,Na)_2-x_(Ti,Nb)_2_(Si_4_O_12_)(Aa,O)_2_·4H_2_O"
+UO_3_·(2-x)H_2_O,U^6+^O_3_·(2-x)H_2_O,Paraschoepite,UO_3_·(2-x)H_2_O
+"(Ba,Na,K)_2-x_(Ti,Nb)_2_(Si_4_O_12_)(OH,O)_2_·4H_2_O","(Ba,Na,K)_2-x_(Ti^4+^,Nb^5+^)_2_(Si_4_O_12_)(OH,O)_2_·4H_2_O",Paratsepinite-Ba,"(Ba,Na,K)_2-x_(Ti,Nb)_2_(Si_4_O_12_)(Aa,O)_2_·4H_2_O"
+"(K,Na,Ca)_7.5_(Mn,Mg)_49_Si_72_O_168_(OH)_50_·nH_2_O","(K,Na,Ca)_7.5_(Mn^2+^,Mg)_49_Si_72_O_168_(OH)_50_·nH_2_O",Parsettensite,"(K,Na,Ca)_7.5_(Mn,Mg)_49_Si_72_O_168_Aa_50_·nH_2_O"
+"(K_1-x_[box]_x_)(Ca,Na)_2_U^4+^Si_8_O_20_ [x ≈ 0.5]","(K_1-x_[box]_x_)(Ca,Na)_2_U^4+^Si_8_O_20_ (x~0.5)",Arapovite,"(K_1-x__x_)(Ca,Na)_2_USi_8_O_20_(x≈0.5)"
+"Ba_2_Al_3_(Si,Al)_4_O_10_(CO_3_)(OH)_6_·nH_2_O","Ba_2_Al_3_(Si,Al)_4_O_10_(CO_3_)(OH)_6_·nH_2_O",Niksergievite,"Ba_2_Al_3_(Si,Al)_4_O_10_(CO_3_)Aa_6_·nH_2_O"
+"(Y,REE,Ca,Na)_15_(Al,Fe^3+^)Ca_x_As^3+^_1-x_(Si,As^5+^)Si_6_B_3_(O,F)_48_","(Y,REE,Ca,Na)_15_(Al,Fe^3+^)Ca_x_As^3+^_1-x_(Si,As^5+^)Si_6_B_3_(O,F)_48_",Hundholmenite-(Y),"(Y,Ee,Ca,Na)_15_(Al,Fe)Ca_x_As_1-x_(Si,As)Si_6_B_3_(O,F)_48_"
+"(Ca,Cu,Na,Fe^3+^,Al)_12_Al_2_(AsO_4_)_8_(OH,Cl)_x_·nH_2_O","(Ca,Cu^2+^,Na,Fe^3+^,Al)_12_Al_2_(As^5+^O_4_)_8_(OH,Cl)_x_·nH_2_O",Barahonaite-(Al),"(Ca,Cu,Na,Fe,Al)_12_Al_2_(AsO_4_)_8_(Aa,Cl)_x_·nH_2_O"
+"SiO_2_·n(CH_4_,C_2_H_6_,C_3_H_8_,C_4_H_10_) (n_max_ = 3/17)","SiO_2_·n(CH_4_,C_2_H_6_,C_3_H_8_,C_4_H_10_); (n_max_ = 3/17)",Chibaite,"SiO_2_·n(CH_4_,C_2_H_6_,C_3_H_8_,C_4_H_10_)(n_max_=3/17)"
+NaCe_2_(CO_3_)_2_[F_2x_(CO_3_)_1-x_]F,NaCe_2_(CO_3_)_2_[(CO_3_)_1-x_F_2x_]F,Arisite-(Ce),NaCe_2_(CO_3_)_2_(F_2x_(CO_3_)_1-x_)F
+NaLa_2_(CO_3_)_2_[F_2x_(CO_3_)_1-x_]F,NaLa_2_(CO_3_)_2_[(CO_3_)_1-x_F_2x_]F,Arisite-(La),NaLa_2_(CO_3_)_2_(F_2x_(CO_3_)_1-x_)F
+BiMo^6+^_(2-5x)_Mo^5+^_6x_O_7_(OH)·H_2_O (0 < x < 0.4),Bi^3+^Mo^6+^_(2-5x)_Mo^5+^_6x_O_7_(OH)·H_2_O (0≤x≤0.4),Gelosaite,BiMo_(2-5x)_Mo_6x_O_7_Aa·H_2_O(0<x<0.4)
+Pb_15-2x_Sb_14+2x_S_36_O_x_ (x~0.2),Pb_15-2x_Sb_14+2x_S_36_O_x_; (x~0.2),Chovanite,Pb_15-2x_Sb_14+2x_S_36_O_x_(x~0.2)
+K_4_Ca_2_[AlSi_7_O_17_(O_2-x_(OH)_x_)][(H_2_O)_2-x_(OH)_x_]Cl (x = 0-2),K_4_Ca_2_[AlSi_7_O_17_(O_2-x_(OH)_x_)][(H_2_O)_2-x_(OH)_x_]Cl (x = 0-2),Fivegite,K_4_Ca_2_(AlSi_7_O_17_(O_2-x_Aa_x_))((H_2_O)_2-x_Aa_x_)Cl(x=0-2)
+"Na_8_[Al_6_Si_6_O_24_](PO_4_,CO_3_)_1-x_·3H_2_O (x< 0.5)","Na_8_(Al_6_Si_6_O_24_)(PO_4_,CO_3_)_1-x_·3H_2_O; (x<0.5)",Depmeierite,"Na_8_(Al_6_Si_6_O_24_)(PO_4_,CO_3_)_1-x_·3H_2_O(x<0.5)"
+"Ba_2-x_(V^3+^OH)_x_V^3+^_9_(Fe^3+^,Fe^2+^)_2_Si_2_O_22_","Ba_2-x_(V^3+^OH)_x_V^3+^_9_(Fe^3+^,Fe^2+^)_2_Si_2_O_22_",Greenwoodite,"Ba_2-x_(VAa)_x_V_9_(Fe,Fe)_2_Si_2_O_22_"
+Ca_4_Be_3+x_Al_1-x_Si_9_O_25-x_(OH)_3+x_ (x = 0 to 1),Ca_4_Be_4_Si_9_O_24_(OH)_4_,Bohseite,Ca_4_Be_3+x_Al_1-x_Si_9_O_25-x_Aa_3+x_(x=0to1)
+Ca_2_Fe^3+^_3-x_[Si_8_O_20_](OH)_4_·10H_2_O,Ca_2_Fe^3+^_2.67_(Si_8_O_20_)(OH)_4_·10H_2_O,Windhoekite,Ca_2_Fe_3-x_(Si_8_O_20_)Aa_4_·10H_2_O
+"(Nb,Mo)S_2_·(Mg_1-x_Al_x_)(OH)_2+x_","(Nb,Mo,W)S_2_·(Mg_1-x_Al_x_)(OH)_2+x_",Ekplexite,"(Nb,Mo)S_2_·(Mg_1-x_Al_x_)Aa_2+x_"
+Sr_2_Ca_7-x_Na_2x_(Si_4_O_10_)_4_(OH)_2_(H_2_O)_15-x_,Sr_2_Ca_7-x_Na_2x_(Si_4_O_10_)_4_(OH)_2_(H_2_O)_15-x_,Cairncrossite,Sr_2_Ca_7-x_Na_2x_(Si_4_O_10_)_4_Aa_2_(H_2_O)_15-x_
+"(Mo,Nb)S_2_·(Mg_1-x_Al_x_)(OH)_2+x_","(Mo,Nb)S_2_·(Mg_1-x_Al_x_)(OH)_2+x_",Kaskasite,"(Mo,Nb)S_2_·(Mg_1-x_Al_x_)Aa_2+x_"
+"(Mo,Nb)S_2_·(Mn_1-x_Al_x_)(OH)_2+x_","(Mo,Nb)S_2_·(Mn^2+^_1-x_Al_x_)(OH)_2+x_",Manganokaskasite,"(Mo,Nb)S_2_·(Mn_1-x_Al_x_)Aa_2+x_"
+CaCu_3_Cl_2_(OH)_6_·nH_2_O (n ~ 0.7),CaCu^2+^_3_Cl_2_(OH)_6_·nH_2_O  (n ~ 0.7),Centennialite,CaCu_3_Cl_2_Aa_6_·nH_2_O(n~0.7)
+"Ca_8-x_(Na,K)_x_(SiO_4_)_4-x_(PO_4_)_x_","(Ca,Na,K)_2_(Si,P)O_4_",Flamite,"Ca_8-x_(Na,K)_x_(SiO_4_)_4-x_(PO_4_)_x_"
+Pd_7-x_SnTe_2_ (0.3 ≤ x ≤ 0.8),Pd_7-x_SnTe_2_ (0.3 ≤ x ≤ 0.8),Kojonenite,Pd_7-x_SnTe_2_(0.3≤x≤0.8)
+SiO_2_·nC_x_H_2x+2_,SiO_2_·<i>n</i>C_x_H_2x+2_,Bosoite,SiO_2_·nC_x_H_2x+2_
+"Na_5+x_Ti_4_(Si_2_O_7_)_2_[PO_3_(OH)]_2-y_[PO_2_(OH)_2_]_y_O_2_[(OH,F)_2-x_O_z_], [0<x<2, 0<y<1, 0<z<1]","Na_5+x_Ti^4+^_4_(Si_2_O_7_)_2_[PO_3_(OH)]_2-y_[PO_2_(OH)_2_]_y_O_2_[(OH,F)_2-x_O_z_], [0<x<2, 0<y<1, 0<z<1]",Betalomonosovite,"Na_5+x_Ti_4_(Si_2_O_7_)_2_(PO_3_Aa)_2-y_(PO_2_Aa_2_)_y_O_2_((Aa,F)_2-x_O_z_),(0<x<2,0<y<1,0<z<1)"
+"NaTi_3_(Ti,Na,Fe,Mn)_4_(Si_2_O_7_)_2_O_4_(OH,H_2_O)_4_·nH_2_O","NaTi^4+^_3_(Ti^4+^,Na,Fe^3+^,Mn^2+^)_4_(Si_2_O_7_)_2_O_4_(OH,H_2_O)_4_·nH_2_O",Selivanovaite,"NaTi_3_(Ti,Na,Fe,Mn)_4_(Si_2_O_7_)_2_O_4_(Aa,H_2_O)_4_·nH_2_O"
+Ag_x_Pb_40-2x_As_48+x_S_112_ (3 < x < 4),Ag_x_Pb_40-2x_As_48+x_S_112_  (3 < x < 4),Argentoliveingite,Ag_x_Pb_40-2x_As_48+x_S_112_(3<x<4)
+Ca_2x_Mn_1-x_O_2_·1.5-2H_2_O (x = 0.05-0.08),Ca_2x_Mn^4+^_1-x_O_2_·1.5-2H_2_O (x = 0.05-0.08),Lagalyite,Ca_2x_Mn_1-x_O_2_·1.5-2H_2_O(x=0.05-0.08)
+"Mg_12_(V^5+^,Mo^6+^,W^6+^)_1.5_O_6_{[BO_3_]_6-x_[(P,As)O_4_]_x_F_2-x_} (x < 1)","Mg_12_(V^5+^,Mo^6+^,W^6+^)_1.5_O_6_{[BO_3_]_6-x_[(P,As^5+^)O_4_]_x_F_2-x_} (x < 1)",Rhabdoborite-(V),"Mg_12_(V,Mo,W)_1.5_O_6_((BO_3_)_6-x_((P,As)O_4_)_x_F_2-x_)(x<1)"
+"Mg_12_(W^6+^,V^5+^)_1.5_O_6_{[BO_3_]_6-x_[(P,As)O_4_]_x_F_2-x_} (x < 1)","Mg_12_(W^6+^,V^5+^)_1.5_O_6_{[BO_3_]_6-x_[(P,As^5+^)O_4_]_x_F_2-x_} (x < 1)",Rhabdoborite-(W),"Mg_12_(W,V)_1.5_O_6_((BO_3_)_6-x_((P,As)O_4_)_x_F_2-x_)(x<1)"
+Fe^3+^_4_(PO_4_)_3_(SO_4_)(OH)·nH_2_O (15≤n≤24),Fe^3+^_4_(PO_4_)_3_(S^6+^O_4_)(OH)·nH_2_O (15≤n≤24),Bohuslavite,Fe_4_(PO_4_)_3_(SO_4_)Aa·nH_2_O(15≤n≤24)
