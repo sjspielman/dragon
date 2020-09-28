@@ -1,10 +1,10 @@
 library(tidyverse)
 # CONCLUSION:
 # IMA is mindat 
-# chemistry_elements is IMA and therefore reliable
-# rruff chemistries are NOT reliable for tallying elements. 
-# We must rely on ima formulas for counting number of elements
-
+# chemistry_elements is IMA and therefore more reliable
+# rruff chemistries are NOT default reliable for tallying elements. 
+# We should rely on ima formulas for counting number of elements
+# After this was done, the pipeline was run with either rruff or ima chem and all subsequent differences were manually checked, see `find_formula_inconsistencies_notes.md`.
 
 ### Absolutely the gnarliest code which is in dire, dire need of functions. but it works yo.
 dragon:::med_data_cache %>%
@@ -49,8 +49,6 @@ med_data_raw %>%
   distinct() %>%
   ungroup() -> present_elements
 
-Pb_9_Ca_6_(Si_2_O_7_)_4_(SiO_4_)O Pb^2+^_3_Ca_2_(SiO_4_)(Si_2_O_7_)
-
 # ima elements always agree with the chemistry_elements
 # rruff elements do not always agree: 100 different elements. So which is right?
 present_elements %>%
@@ -61,23 +59,11 @@ present_elements %>%
          all_same = ((rruff_elements == ima_elements) & (rruff_elements == chemistry_elements))) %>%
   filter(all_same == FALSE) -> disagree 
 
-
-eli %>% 
-  select(mineral_name, mindat = Mindat) %>% 
-  right_join(disagree) %>% 
-  select(mineral_name, mindat, rruff, ima) %>%
-  mutate(mindat = str_replace_all(mindat, "REE", "Ee"), 
-         ima = str_replace_all(ima, "<sub>", "_"), 
-         ima = str_replace_all(ima, "<sup>", "^"), 
-         ima = str_replace_all(ima, "</sub>", "_"),
-         ima = str_replace_all(ima, "</sup>", "^")) %>% 
-  filter(mindat != ima) # no rows!
-  
   
 anti_join(final_counts_possible_ima, final_counts_possible_rruff) %>%
   filter(!(mineral_name %in% disagree$mineral_name)) %>% View()
-# 
-disagree_counts 
+ 
+
   
-final_counts_possible_ima
-final_counts_possible_rruff
+#final_counts_possible_ima
+#final_counts_possible_rruff

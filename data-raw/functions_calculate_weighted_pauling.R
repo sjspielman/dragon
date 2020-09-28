@@ -60,19 +60,13 @@ clean_comma_parens <- function(chemform){
     # how many parts? eg, (H,K) is 2. (,F) is 1. (NH_2_,O) is 2.
     temp_chunk <- stringr::str_trim(stringr::str_replace_all(
                     stringr::str_replace_all(comma_chunk, "\\(", ""), "\\)", ""))
-    raw_n_parts <- stringr::str_split(temp_chunk, ",")[[1]]
+    # unique needed here also to not double count a repeat
+    raw_n_parts <- unique( stringr::str_split(temp_chunk, ",")[[1]] )
     n_parts <- length(raw_n_parts[raw_n_parts != ""])
-    split_comma <- stringr::str_split(temp_chunk, ",")[[1]]
+    # unique() takes care of things like (Mn,Mn) --> (Mn) ; (Mn,Mn,Fe) --> (Mn,Fe) 
+    split_comma <- unique( stringr::str_split(temp_chunk, ",")[[1]] )
     
-    # TODO: What if WE HAVE THE SAME ELEMENT INSIDE A CHUNK??????? CURRENTLY THEY ARE EQUALLY WEIGHTED BUT THIS MAY NOT BE IDEAL.
-    # FOR EXAMPLE:  "(Ti,Fe,Fe)". IS THIS 1/3 Ti and 2/3 Fe or is this 1/2 Ti and 1/2 Fe?
-  
-    #table(split_comma) %>% 
-    #  tibble::as_tibble() %>%
-    #  dplyr::pull(split_comma) %>%
-    #  unique() -> unique_elements_in_
 
-    
     for (chunk in split_comma){
       
       ## count number of atoms in the segment -------------------------------
@@ -217,3 +211,78 @@ parse_clean_formula <- function(formula_to_parse)
   }
   formula_tibble
 }
+
+
+
+# Random list of minerals to check:
+tibble::tribble(~mineral_name,       ~element,    ~count,
+                # ZnFe^3+^_2_(PO_4_)_2_(OH)_2_·6.5H_2_O
+                "Zincostrunzite", "Zn",1,
+                "Zincostrunzite", "Fe",2,
+                "Zincostrunzite", "P",2,
+                "Zincostrunzite", "O",16.5,
+                "Zincostrunzite", "H",15,
+                # Na_2_Ca_4_YTi(Si_2_O_7_)_2_OF_3_
+                "Rinkite-(Y)", "Na",2,
+                "Rinkite-(Y)", "Ca",4,
+                "Rinkite-(Y)", "Y",1,
+                "Rinkite-(Y)", "Ti",1,
+                "Rinkite-(Y)", "Si",4,
+                "Rinkite-(Y)", "O",15,
+                "Rinkite-(Y)", "F",3,
+                # MgMn^2+^Al(PO_4_)_2_(OH)·4H_2_O
+                "Lunokite","Mg",1,
+                "Lunokite","Mn",1,
+                "Lunokite","Al",1,
+                "Lunokite","P",2,
+                "Lunokite","O",13,
+                "Lunokite","H",9,
+                # [(UO_2_)_2_(C_2_O_4_)(OH)_2_(H_2_O)_2_]·H_2_O
+                "Uroxite","U",2,
+                "Uroxite","O",13,
+                "Uroxite","C",2,
+                "Uroxite","H",8,
+                # Mn_2_Fe^3+^(SiFe^3+^)O_5_(OH)_4_
+                "Guidottiite","Mn",2,
+                "Guidottiite","Fe",2,
+                "Guidottiite","Si",1,
+                "Guidottiite","O",9,
+                "Guidottiite","H",4,
+                # (Mn,Th,Na,Ca,REE)_2_(Nb,Ti)_2_O_6_(OH)
+                "Hydroxymanganopyrochlore", "Mn", 0.4, 
+                "Hydroxymanganopyrochlore", "Th", 0.4, 
+                "Hydroxymanganopyrochlore", "Na", 0.4, 
+                "Hydroxymanganopyrochlore", "Ca", 0.4, 
+                "Hydroxymanganopyrochlore", "REE", 0.4, 
+                "Hydroxymanganopyrochlore", "Nb", 1, 
+                "Hydroxymanganopyrochlore", "Ti", 1, 
+                "Hydroxymanganopyrochlore", "O", 7, 
+                "Hydroxymanganopyrochlore", "H", 1, 
+                # Al_13_(U^6+^O_2_)_7_(PO_4_)_13_(OH)_14_·58H_2_O
+                "Furongite","Al",13,
+                "Furongite","U",7,
+                "Furongite","P",13,
+                "Furongite","O",138,
+                "Furongite","H",130,
+                # Pb(U^4+^,U^6+^)Fe^2+^_2_(Ti,Fe^2+^,Fe^3+^)_18_(O,OH)_38_
+                "Cleusonite", "Pb", 1,
+                "Cleusonite", "U", 1,
+                "Cleusonite", "Fe", 11,
+                "Cleusonite", "Ti", 9,
+                "Cleusonite", "O", 28.5,
+                "Cleusonite", "H", 9.5,
+                #"NaCa_2_Fe_2_(Fe,Mn,Fe)_4_(PO_4_)_6_·2H_2_O"
+                "Wicksite", "Na", 1,
+                "Wicksite", "Ca", 2,
+                "Wicksite", "Fe", 4,
+                "Wicksite", "Mn", 2,
+                "Wicksite", "P", 6,
+                "Wicksite", "O", 26,
+                "Wicksite", "H", 4,
+                # (Al,[box])(UO_2_)_2_F(PO_4_)_2_(H_2_O,F)_20_
+                "Uranospathite", "Al", 1,
+                "Uranospathite", "U", 2,
+                "Uranospathite", "O", 22,
+                "Uranospathite", "F", 11,
+                "Uranospathite", "H", 20) %>%
+  dplyr::arrange(mineral_name) -> true_counts
