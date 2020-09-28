@@ -25,6 +25,7 @@ exclude <- c("Ferrotochilinite", "Pitticite","Protochabourneite","Rosieresite", 
 easier_parsing_with_rruff <- c("Clinotobermorite", "Plombierite", "Tobermorite")
 use_rruff <- c("Chukhrovite-(Ce)", "Chukhrovite-(Y)", "Cooketie", "Furongite", "Jorgkellerite", "Krasnoite", "Melkovite","Microsommite","Nielsbohrite","Taimyrite-I","Tatyanaite", "Telluroperite", "Theoparacelsite", "Uranospathite", easier_parsing_with_rruff)
 
+
 # An important note to self for step 1
 # Ammineite ima is: CuCl_2_·2NH_3_ but needs to be: CuCl_2_·N_2_H_6_
 
@@ -54,6 +55,23 @@ med_data_raw %>%
 #7 FeS·≈0.85[Fe(OH)_2_]                    6Fe^2+^S^2-^·5Fe^2+^(OH)_2_                      Ferrotochilinite !!!!!!!!!!!!!!!!! mindat: Fe2+6(Fe2+,Mg)5S6(OH)10. EXCLUDE DUE TO WTF
 #8 2[(Fe,Cu)S]·1.53[(Fe,Al,Mg)(OH)_2_]     2(Fe,Cu)S·1.53[(Fe^2+^,Al,Mg)(OH)_2_]            Ferrovalleriite 
 
+med_data_raw %>%
+  dplyr::filter(stringr::str_detect(ima, "·")) %>% 
+  dplyr::filter(stringr::str_detect(ima, "(H_2_O,\\w+)") | 
+                  stringr::str_detect(ima, "(\\w+,H_2_O)") |
+                  stringr::str_detect(rruff, "(H_2_O,\\w+)") | 
+                  stringr::str_detect(rruff, "(\\w+,H_2_O)")) %>%
+  dplyr::select(mineral_name, ima, rruff) %>%
+  print.data.frame()
+# mineral_name                                                                       ima                                                                                     rruff
+# 1  Metakottigite  THIS ONE                             (Zn,Fe^3+^)_3_(AsO_4_)_2_·8(H_2_O,OH)                                             (Zn^2+^,Fe^3+^)_3_(As^5+^O_4_)_2_·8(H_2_O,OH)
+# 2 Phosphofibrite                           (H_2_O,K)_3.5_Fe^3+^_8_(PO_4_)_6_(OH)_7_·5H_2_O                                   (K_0.5_(H_2_O)_3_)Fe^3+^_8_(PO_4_)_6_(OH)_6.5_·6.5H_2_O
+# 3  Uranospathite  THISONE                                (Al,[box])(UO_2_)_2_F(PO_4_)_2_·20H_2_O                                           (Al,[box])(U^6+^O_2_)_2_F(PO_4_)_2_·20(H_2_O,F)
+# 4  Vinogradovite   THIS ONE          Na_4_Ti_4_(Si_2_O_6_)_2_[(Si,Al)_4_O_10_]O_4_·(H_2_O,Na,K)_3_                         Na_4_Ti^4+^_4_(Si_2_O_6_)_2_[(Si,Al)_4_O_10_]O_4_·(H_2_O,Na,K)_3_
+# 5   Yofortierite                                         Mn^2+^_5_Si_8_O_20_(OH)_2_·7H_2_O                                       (Mn^2+^,Mg,Fe^3+^)_5_Si_8_O_20_(OH,H_2_O)_2_·7H_2_O
+# 6      Bykovaite (Ba,Na,K)_2_(Na,Ti,Mn)_4_(Ti,Nb)_2_O_2_Si_4_O_14_(H_2_O,F,OH)_2_·3.5H_2_O (Ba,Na,K)_2_(Na,Ti^4+^,Mn^2+^)_4_(Ti^4+^,Nb^5+^)_2_O_2_Si_4_O_14_(H_2_O,F,OH)_2_·3.5H_2_O
+# 7  Selivanovaite             NaTi_3_(Ti,Na,Fe,Mn)_4_(Si_2_O_7_)_2_O_4_(OH,H_2_O)_4_·nH_2_O             NaTi^4+^_3_(Ti^4+^,Na,Fe^3+^,Mn^2+^)_4_(Si_2_O_7_)_2_O_4_(OH,H_2_O)_4_·nH_2_O
+                  
 ###############################################################################################################################
 
 
@@ -62,21 +80,22 @@ med_data_raw %>%
 ### Step 1: Specify formula to use for each mineral, including those previously (manually) identified for use -------------------------------------------
 med_data_raw %>%
   # Deal with scalars
-  dplyr::mutate(chem = case_when(# The ones where we must use rruff
-                                 mineral_name %in% use_rruff ~ rruff,
-                                 # Formulas that need to be manually cleaned a little
-                                 mineral_name == "Ammineite"         ~ "CuCl_2_(NH_3_)_2_", # Had missing parentheses in IMA
-                                 mineral_name == "Byzantievite"      ~ "Ba_5_(Ca,REE,Y)_22_(Ti,Nb)_18_(SiO_4_)_4_(P_4_O_16_,Si_4_O_16_)B_9_O_27_O_22_((OH),F)_43_(H_2_O)_1.5_", # Ba_5_(Ca,REE,Y)_22_(Ti,Nb)_18_(SiO_4_)_4_[(PO_4_),(SiO_4_)]_4_(BO_3_)_9_O_22_[(OH),F]_43_(H_2_O)_1.5_
-                                 mineral_name == "Kolitschite"       ~ "PbZnFe_3_(AsO_4_)_2_(OH)_6_", # HALF ZN, HALF UNKNOWN= CALC AS 100% ZN:  Pb[Zn_0.5_,[box]_0.5_]Fe_3_(AsO_4_)_2_(OH)_6_ ; has 0.5[box] so this is the mindat match.
-                                 mineral_name == "Vladimirivanovite" ~ "Na_6_Ca_2_Al_6_Si_6_O_24_(S_2_O_8_,S_6_,S_4_,Cl_2_)(H_2_O)", #Na_6_Ca_2_[Al_6_Si_6_O_24_](SO_4_,S_3_,S_2_,Cl)_2_·H_2_O
-                                 mineral_name == "Uranospathite"     ~ "Al(U^6+^O_2_)_2_F(PO_4_)_2_(H_2_O,F)_20_", # (Al,[box])(U^6+^O_2_)_2_F(PO_4_)_2_·20(H_2_O,F)
-                                 # scalars
-                                 mineral_name == "Ferrovalleriite" ~ "(Fe,Cu)_2_S_2_(Fe^2+^,Al,Mg)_1.53_(OH)_3.06_", #2(Fe,Cu)S·1.53[(Fe^2+^,Al,Mg)(OH)_2_]  # I THINK FORMULA IS WRONG AND SHOULD HAVE BRACES AROUND (Fe,Cu)S !!!
-                                 mineral_name == "Haapalaite"      ~ "(Fe^2+^,Ni^2+^)_2_S^2-^_2_(Mg,Fe^2+^)_1.61_(OH)_3.22_", #2[(Fe^2+^,Ni^2+^)S^2-^]·1.61[(Mg,Fe^2+^)(OH)_2_]
-                                 mineral_name == "Metakottigite"   ~ "(Zn,Fe^3+^)_3_(AsO_4_)_2_(H_2_O,OH)_8_", # (Zn,Fe^3+^)_3_(AsO_4_)_2_·8(H_2_O,OH), having the h20/oh in same place means kill the scalar
-                                 mineral_name == "Tochilinite"     ~ "(Fe^2+^_0.9_S^2-^)_6_(Mg,Fe^2+^)_5_(OH)_10_", #6(Fe^2+^_0.9_S^2-^)·5[(Mg,Fe^2+^)(OH)_2_] 
-                                 mineral_name == "Valleriite"      ~ "(Fe,Cu)_2_S_2_(Mg,Al)_1.53_(OH)_3.06_", # 2[(Fe,Cu)S]·1.53[(Mg,Al)(OH)_2_]  
-                                 TRUE ~ ima)) -> med_data
+  dplyr::mutate(chem = case_when(# Formulas that need to be manually cleaned a little
+                                  mineral_name == "Ammineite"         ~ "CuCl_2_(NH_3_)_2_", # Had missing parentheses in IMA
+                                  mineral_name == "Byzantievite"      ~ "Ba_5_(Ca,REE,Y)_22_(Ti,Nb)_18_(SiO_4_)_4_(P_4_O_16_,Si_4_O_16_)B_9_O_27_O_22_((OH),F)_43_(H_2_O)_1.5_", # Ba_5_(Ca,REE,Y)_22_(Ti,Nb)_18_(SiO_4_)_4_[(PO_4_),(SiO_4_)]_4_(BO_3_)_9_O_22_[(OH),F]_43_(H_2_O)_1.5_
+                                  mineral_name == "Kolitschite"       ~ "PbZnFe_3_(AsO_4_)_2_(OH)_6_", # HALF ZN, HALF UNKNOWN= CALC AS 100% ZN:  Pb[Zn_0.5_,[box]_0.5_]Fe_3_(AsO_4_)_2_(OH)_6_ ; has 0.5[box] so this is the mindat match.
+                                  mineral_name == "Vladimirivanovite" ~ "Na_6_Ca_2_Al_6_Si_6_O_24_(S_2_O_8_,S_6_,S_4_,Cl_2_)(H_2_O)", #Na_6_Ca_2_[Al_6_Si_6_O_24_](SO_4_,S_3_,S_2_,Cl)_2_·H_2_O
+                                  mineral_name == "Uranospathite"     ~ "(Al,[box])(U^6+^O_2_)_2_F(PO_4_)_2_(H_2_O,F)_20_", # (Al,[box])(U^6+^O_2_)_2_F(PO_4_)_2_·20(H_2_O,F)
+                                  mineral_name == "Vinogradovite"     ~ "Na_4_Ti_4_(Si_2_O_6_)_2_(Si,Al)_4_O_10_O_4_(H_2_O,Na,K)_3_", # Na_4_Ti_4_(Si_2_O_6_)_2_[(Si,Al)_4_O_10_]O_4_·(H_2_O,Na,K)_3_ 
+                                  # scalars
+                                  mineral_name == "Ferrovalleriite" ~ "(Fe,Cu)_2_S_2_(Fe^2+^,Al,Mg)_1.53_(OH)_3.06_", #2(Fe,Cu)S·1.53[(Fe^2+^,Al,Mg)(OH)_2_]  # I THINK FORMULA IS WRONG AND SHOULD HAVE BRACES AROUND (Fe,Cu)S !!!
+                                  mineral_name == "Haapalaite"      ~ "(Fe^2+^,Ni^2+^)_2_S^2-^_2_(Mg,Fe^2+^)_1.61_(OH)_3.22_", #2[(Fe^2+^,Ni^2+^)S^2-^]·1.61[(Mg,Fe^2+^)(OH)_2_]
+                                  mineral_name == "Metakottigite"   ~ "(Zn,Fe^3+^)_3_(AsO_4_)_2_(H_2_O,OH)_8_", # (Zn,Fe^3+^)_3_(AsO_4_)_2_·8(H_2_O,OH), having the h20/oh in same place means kill the scalar
+                                  mineral_name == "Tochilinite"     ~ "(Fe^2+^_0.9_S^2-^)_6_(Mg,Fe^2+^)_5_(OH)_10_", #6(Fe^2+^_0.9_S^2-^)·5[(Mg,Fe^2+^)(OH)_2_] 
+                                  mineral_name == "Valleriite"      ~ "(Fe,Cu)_2_S_2_(Mg,Al)_1.53_(OH)_3.06_", # 2[(Fe,Cu)S]·1.53[(Mg,Al)(OH)_2_]  
+                                  # The ones where we must use rruff
+                                  mineral_name %in% use_rruff ~ rruff, # MUST GO LAST SINCE SOME RRUFF HAVE OVERRIDES (Uranospathite for now) 
+                                  TRUE ~ ima)) -> med_data
   
   
   
@@ -220,8 +239,18 @@ full_counts %>%
 # Check:
 final_counts_possible %>% 
   dplyr::filter(mineral_name %in% true_counts$mineral_name) %>% 
-  dplyr::arrange(mineral_name) -> test_counts
-stopifnot(   all_equal(true_counts, test_counts, tolerance = 0.01)    )
+  dplyr::arrange(mineral_name) %>%
+  dplyr::mutate(count = round(count, TOL)) -> test_counts
+stopifnot(   all_equal(true_counts, test_counts)    )
+
+
+#for (m in unique(test_counts$mineral_name)){
+#  print(m)
+#  test <- test_counts %>% filter(mineral_name == m) %>% arrange(element)
+#  true <- true_counts %>% filter(mineral_name == m)%>% arrange(element)
+#  print(all_equal(test, true, tolerance = 0.1))
+#}
+
 
 
 ### Step 8: Join counts with element electronegativity values and to finally perform weighted calculations ---------

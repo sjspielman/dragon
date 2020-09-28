@@ -1,5 +1,5 @@
 ## Functions used in parsing
-
+TOL <- 6
 divvy_standins <- function(chemform){
   # Turn things like Aa_0.5_ ----> O_0.25_H_0.25_
   
@@ -279,10 +279,31 @@ tibble::tribble(~mineral_name,       ~element,    ~count,
                 "Wicksite", "P", 6,
                 "Wicksite", "O", 26,
                 "Wicksite", "H", 4,
-                # (Al,[box])(UO_2_)_2_F(PO_4_)_2_(H_2_O,F)_20_
+                # (Al,[box])(U^6+^O_2_)_2_F(PO_4_)_2_(H_2_O,F)_20_
                 "Uranospathite", "Al", 1,
                 "Uranospathite", "U", 2,
-                "Uranospathite", "O", 22,
+                "Uranospathite", "O", 4 + 8 + (20 * 1/2*1/3), 
                 "Uranospathite", "F", 11,
-                "Uranospathite", "H", 20) %>%
-  dplyr::arrange(mineral_name) -> true_counts
+                "Uranospathite", "P", 2,
+                "Uranospathite", "H", 20*(2/3 * 1/2), 
+                # (Ba,Na,K)_2_(Na,Ti,Mn)_4_(Ti,Nb)_2_O_2_Si_4_O_14_(H_2_O,F,OH)_2_·3.5H_2_O 
+                "Bykovaite", "Ba", 2/3,
+                "Bykovaite", "Na", 2,
+                "Bykovaite", "K", 2/3,
+                "Bykovaite", "Ti", 7/3,
+                "Bykovaite", "Mn", 4/3,
+                "Bykovaite", "Nb", 1,
+                "Bykovaite", "O", 2+ 14 + 3.5 + 2/9 + 1/3,
+                "Bykovaite", "Si",4,
+                "Bykovaite", "F", 2/3,
+                "Bykovaite", "H", 7+4/9 + 1/3,
+                # Na_4_Ti_4_(Si_2_O_6_)_2_[(Si,Al)_4_O_10_]O_4_(H_2_O,Na,K)_3_ 
+                "Vinogradovite", "Na", 5,
+                "Vinogradovite", "Ti", 4,
+                "Vinogradovite", "Si", 6,
+                "Vinogradovite", "Al", 2,
+                "Vinogradovite", "K", 1,
+                "Vinogradovite", "O", 12 + 10 + 4 + 1/3,
+                "Vinogradovite", "H", 2/3) %>%
+  dplyr::arrange(mineral_name) %>%
+  dplyr::mutate(count = round(count,TOL)) -> true_counts
