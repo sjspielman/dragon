@@ -1,69 +1,73 @@
 library(tidyverse)
-# CONCLUSION:
-# IMA is mindat 
-# chemistry_elements is IMA and therefore more reliable
-# rruff chemistries are NOT default reliable for tallying elements. 
-# We should rely on ima formulas for counting number of elements
-# After this was done, the pipeline was run with either rruff or ima chem and all subsequent differences were manually checked, see `find_formula_inconsistencies_notes.md`.
+# Determine if _present elements_ are compatible among formulas : element_presence_conflict T for conflict, F for no conflict
+# goal:
+## for incompatible minerals, option to exclude from network 
+## the only need here is to preserve the fact that there may be conflicts
 
-### Absolutely the gnarliest code which is in dire, dire need of functions. but it works yo.
 dragon:::med_data_cache %>%
   dplyr::select(rruff = rruff_chemistry, ima = ima_chemistry, mineral_name, chemistry_elements) %>%
-  dplyr::distinct() -> med_data_raw
-med_data_raw %>%
-  select(mineral_name, rruff, ima, chemistry_elements) %>%
+  dplyr::distinct() %>%
   # Replace REE with Ee since REE is not regex atom name
-  mutate(rruff = str_replace_all(rruff, "REE", "Ee"),
-         ima = str_replace_all(ima, "REE", "Ee"),
-         chemistry_elements = str_replace_all(chemistry_elements, "REE", "Ee")) %>%
-  distinct() %>%
-  group_by(mineral_name) %>%
-  # Create new sorted chemistry_elements
-  mutate(split_form = str_split(chemistry_elements, " ")) %>%  
-  unnest(cols = c("split_form"))  %>% distinct() %>%
-  arrange(split_form) %>% 
-  mutate(chemistry_elements = paste(split_form, collapse = " ")) %>% 
-  distinct() %>% 
-  # Extract and create sorted rruff_chemistry elements
-  mutate(rruff_el= str_match_all(rruff, "[A-Z][a-z]*")) %>%
-  unnest(cols = c("rruff_el")) %>% 
-  mutate(rruff_el2 = paste(unique(rruff_el),collapse = " ")) %>%
-  select(-rruff_el) %>%
-  mutate(split_form = str_split(rruff_el2, " ")) %>%  
-  unnest(cols = c("split_form"))  %>% distinct() %>%
-  arrange(split_form) %>% 
-  mutate(rruff_elements = paste(split_form, collapse = " ")) %>% 
-  distinct() %>% 
-  select(-split_form) %>%
-  # Extract and create sorted ima_chemistry elements
-  mutate(ima_el= str_match_all(ima, "[A-Z][a-z]*")) %>%
-  unnest(cols = c("ima_el")) %>% 
-  mutate(ima_el2 = paste(unique(ima_el),collapse = " ")) %>%
-  select(-ima_el) %>%
-  mutate(split_form = str_split(ima_el2, " ")) %>%  
-  unnest(cols = c("split_form"))  %>% distinct() %>%
-  arrange(split_form) %>% 
-  mutate(ima_elements = paste(split_form, collapse = " ")) %>% 
-  # Clean up and ungroup (mineral_name grouping)
-  select(-split_form, -rruff_el2, -ima_el2) %>%
-  distinct() %>%
-  ungroup() -> present_elements
+  dplyr::mutate(rruff = str_replace_all(rruff, "REE", "Ee"),
+                ima = str_replace_all(ima, "REE", "Ee"),
+                chemistry_elements = str_replace_all(chemistry_elements, "REE", "Ee")) %>%
+  group_by(mineral_name) -> input_med
 
-# ima elements always agree with the chemistry_elements
-# rruff elements do not always agree: 100 different elements. So which is right?
-present_elements %>%
-  arrange(mineral_name) %>%
-  mutate(rruff_ima = rruff_elements == ima_elements,
-         rruff_default = rruff_elements == chemistry_elements,
-         ima_default = chemistry_elements == ima_elements,
-         all_same = ((rruff_elements == ima_elements) & (rruff_elements == chemistry_elements))) %>%
-  filter(all_same == FALSE) -> disagree 
 
+identify_elements <- function(df, formula_column)
+{
   
-anti_join(final_counts_possible_ima, final_counts_possible_rruff) %>%
-  filter(!(mineral_name %in% disagree$mineral_name)) %>% View()
- 
+  df %>%
+    dplyr::mutate(el= str_match_all({{formula_column}}, "[A-Z][a-z]*")) %>%
+    tidyr::unnest(cols = c("el")) %>% 
+    dplyr::mutate(el2 = paste(unique(el),collapse = " ")) %>%
+    dplyr::select(-el)
+}
 
-  
-#final_counts_possible_ima
-#final_counts_possible_rruff
+sort_elements <- function(df, element_column)
+{
+  df %>%
+    dplyr::mutate(split_form = stringr::str_split({{element_column}}, " ")) %>%  
+    tidyr::unnest(cols = c("split_form")) %>% 
+    dplyr::distinct() %>% 
+    dplyr::arrange(split_form) %>%
+    dplyr::mutate(output_column = paste(split_form, collapse = " ")) %>% 
+    dplyr::select(-split_form, -{{element_column}}) %>%
+    dplyr::distinct()
+}
+
+identify_elements(input_med, rruff) %>%
+  sort_elements(el2) %>%
+  dplyr::select(-chemistry_elements) %>%
+  dplyr::rename(rruff_elements = output_column) -> rruff_elements
+
+identify_elements(input_med, ima) %>%
+  sort_elements(el2) %>%
+  dplyr::select(-chemistry_elements) %>%
+  dplyr::rename(ima_elements = output_column) -> ima_elements
+
+sort_elements(input_med, chemistry_elements) %>%
+  dplyr::rename(chemistry_elements = output_column) %>%
+  dplyr::left_join(ima_elements) %>%
+  dplyr::left_join(rruff_elements) %>%
+  dplyr::ungroup() %>%
+  dplyr::select(mineral_name, everything()) %>%
+  dplyr::arrange(mineral_name) %>%
+  dplyr::mutate(rruff_ima = rruff_elements == ima_elements,
+                rruff_default = rruff_elements == chemistry_elements,
+                ima_default = chemistry_elements == ima_elements) %>%
+  dplyr::select(mineral_name, rruff_ima, rruff_default, ima_default) -> formula_element_overlap
+# NAMES: 
+# mineral_name
+# rruff_ima     : do rruff and ima agree?
+# rruff_default : do rruff and chemistry_elements agree?
+# ima_default   : do ima and chemistry_elements agree?
+# formula_element_overlap %>%
+#   dplyr::filter(ima_default==FALSE)  ---> 0 rows
+
+# formula_element_overlap %>%
+#   dplyr::filter(rruff_default==FALSE)  ---> 100 rows for 2/3/20 med data
+
+formula_element_overlap %>%
+  dplyr::mutate(conflict = !(rruff_default)) %>%
+  dplyr::select(mineral_name, conflict) -> element_presence_conflict

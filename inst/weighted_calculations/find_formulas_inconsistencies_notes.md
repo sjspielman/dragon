@@ -71,7 +71,6 @@
 
 ### Minerals where rruff/ima formulas are the same but increased by a factor of 2, or something, so calculations unaffected
 
-+ Alumohydrocalcite
 + Baghdadite
 + Burpalite
 + Clinoenstatite
@@ -81,7 +80,6 @@
 + Eltyubyuite
 + Enstatite
 + Glaucodot
-+ Guettardite, mostly, good enough
 + Hannebachite
 + Hielscherite
 + Hodrusite
