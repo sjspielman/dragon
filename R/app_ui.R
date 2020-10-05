@@ -17,7 +17,7 @@ app_ui <- function(request) {
                      icon = shiny::icon("question-circle"),
                      badgeStatus = NULL,
                      headerText = "Information:",
-                     notificationItem("You are using dragon version 0.3.0", icon = icon("box-open")),
+                     notificationItem("You are using THE DEVELOPMENET VERSION OF DRAGON", icon = icon("box-open")),
                      notificationItem("Source Code", icon = icon("github"), href = "http://github.com/spielmanlab/dragon"),
                      notificationItem("IMA Database of Mineral Properties", icon = icon("globe"), href =  "https://rruff.info/ima/")
                     )
@@ -364,6 +364,7 @@ app_ui <- function(request) {
                   ) ## END fluidRow
                  ), ## END "Analyze Network Minerals" tabPanel  
                 
+                ## TIMLINE PANEL ---------------------------------------------------------------------------------------------                   
                 shiny::tabPanel("Mineral formation timeline",
                   div(style="float:center;width:100%;height:700px;",
                     plotOutput("timeline_plot_output", height = "100%", width = "100%")

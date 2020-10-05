@@ -21,7 +21,7 @@ element_info %>%
 
 
 ## Prepare the data from med_data_cache ---------------------------------------------------------------
-dragon:::med_data_cache %>%
+med_data_cache %>%
   dplyr::select(ima = ima_chemistry, rruff = rruff_chemistry, mineral_name) %>%
   dplyr::mutate(ima = str_replace_all(ima, "<sub>", "_"), 
                 ima = str_replace_all(ima, "<sup>", "^"), 

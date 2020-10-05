@@ -102,7 +102,7 @@ outpath <- system.file("testdata", package="dragon")
 
 write_zip_clean <- function(df, file){
   readr::write_csv(df, file)
-  zip::zip(paste0(file, ".zip"), file)
+  zip::zipr(paste0(file, ".zip"), file)
   file.remove(file)
 }
 

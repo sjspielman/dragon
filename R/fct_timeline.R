@@ -184,7 +184,7 @@ build_current_timeline <- function(timeline_minerals, nodes, mineral_color_by, m
   total <- nrow(timeline_minerals)
   nodes %>%
     dplyr::filter(group == "mineral") %>%
-    dplyr::select(id, mean_pauling, cov_pauling, num_localities, max_age) %>%
+    dplyr::select(id, mean_pauling, w_mean_pauling, cov_pauling, w_cov_pauling, num_localities, max_age) %>%
     dplyr::rename(mineral_name = id) %>%
     dplyr::right_join(timeline_minerals) %>% 
     dplyr::distinct() %>%

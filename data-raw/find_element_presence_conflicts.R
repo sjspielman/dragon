@@ -4,7 +4,7 @@ library(tidyverse)
 ## for incompatible minerals, option to exclude from network 
 ## the only need here is to preserve the fact that there may be conflicts
 
-dragon:::med_data_cache %>%
+med_data_cache %>%
   dplyr::select(rruff = rruff_chemistry, ima = ima_chemistry, mineral_name, chemistry_elements) %>%
   dplyr::distinct() %>%
   # Replace REE with Ee since REE is not regex atom name

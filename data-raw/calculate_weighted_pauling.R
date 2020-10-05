@@ -1,8 +1,12 @@
-library(tidyverse)
-devtools::load_all() #library(dragon)
+#devtools::load_all() #library(dragon)
 source("functions_calculate_weighted_pauling.R")
 source("setup_calculate_weighted_pauling.R")
 source("find_element_presence_conflicts.R")
+
+
+element_presence_conflict %>%
+  dplyr::filter(conflict == TRUE) %>%
+  dplyr::select(mineral_name) -> exclude_minerals_from_dragon
 
 
 # Which minerals should we calculate for? -----------------------------
@@ -43,7 +47,8 @@ calculate_weighted_values(rruff_counted_excluded$counts, pauling_values) %>%
 
 ## Compare: how many are in agreement between RRUFF/IMA calculation versions? --------------------------------------
 
-rruff_ima_consistent <- dplyr::inner_join(ima_weighted_values, rruff_weighted_values)
+dplyr::inner_join(ima_weighted_values, rruff_weighted_values) -> final_weighted_pauling
+
 
 
 # Exploration for extent of error/differences -------------------------------

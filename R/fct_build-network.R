@@ -71,7 +71,7 @@ initialize_network <- function(elements_of_interest,
                                cluster_algorithm = "Louvain",
                                use_data_cache    = TRUE)
 {
-  
+  # TODO: Weighted values and exclusions when updating from MED? Should it be incorporated? For now, we just tell them to be aware.
   if (use_data_cache)
   {
     med_data <- med_data_cache
@@ -84,7 +84,7 @@ initialize_network <- function(elements_of_interest,
       element_redox_states <- element_redox_states_cache
     } else {
       element_redox_states <- calculate_element_redox_states(med_data)
-      print("....Done downloading! Building network now.")
+      print("....Done downloading! Building network now. Please be aware that this data has not been fully 'vetted' by dragon maintainers.")
     }
   }
   
@@ -273,7 +273,7 @@ construct_network   <- function(elements_only_age, elements_by_redox, ignore_na_
                   cov_pauling  = stats::sd(pauling) / mean_pauling ) %>%
     dplyr::distinct() %>%
     dplyr::ungroup() %>%
-    dplyr::left_join(weighted_pauling_values) %>% ## INCORPORATE WEIGHTED VALUES
+    dplyr::left_join(final_weighted_pauling) %>%
     dplyr::rename(from = mineral_name) -> network_information
   
   
