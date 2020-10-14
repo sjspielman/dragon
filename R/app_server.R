@@ -357,7 +357,7 @@ app_server <- function( input, output, session ) {
     })    
     
     output$connectivity <- renderText({
-      if (network_quantities()$connectivity == 0){
+      if (!(network_quantities()$connectivity)){
         paste0("WARNING: This network is disconnected. Interpret network metrics with caution.")
       }
       else {
