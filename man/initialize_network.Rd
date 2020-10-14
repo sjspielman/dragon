@@ -9,6 +9,8 @@ initialize_network(
   elements_of_interest,
   force_all_elements = FALSE,
   elements_by_redox = FALSE,
+  restrict_to_elements = FALSE,
+  ignore_na_redox = FALSE,
   age_range = c(0, 5),
   max_age_type = "Maximum",
   cluster_algorithm = "Louvain",
@@ -16,7 +18,7 @@ initialize_network(
 )
 }
 \arguments{
-\item{elements_of_interest}{A array of specified elements whose minerals should be included in
+\item{elements_of_interest}{An array of specified elements whose minerals should be included in
 the network. For all elements, specify "all".}
 
 \item{force_all_elements}{A logical. If FALSE (default), minerals containing any of 
@@ -26,6 +28,12 @@ intersection of all specified elements will be included in network.}
 \item{elements_by_redox}{A logical. If FALSE (default), element nodes will be constructed
 regardless of redox state. If TRUE, creates separate node for each element's redox state, 
 e.g. Fe2+ and Fe3+ would be separate nodes.}
+
+\item{restrict_to_elements}{A logical. If FALSE (default), constructed network will _only_ 
+contain the specified focal element(s)}
+
+\item{ignore_na_redox}{A logical. If TRUE and elements_by_redox is TRUE, element nodes 
+without redox states will be removed from the network.}
 
 \item{age_range}{A array of two numbers giving inclusive range of mineral ages in Ga
 to include in network.}
