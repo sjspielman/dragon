@@ -12,6 +12,7 @@ med_cache_date <- find_most_recent_date()
      
 source("calculate_weighted_pauling.R")  # produces `final_weighted_pauling`, `exclude_minerals_from_dragon`
 
+# !!!!!!!!!!!!!!! UNCOMMENT IF MED DATA IS FRESH:
 # # Remove minerals with rruff/ima inconsistency, and incorporate weighted calculations
 # med_data_cache %>%
 #   dplyr::filter(!(mineral_name %in% exclude_minerals_from_dragon)) %>%
@@ -22,10 +23,28 @@ source("calculate_weighted_pauling.R")  # produces `final_weighted_pauling`, `ex
 #   dplyr::filter(!(mineral_name %in% exclude_minerals_from_dragon)) -> element_redox_states_cache
 
 
+
+# Tibble containing all RColorBrewer palettes used in dragon node coloring
+RColorBrewer::brewer.pal.info %>% 
+  tibble::rownames_to_column("name") %>%
+  dplyr::filter(colorblind == TRUE) %>%
+  dplyr::mutate(img = paste0("<img src='www/palette_png/", 
+                             name, 
+                             ".png' width=110px><div class='palette-style'>",
+                             name, 
+                             "</div></img>")) %>%
+  dplyr::arrange(dplyr::desc(category), name)-> palettes_of_interest
+
+palettes_of_interest %>% dplyr::filter(category == "qual") -> qual_palettes_ui
+
+palettes_of_interest %>% dplyr::filter(category != "qual") -> sd_palettes_ui
+
 usethis::use_data(med_data_cache,
                   element_redox_states_cache,
                   med_cache_date,
                   exclude_minerals_from_dragon,
                   final_weighted_pauling,
+                  qual_palettes_ui,
+                  sd_palettes_ui,
                   internal = TRUE, overwrite = TRUE, compress = "bzip2")
 

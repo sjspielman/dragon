@@ -11,7 +11,7 @@ missing_pauling <- c(1.2, 1.23, 1.27, 1.13, 1.25) #https://en.wikipedia.org/wiki
 dragon:::element_info %>% 
   dplyr::filter(element %in% all_ree_elements) %>% 
   dplyr::distinct() %>%
-  pull(pauling) -> most_ree_pauling
+  dplyr::pull(pauling) -> most_ree_pauling
 mean_ree_pauling <- mean(c(most_ree_pauling, missing_pauling)) # median is 1.2; mean is 1.1966667 so we're good
 
 element_info %>% 
@@ -23,10 +23,10 @@ element_info %>%
 ## Prepare the data from med_data_cache ---------------------------------------------------------------
 med_data_cache %>%
   dplyr::select(ima = ima_chemistry, rruff = rruff_chemistry, mineral_name) %>%
-  dplyr::mutate(ima = str_replace_all(ima, "<sub>", "_"), 
-                ima = str_replace_all(ima, "<sup>", "^"), 
-                ima = str_replace_all(ima, "</sub>", "_"),
-                ima = str_replace_all(ima, "</sup>", "^")) %>%
+  dplyr::mutate(ima = stringr::str_replace_all(ima, "<sub>", "_"), 
+                ima = stringr::str_replace_all(ima, "<sup>", "^"), 
+                ima = stringr::str_replace_all(ima, "</sub>", "_"),
+                ima = stringr::str_replace_all(ima, "</sup>", "^")) %>%
   dplyr::distinct() -> med_data_raw
 
 
@@ -71,7 +71,7 @@ med_data_cache %>%
 apply_manual_formula_changes <- function(df)
 {
   df %>%
-    dplyr::mutate(chem = case_when(mineral_name == "Ammineite"         ~ "CuCl_2_(NH_3_)_2_", # Had missing parentheses in IMA
+    dplyr::mutate(chem = dplyr::case_when(mineral_name == "Ammineite"         ~ "CuCl_2_(NH_3_)_2_", # Had missing parentheses in IMA
                                    mineral_name == "Byzantievite"      ~ "Ba_5_(Ca,REE,Y)_22_(Ti,Nb)_18_(SiO_4_)_4_(P_4_O_16_,Si_4_O_16_)B_9_O_27_O_22_((OH),F)_43_(H_2_O)_1.5_", # Ba_5_(Ca,REE,Y)_22_(Ti,Nb)_18_(SiO_4_)_4_[(PO_4_),(SiO_4_)]_4_(BO_3_)_9_O_22_[(OH),F]_43_(H_2_O)_1.5_
                                    mineral_name == "Kolitschite"       ~ "PbZnFe_3_(AsO_4_)_2_(OH)_6_", # HALF ZN, HALF UNKNOWN= CALC AS 100% ZN:  Pb[Zn_0.5_,[box]_0.5_]Fe_3_(AsO_4_)_2_(OH)_6_ ; has 0.5[box] so this is the mindat match.
                                    mineral_name == "Vladimirivanovite" ~ "Na_6_Ca_2_Al_6_Si_6_O_24_(S_2_O_8_,S_6_,S_4_,Cl_2_)(H_2_O)", #Na_6_Ca_2_[Al_6_Si_6_O_24_](SO_4_,S_3_,S_2_,Cl)_2_·H_2_O

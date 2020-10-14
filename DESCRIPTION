@@ -61,7 +61,6 @@ Collate:
     'utils_definitions.R'
     'utils_globals.R'
     'utils_names.R'
-    'utils_palette.R'
     'utils_style-network.R'
     'utils_ui-choices.R'
     'fct_prepare-med-data.R'
