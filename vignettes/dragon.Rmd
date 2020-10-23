@@ -65,12 +65,12 @@ Alternatively, the current release of `dragon` can be installed from CRAN, or th
 install.packages("dragon")
 
 ## Install from github (current release)
-library(remotes)
+#install.packages("remotes")
 remotes::install_github("sjspielman/dragon")
 
 
 ## Install from github for experimental features:
-library(remotes)
+#install.packages("remotes")
 remotes::install_github("sjspielman/dragon", ref = "dev")
 ```
 
