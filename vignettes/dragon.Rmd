@@ -41,14 +41,14 @@ Or, in LaTeX:
 	volume  = {8},    
 	pages   = {414},
 	year    = {2020},
-	doi     = {10.3389/feart.2020.585087}
+	url     = {https://doi.org/10.3389/feart.2020.585087}
 }
 
 # MED 
 @inproceedings{ ,
 	location = {Phoenix, Arizona},
 	title = {Mineral Evolution Database: Data-Driven Age Assignment, How Does a Mineral Get an Age?},
-	doi = {10.1130/abs/2019AM-334056},
+	url = {https://doi.org/10.1130/abs/2019AM-334056},
 	booktitle = {{GSA} Annual Meeting},
 	year = 2019,
 	author = {Golden, Joshua J. and Downs, Robert T. and Hazen, Robert M. and Pires, Alexander J. and Ralph, Jolyon}
