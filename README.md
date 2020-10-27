@@ -5,7 +5,7 @@
 stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable) 
 [![Build Status](https://travis-ci.org/sjspielman/dragon.svg?branch=master)](https://travis-ci.org/sjspielman/dragon)
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/dragon)](https://CRAN.R-project.org/package=dragon)
-**The current version is 1.0.3.**
+**The current version is 1.0.5.**
 
 
 <img src="inst/app/www/favicon.ico" height="250"/>
