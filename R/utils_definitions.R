@@ -1,12 +1,22 @@
 ## Options ---------------------------------------------------------------------------
-original_options <- options(scipen=0, htmlwidgets.TOJSON_ARGS = NULL)
-options(htmlwidgets.TOJSON_ARGS = list(na = 'string')) ## Setting for DT to show NA cells as NA rather than blank
-options(scipen=3)                                      ## Sci when more than 3 digits
-#on.exit(options(original_options), add=TRUE)
+# syntax source: https://r-pkgs.org/r.html 
+.onLoad <- function(libname, pkgname) {
+  op <- options()
+  op.dragon <- list(htmlwidgets.TOJSON_ARGS = list(na = 'string'), ## Setting for DT to show NA cells as NA rather than blank 
+                    scipen = 3)
+  toset <- !(names(op.dragon) %in% names(op))
+  if(any(toset)) options(op.dragon[toset])
+}
+
 
 ## Future planning with RStudio check to avoid warning -------------------------------
-if (future::supportsMulticore()) future::plan(future::multiprocess) 
-if (future::supportsMulticore() == FALSE) future::plan(future::multisession) 
+# Note 2 (yes, 2): Recommended to remove by {future} authors in issues 43/44
+# Note 1: syntax below is as issue #43
+#if (future::supportsMulticore()) {
+#  future::plan(future::multicore)
+#} else {
+#  future::plan(future::multisession)
+#}
 
 ## MED URLs and similar --------------------------------------------------------------------------
 
