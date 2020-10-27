@@ -9,9 +9,9 @@
 }
 
 
-# Recommended to remove by future authors in issues 43/44
 ## Future planning with RStudio check to avoid warning -------------------------------
-# Note: syntax below is as issue #43
+# Note 2 (yes, 2): Recommended to remove by {future} authors in issues 43/44
+# Note 1: syntax below is as issue #43
 #if (future::supportsMulticore()) {
 #  future::plan(future::multicore)
 #} else {
