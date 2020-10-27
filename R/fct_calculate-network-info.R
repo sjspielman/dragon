@@ -5,7 +5,9 @@
 #' @noRd
 calculate_connectivity <- function(graph)
 {
-  igraph::vertex_connectivity(graph)
+  # cpp weirdness ??
+  #igraph::vertex_connectivity(graph)
+  igraph::is_connected(graph)
 }
 
 
