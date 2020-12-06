@@ -69,7 +69,7 @@ install.packages("dragon")
 remotes::install_github("sjspielman/dragon")
 
 
-## Install from github for experimental features:
+## Install from github for _experimental and unguaranteed_ features:
 #install.packages("remotes")
 remotes::install_github("sjspielman/dragon", ref = "dev")
 ```
@@ -95,6 +95,9 @@ These input options are used to specify which elements and minerals will be incl
 
 + **Select focal element(s).** 
   + Use this dropdown menu to select one or more focal elements for your network. `dragon` will construct its network from all minerals that contain your selected elements. To build the full mineral network, simply click the "Select All" button in the dropdown - this will automatically selected all elements to be included.
+
++ **Select focal elements based on mineral composition.** _(New in version 1.1.0!)_
+  + You can also select focal elements based on a mineral of interest using this dropdown menu. For example, you might be interested in studying the deep-time networks of all elements in a certain mineral. All constituent elements contained in minerals you select from this list will be applied as focal elements. For example, if you select "Acanthine" (formula Ag<sub>2</sub>S), both Ag and S will be considered as the focal elements.
 
 + **Age (Ga) range of minerals.** 
   + `dragon` will include only those minerals whose oldest-known-age is within the specified range, in billion years. For example. The range selection is *inclusive*. For example, if you select a range of 3-5 Ga, all minerals observed to have first formed 3 billion years ago or more will be included. By contrast, if you select a range of 2-3 Ga, all minerals whose *oldest recorded* formation is within the 2-3 Ga range will be included. The dates used in these calculations are based on mineral discovery dates as recorded in MED.
@@ -164,7 +167,7 @@ Under thus menu item, you can set the edge color scheme as well as edge thicknes
 The final sidebar menu item controls how you interact with the network by allowing you to change the default `visNetwork` settings. None of these options will effect the network contents or styling.
 
 + **Node selection highlight degree**
-  + This specifies how many connected nodes will be emphasized when you click a node. The default degree of "2" means all nodes within 2 degrees of separation ($\leq$2 edges) will be emphasized.
+  + This specifies how many connected nodes will be emphasized when you click a node. The default degree of "2" means all nodes within 2 degrees of separation (≤2 edges) will be emphasized.
 + **Emphasize on hover**
   + When turned on (default), nodes will be emphasized when the cursor hovers over them.
 + **Hide edges when dragging nodes**
