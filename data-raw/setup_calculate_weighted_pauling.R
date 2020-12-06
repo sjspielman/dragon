@@ -30,6 +30,19 @@ med_data_cache %>%
   dplyr::distinct() -> med_data_raw
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 ####################################################################################################################
 ####################################################################################################################
 ## Check for some common problematic situations ---------------------------------------------------
@@ -67,24 +80,3 @@ med_data_cache %>%
 #use_rruff <- c("Chukhrovite-(Ce)", "Chukhrovite-(Y)", "Cooketie", "Furongite", "Jorgkellerite", "Krasnoite", "Melkovite","Microsommite","Nielsbohrite","Taimyrite-I","Tatyanaite", "Telluroperite", "Theoparacelsite", "Uranospathite", easier_parsing_with_rruff)
 #
 
-## Function to change specific formulas observed to need manual tweaks
-apply_manual_formula_changes <- function(df)
-{
-  df %>%
-    dplyr::mutate(chem = dplyr::case_when(mineral_name == "Ammineite"         ~ "CuCl_2_(NH_3_)_2_", # Had missing parentheses in IMA
-                                   mineral_name == "Byzantievite"      ~ "Ba_5_(Ca,REE,Y)_22_(Ti,Nb)_18_(SiO_4_)_4_(P_4_O_16_,Si_4_O_16_)B_9_O_27_O_22_((OH),F)_43_(H_2_O)_1.5_", # Ba_5_(Ca,REE,Y)_22_(Ti,Nb)_18_(SiO_4_)_4_[(PO_4_),(SiO_4_)]_4_(BO_3_)_9_O_22_[(OH),F]_43_(H_2_O)_1.5_
-                                   mineral_name == "Kolitschite"       ~ "PbZnFe_3_(AsO_4_)_2_(OH)_6_", # HALF ZN, HALF UNKNOWN= CALC AS 100% ZN:  Pb[Zn_0.5_,[box]_0.5_]Fe_3_(AsO_4_)_2_(OH)_6_ ; has 0.5[box] so this is the mindat match.
-                                   mineral_name == "Vladimirivanovite" ~ "Na_6_Ca_2_Al_6_Si_6_O_24_(S_2_O_8_,S_6_,S_4_,Cl_2_)(H_2_O)", #Na_6_Ca_2_[Al_6_Si_6_O_24_](SO_4_,S_3_,S_2_,Cl)_2_·H_2_O
-                                   mineral_name == "Uranospathite"     ~ "(Al,[box])(U^6+^O_2_)_2_F(PO_4_)_2_(H_2_O,F)_20_", # (Al,[box])(U^6+^O_2_)_2_F(PO_4_)_2_·20(H_2_O,F)
-                                   mineral_name == "Vinogradovite"     ~ "Na_4_Ti_4_(Si_2_O_6_)_2_(Si,Al)_4_O_10_O_4_(H_2_O,Na,K)_3_", # Na_4_Ti_4_(Si_2_O_6_)_2_[(Si,Al)_4_O_10_]O_4_·(H_2_O,Na,K)_3_ 
-                                   mineral_name == "Clinotobermorite"  ~ "Ca_5_Si_6_O_17_5H_2_O",
-                                   mineral_name == "Tobermorite"       ~ "Ca_5_Si_6_O_17_(H_2_O)_2_(H_2_O)_3_", 
-                                   mineral_name == "Plombierite"       ~ "Ca_5_Si_6_O_16_(OH)_2_(H_2_O)_7_", 
-                                   # scalars
-                                   mineral_name == "Ferrovalleriite" ~ "(Fe,Cu)_2_S_2_(Fe^2+^,Al,Mg)_1.53_(OH)_3.06_", #2(Fe,Cu)S·1.53[(Fe^2+^,Al,Mg)(OH)_2_]  # I THINK FORMULA IS WRONG AND SHOULD HAVE BRACES AROUND (Fe,Cu)S !!!
-                                   mineral_name == "Haapalaite"      ~ "(Fe^2+^,Ni^2+^)_2_S^2-^_2_(Mg,Fe^2+^)_1.61_(OH)_3.22_", #2[(Fe^2+^,Ni^2+^)S^2-^]·1.61[(Mg,Fe^2+^)(OH)_2_]
-                                   mineral_name == "Metakottigite"   ~ "(Zn,Fe^3+^)_3_(AsO_4_)_2_(H_2_O,OH)_8_",               # (Zn,Fe^3+^)_3_(AsO_4_)_2_·8(H_2_O,OH), having the h20/oh in same place means kill the scalar
-                                   mineral_name == "Tochilinite"     ~ "(Fe^2+^_0.9_S^2-^)_6_(Mg,Fe^2+^)_5_(OH)_10_",      #6(Fe^2+^_0.9_S^2-^)·5[(Mg,Fe^2+^)(OH)_2_] 
-                                   mineral_name == "Valleriite"      ~ "(Fe,Cu)_2_S_2_(Mg,Al)_1.53_(OH)_3.06_",            # 2[(Fe,Cu)S]·1.53[(Mg,Al)(OH)_2_]) 
-                                   TRUE                              ~ chem)) 
-}

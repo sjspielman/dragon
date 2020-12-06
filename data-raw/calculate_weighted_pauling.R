@@ -1,12 +1,14 @@
 #devtools::load_all() #library(dragon)
-source("functions_calculate_weighted_pauling.R")
-source("setup_calculate_weighted_pauling.R")
-source("find_element_presence_conflicts.R")
+source("functions_calculate_weighted_pauling.R") # Load functions
+source("setup_calculate_weighted_pauling.R")     # all standins, mean_ree_pauling, pauling_values, med_data_raw,
+source("find_element_presence_conflicts.R")      # Checks for IMA/RRUFF disagreement --> `element_presence_conflict`
 
 
-element_presence_conflict %>%
-  dplyr::filter(conflict == TRUE) %>%
-  dplyr::select(mineral_name) -> exclude_minerals_from_dragon
+# Since connections are decided with IMA formulas, this DOES NOT NEED TO BE DONE. #
+# Minerals that have element disagreements between RRUFF and IMA formulas should not be in dragon.
+#element_presence_conflict %>%
+#  dplyr::filter(conflict == TRUE) %>%
+#  dplyr::select(mineral_name) -> exclude_minerals_from_dragon
 
 
 # Which minerals should we calculate for? -----------------------------
@@ -22,9 +24,11 @@ med_data_raw %>%
   dplyr::mutate(chem = ima) %>%
   apply_manual_formula_changes() %>%
   count_elements(water_standin, hydroxy_standin, ree_standin) -> ima_counted_excluded
+
 ima_counted_excluded$excluded %>% 
   dplyr::select(-chem) %>%
   dplyr::mutate(w_mean_pauling = NA, w_cov_pauling = NA) -> excluded_ima
+
 calculate_weighted_values(ima_counted_excluded$counts, pauling_values) %>%
   dplyr::bind_rows(excluded_ima) %>%
   dplyr::arrange(mineral_name) -> ima_weighted_values
@@ -37,6 +41,7 @@ med_data_raw %>%
   dplyr::mutate(chem = rruff) %>%
   apply_manual_formula_changes() %>%
   count_elements(water_standin, hydroxy_standin, ree_standin) -> rruff_counted_excluded
+
 rruff_counted_excluded$excluded %>% 
   dplyr::select(-chem) %>%
   dplyr::mutate(w_mean_pauling = NA, w_cov_pauling = NA) -> excluded_rruff 
@@ -45,9 +50,14 @@ calculate_weighted_values(rruff_counted_excluded$counts, pauling_values) %>%
   dplyr::bind_rows(excluded_rruff) %>%
   dplyr::arrange(mineral_name) -> rruff_weighted_values 
 
-## Compare: how many are in agreement between RRUFF/IMA calculation versions? --------------------------------------
 
+## SAVE ONLY those in agreement between RRUFF/IMA calculations --------------------------------------
 dplyr::inner_join(ima_weighted_values, rruff_weighted_values) -> final_weighted_pauling
+
+
+
+
+
 
 
 

@@ -367,106 +367,6 @@ parse_clean_formula <- function(formula_to_parse)
 }
 
 
-
-# Random list of minerals to check:
-tibble::tribble(~mineral_name,       ~element,    ~count,
-                # ZnFe^3+^_2_(PO_4_)_2_(OH)_2_·6.5H_2_O
-                "Zincostrunzite", "Zn",1,
-                "Zincostrunzite", "Fe",2,
-                "Zincostrunzite", "P",2,
-                "Zincostrunzite", "O",16.5,
-                "Zincostrunzite", "H",15,
-                # Na_2_Ca_4_YTi(Si_2_O_7_)_2_OF_3_
-                "Rinkite-(Y)", "Na",2,
-                "Rinkite-(Y)", "Ca",4,
-                "Rinkite-(Y)", "Y",1,
-                "Rinkite-(Y)", "Ti",1,
-                "Rinkite-(Y)", "Si",4,
-                "Rinkite-(Y)", "O",15,
-                "Rinkite-(Y)", "F",3,
-                # MgMn^2+^Al(PO_4_)_2_(OH)·4H_2_O
-                "Lunokite","Mg",1,
-                "Lunokite","Mn",1,
-                "Lunokite","Al",1,
-                "Lunokite","P",2,
-                "Lunokite","O",13,
-                "Lunokite","H",9,
-                # [(UO_2_)_2_(C_2_O_4_)(OH)_2_(H_2_O)_2_]·H_2_O
-                "Uroxite","U",2,
-                "Uroxite","O",13,
-                "Uroxite","C",2,
-                "Uroxite","H",8,
-                # Mn_2_Fe^3+^(SiFe^3+^)O_5_(OH)_4_
-                "Guidottiite","Mn",2,
-                "Guidottiite","Fe",2,
-                "Guidottiite","Si",1,
-                "Guidottiite","O",9,
-                "Guidottiite","H",4,
-                # (Mn,Th,Na,Ca,REE)_2_(Nb,Ti)_2_O_6_(OH)
-                "Hydroxymanganopyrochlore", "Mn", 0.4, 
-                "Hydroxymanganopyrochlore", "Th", 0.4, 
-                "Hydroxymanganopyrochlore", "Na", 0.4, 
-                "Hydroxymanganopyrochlore", "Ca", 0.4, 
-                "Hydroxymanganopyrochlore", "REE", 0.4, 
-                "Hydroxymanganopyrochlore", "Nb", 1, 
-                "Hydroxymanganopyrochlore", "Ti", 1, 
-                "Hydroxymanganopyrochlore", "O", 7, 
-                "Hydroxymanganopyrochlore", "H", 1, 
-                # Al_13_(U^6+^O_2_)_7_(PO_4_)_13_(OH)_14_·58H_2_O
-                "Furongite","Al",13,
-                "Furongite","U",7,
-                "Furongite","P",13,
-                "Furongite","O",138,
-                "Furongite","H",130,
-                # Pb(U^4+^,U^6+^)Fe^2+^_2_(Ti,Fe^2+^,Fe^3+^)_18_(O,OH)_38_
-                "Cleusonite", "Pb", 1,
-                "Cleusonite", "U", 1,
-                "Cleusonite", "Fe", 11,
-                "Cleusonite", "Ti", 9,
-                "Cleusonite", "O", 28.5,
-                "Cleusonite", "H", 9.5,
-                #"NaCa_2_Fe_2_(Fe,Mn,Fe)_4_(PO_4_)_6_·2H_2_O"
-                "Wicksite", "Na", 1,
-                "Wicksite", "Ca", 2,
-                "Wicksite", "Fe", 4,
-                "Wicksite", "Mn", 2,
-                "Wicksite", "P", 6,
-                "Wicksite", "O", 26,
-                "Wicksite", "H", 4,
-                # (Al,[box])(U^6+^O_2_)_2_F(PO_4_)_2_(H_2_O,F)_20_
-                "Uranospathite", "Al", 1,
-                "Uranospathite", "U", 2,
-                "Uranospathite", "O", 4 + 8 + (20 * 1/2*1/3), 
-                "Uranospathite", "F", 11,
-                "Uranospathite", "P", 2,
-                "Uranospathite", "H", 20*(2/3 * 1/2), 
-                # (Ba,Na,K)_2_(Na,Ti,Mn)_4_(Ti,Nb)_2_O_2_Si_4_O_14_(H_2_O,F,OH)_2_·3.5H_2_O 
-                "Bykovaite", "Ba", 2/3,
-                "Bykovaite", "Na", 2,
-                "Bykovaite", "K", 2/3,
-                "Bykovaite", "Ti", 7/3,
-                "Bykovaite", "Mn", 4/3,
-                "Bykovaite", "Nb", 1,
-                "Bykovaite", "O", 2+ 14 + 3.5 + 2/9 + 1/3,
-                "Bykovaite", "Si",4,
-                "Bykovaite", "F", 2/3,
-                "Bykovaite", "H", 7+4/9 + 1/3,
-                # Na_4_Ti_4_(Si_2_O_6_)_2_[(Si,Al)_4_O_10_]O_4_(H_2_O,Na,K)_3_ 
-                "Vinogradovite", "Na", 5,
-                "Vinogradovite", "Ti", 4,
-                "Vinogradovite", "Si", 6,
-                "Vinogradovite", "Al", 2,
-                "Vinogradovite", "K", 1,
-                "Vinogradovite", "O", 12 + 10 + 4 + 1/3,
-                "Vinogradovite", "H", 2/3) %>%
-  dplyr::arrange(mineral_name) %>%
-  dplyr::mutate(count = round(count,TOL)) -> true_counts
-
-
-
-
-
-
 calculate_weighted_values <- function(df, pauling_values)
 {
   
@@ -496,6 +396,28 @@ calculate_weighted_values <- function(df, pauling_values)
 }
 
 
+
+## Function to change specific formulas observed to need manual tweaks
+apply_manual_formula_changes <- function(df)
+{
+  df %>%
+    dplyr::mutate(chem = dplyr::case_when(mineral_name == "Ammineite"         ~ "CuCl_2_(NH_3_)_2_", # Had missing parentheses in IMA
+                                          mineral_name == "Byzantievite"      ~ "Ba_5_(Ca,REE,Y)_22_(Ti,Nb)_18_(SiO_4_)_4_(P_4_O_16_,Si_4_O_16_)B_9_O_27_O_22_((OH),F)_43_(H_2_O)_1.5_", # Ba_5_(Ca,REE,Y)_22_(Ti,Nb)_18_(SiO_4_)_4_[(PO_4_),(SiO_4_)]_4_(BO_3_)_9_O_22_[(OH),F]_43_(H_2_O)_1.5_
+                                          mineral_name == "Kolitschite"       ~ "PbZnFe_3_(AsO_4_)_2_(OH)_6_", # HALF ZN, HALF UNKNOWN= CALC AS 100% ZN:  Pb[Zn_0.5_,[box]_0.5_]Fe_3_(AsO_4_)_2_(OH)_6_ ; has 0.5[box] so this is the mindat match.
+                                          mineral_name == "Vladimirivanovite" ~ "Na_6_Ca_2_Al_6_Si_6_O_24_(S_2_O_8_,S_6_,S_4_,Cl_2_)(H_2_O)", #Na_6_Ca_2_[Al_6_Si_6_O_24_](SO_4_,S_3_,S_2_,Cl)_2_·H_2_O
+                                          mineral_name == "Uranospathite"     ~ "(Al,[box])(U^6+^O_2_)_2_F(PO_4_)_2_(H_2_O,F)_20_", # (Al,[box])(U^6+^O_2_)_2_F(PO_4_)_2_·20(H_2_O,F)
+                                          mineral_name == "Vinogradovite"     ~ "Na_4_Ti_4_(Si_2_O_6_)_2_(Si,Al)_4_O_10_O_4_(H_2_O,Na,K)_3_", # Na_4_Ti_4_(Si_2_O_6_)_2_[(Si,Al)_4_O_10_]O_4_·(H_2_O,Na,K)_3_ 
+                                          mineral_name == "Clinotobermorite"  ~ "Ca_5_Si_6_O_17_5H_2_O",
+                                          mineral_name == "Tobermorite"       ~ "Ca_5_Si_6_O_17_(H_2_O)_2_(H_2_O)_3_", 
+                                          mineral_name == "Plombierite"       ~ "Ca_5_Si_6_O_16_(OH)_2_(H_2_O)_7_", 
+                                          # scalars
+                                          mineral_name == "Ferrovalleriite" ~ "(Fe,Cu)_2_S_2_(Fe^2+^,Al,Mg)_1.53_(OH)_3.06_", #2(Fe,Cu)S·1.53[(Fe^2+^,Al,Mg)(OH)_2_]  # I THINK FORMULA IS WRONG AND SHOULD HAVE BRACES AROUND (Fe,Cu)S !!!
+                                          mineral_name == "Haapalaite"      ~ "(Fe^2+^,Ni^2+^)_2_S^2-^_2_(Mg,Fe^2+^)_1.61_(OH)_3.22_", #2[(Fe^2+^,Ni^2+^)S^2-^]·1.61[(Mg,Fe^2+^)(OH)_2_]
+                                          mineral_name == "Metakottigite"   ~ "(Zn,Fe^3+^)_3_(AsO_4_)_2_(H_2_O,OH)_8_",               # (Zn,Fe^3+^)_3_(AsO_4_)_2_·8(H_2_O,OH), having the h20/oh in same place means kill the scalar
+                                          mineral_name == "Tochilinite"     ~ "(Fe^2+^_0.9_S^2-^)_6_(Mg,Fe^2+^)_5_(OH)_10_",      #6(Fe^2+^_0.9_S^2-^)·5[(Mg,Fe^2+^)(OH)_2_] 
+                                          mineral_name == "Valleriite"      ~ "(Fe,Cu)_2_S_2_(Mg,Al)_1.53_(OH)_3.06_",            # 2[(Fe,Cu)S]·1.53[(Mg,Al)(OH)_2_]) 
+                                          TRUE                              ~ chem)) 
+}
 
 
 

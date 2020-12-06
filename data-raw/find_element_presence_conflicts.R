@@ -1,8 +1,5 @@
 library(tidyverse)
 # Determine if _present elements_ are compatible among formulas : element_presence_conflict T for conflict, F for no conflict
-# goal:
-## for incompatible minerals, option to exclude from network 
-## the only need here is to preserve the fact that there may be conflicts
 
 med_data_cache %>%
   dplyr::select(rruff = rruff_chemistry, ima = ima_chemistry, mineral_name, chemistry_elements) %>%
