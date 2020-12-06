@@ -64,11 +64,9 @@ NULL
 NULL
 
 
-## Enjoyable error messages ----------------------------------------------------------------
 #' Enjoyable error messages for randomized use in sweetAlerts
 #' @noRd
 error_choices <- c("Oh no!", "Sorry, that's not gonna work.", "Try again!", "Womp womp :(", "No dice!", "Uh oh!", "Woopsies!")
-
 
 
 #' Tibble of element metadata

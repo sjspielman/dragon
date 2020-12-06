@@ -1,15 +1,31 @@
 
 ## Style UI choices ------------------------------------------------------------
 
+#' Combined string of mineral names and their formulas for UI choosing focal from minerals
+#' @noRd
+mineral_names_formulas <- function(med_data = med_data_cache){
+  med_data %>% 
+    dplyr::select(mineral_name, ima_chemistry) %>% 
+    dplyr::distinct() %>% 
+    dplyr::arrange(mineral_name) %>%
+    dplyr::mutate(both = paste0(mineral_name, " (", ima_chemistry, ")")) %>% 
+    dplyr::pull(both) 
+}
+
+
 #' UI options for selecting a color scheme for minerals in the TIMELINE
 #' @noRd
 mineral_timeline_color_by_choices <- setNames(c("singlecolor",
-                                                "mean_pauling", 
+                                                "w_mean_pauling", 
+                                                "mean_pauling",
+                                                "w_cov_pauling",
                                                 "cov_pauling",
                                                 "num_localities", 
                                                 "max_age"),
                                               c(singlecolor_str,
+                                                w_mean_pauling_str,
                                                 mean_pauling_str,
+                                                w_cov_pauling_str,
                                                 cov_pauling_str,
                                                 num_localities_str,
                                                 max_age_str))
@@ -40,13 +56,17 @@ element_color_by_choices <- setNames(c("singlecolor",
 mineral_color_by_choices <- setNames(c("singlecolor",
                                        "max_age", 
                                        "num_localities",
+                                       "w_mean_pauling", 
                                        "mean_pauling",
+                                       "w_cov_pauling",
                                        "cov_pauling"),
                                      c(singlecolor_str,
                                        max_age_str,
                                        num_localities_mineral_str,
+                                       w_mean_pauling_str,
                                        mean_pauling_str,
-                                       cov_pauling_str ))
+                                       w_cov_pauling_str,
+                                       cov_pauling_str))
 
 
 #' UI options for selecting a variable to size element nodes by
@@ -75,14 +95,18 @@ mineral_size_by_choices <- setNames(c("singlesize",
 #' @noRd
 edge_color_by_choices <- setNames(c("singlecolor",
                                     "max_age",
+                                    "w_mean_pauling", 
                                     "mean_pauling",
+                                    "w_cov_pauling",
                                     "cov_pauling",
                                     "element_redox_network",
                                     "element_redox_mineral", 
                                     "num_localities_mineral"),
                                   c(singlecolor_str,
                                     max_age_str,
+                                    w_mean_pauling_str,
                                     mean_pauling_str,
+                                    w_cov_pauling_str,
                                     cov_pauling_str,
                                     element_redox_network_str,
                                     element_redox_mineral_str,
@@ -103,7 +127,9 @@ mineral_shape_choices <-  c("Circle"   = "dot", #### !!!!!!
 #' UI options for response variables to use in linear model
 #' @noRd
 model_response_choices <- c(max_age_str,
+                            w_mean_pauling_str,
                             mean_pauling_str,
+                            w_cov_pauling_str,
                             cov_pauling_str,
                             network_degree_norm_str,
                             closeness_str,
@@ -158,7 +184,9 @@ selected_node_table_column_choices_mineral   <- c(mineral_id_str,
                                                   ima_chemistry_str,
                                                   max_age_str,
                                                   num_localities_mineral_str,
+                                                  w_mean_pauling_str,
                                                   mean_pauling_str,
+                                                  w_cov_pauling_str,
                                                   cov_pauling_str)
 ## NOT CURRENTLY USED
 # Variables choices for mineral locality attributes to appear in the selected node table

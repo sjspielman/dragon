@@ -1,26 +1,17 @@
 ## Prepare data for use in test suite
 ## Note: Testing also _does_ test these functions. 
 
-## Make testdata files accessible ---------
-testdata_path <- system.file("testdata",package="dragon")
 
 ## Read in testdata CSV files and graph  --------------------------------
-true_graph <- igraph::read_graph(file.path(testdata_path, "graph_by_redox.igraph"), format = "ncol")
+true_nodes <- readr::read_csv("nodes_by_redox.csv.zip", col_types = readr::cols())
+true_edges <- readr::read_csv("edges_by_redox.csv.zip", col_types = readr::cols())
+true_graph <- igraph::read_graph("graph_by_redox.igraph", format = "ncol")
 true_graph_louvain <- igraph::cluster_louvain(true_graph)
-true_nodes <- readr::read_csv(file.path(testdata_path, "nodes_by_redox.csv.zip"), col_types = readr::cols())
-true_edges <- readr::read_csv(file.path(testdata_path, "edges_by_redox.csv.zip"), col_types = readr::cols())
-true_mineral_nodes <- readr::read_csv(file.path(testdata_path, "true_mineral_nodes.csv.zip"), col_types = readr::cols(cluster_ID = readr::col_factor()))
-true_styled_nodes  <- readr::read_csv(file.path(testdata_path, "styled_nodes.csv.zip"), col_types = readr::cols())
-true_styled_edges  <- readr::read_csv(file.path(testdata_path, "styled_edges.csv.zip"), col_types = readr::cols())
-true_locality_info <- readr::read_csv(file.path(testdata_path, "locality_info.csv.zip"), col_types = readr::cols())
 
-true_node_names <- sort(names(true_nodes))
-true_node_names_precluster <- true_node_names[true_node_names != "cluster_ID" & true_node_names != "cluster_algorithm"]
-true_edge_names <- sort(names(true_edges))
-true_styled_node_names <- sort(names(true_styled_nodes))
-true_styled_edge_names <- sort(names(true_styled_edges))
-true_locality_names <- sort(names(true_locality_info))
-true_mineral_node_names <- sort(names(true_mineral_nodes))
+true_mineral_nodes <- readr::read_csv("true_mineral_nodes.csv.zip", col_types = readr::cols(cluster_ID = readr::col_factor()))
+true_styled_nodes  <- readr::read_csv("styled_nodes.csv.zip", col_types = readr::cols())
+true_styled_edges  <- readr::read_csv("styled_edges.csv.zip", col_types = readr::cols())
+true_locality_info <- readr::read_csv("locality_info.csv.zip", col_types = readr::cols())
 
 ## Variables about the graph to be tested --------------------------------
 true_modularity      <- 0.4432351 
@@ -30,88 +21,7 @@ true_n_base_elements <- 30
 true_n_element_nodes <- 40
 true_n_edges         <- 258
 
-focal <- "Fe" ## Focal element used in true data network
 
-
-## Variables for style testing ---------------------------------------
-blue   <- "#0000FF"
-red    <- "#FF0000"
-yellow <- "#FFFF00"
-purple <- "#800080"
-black  <- "#000000"
-pink   <- "#FFC0CB"
-orange <- "#FFA500"
-
-true_cluster_palette <- "Set2"
-true_n_clusters      <- 6 
-true_cluster_colors  <- RColorBrewer::brewer.pal(true_n_clusters, true_cluster_palette)
-true_mineral_label_size  <- 12
-true_mineral_size_scale  <- 10
-true_element_label_size  <- 11
-true_element_size_scale  <- 20
-true_mineral_size        <- 7
-true_mineral_color       <- red
-true_mineral_label_color <- orange
-true_mineral_palette     <- "Blues"
-true_element_color       <- blue
-true_element_label_color <- pink
-true_element_palette     <- "Reds"
-true_edge_color          <- purple
-true_edge_palette        <- "Greens"
-true_mineral_by          <- "mean_pauling"
-true_element_by          <- "pauling"
-true_edge_by             <- "max_age"
-true_mineral_shape       <- "square"
-true_element_shape       <- "circle"
-true_na_color            <- black
-true_highlight_color     <- yellow
-true_focal_element_name <- "Iron"
-true_special_element_id <- c("P", "O-2", "H+1", "Fe+2", "Fe", "Fe+3") ## the three iron focals and P/O/H redoxes
-
-true_custom_selection_color_1   <- orange
-true_custom_selection_color_2   <- black
-true_custom_selection_set_1 <- c("P", "O-2")
-true_custom_selection_set_2 <- c("H+1")
-
-true_custom_element_colors <- c("P" = true_custom_selection_color_1,
-                                "O-2" = true_custom_selection_color_1,
-                                "H+1" = true_custom_selection_color_2)
-
-
-
-# Baseline list can be updated when testing other conditions. 
-# Baseline conditions are **singlecolor/singlesize** with element highlights and custom selections
-true_style_options <- list("color_by_cluster"  = FALSE,
-                           "cluster_colors"       = true_cluster_colors,
-                           "mineral_color_by"    = "singlecolor", ## num_localities
-                           "mineral_color"       = true_mineral_color,
-                           "element_color_by"    = "singlecolor", ## element_redox_network, element_hsab
-                           "element_color"       = true_element_color,
-                           "mineral_palette"     = true_mineral_palette,
-                           "element_palette"     = true_element_palette,
-                           "mineral_label_color" = true_mineral_label_color,
-                           "element_label_color" = true_element_label_color,
-                           "mineral_shape"       = true_mineral_shape, 
-                           "element_shape"       = true_element_shape, 
-                           ## Single element colors, etc.
-                           "elements_of_interest"     = focal,
-                           "elements_by_redox"        = TRUE, ## IT'S TRUE
-                           "highlight_element"        = TRUE,
-                           "highlight_color"          = true_highlight_color,
-                           "custom_element_colors"    = true_custom_element_colors,
-                           "na_color"                 = true_na_color,
-                           ## Sizes
-                           "element_size_by"  = "singlesize", ## num_localities 
-                           "element_label_size" = true_element_label_size,
-                           "element_size_scale" = true_element_size_scale,  ### used if element_label_size != singlesize eg num_localities
-                           "mineral_size_by"  = "singlesize", ## num_localities 
-                           "mineral_size_scale" = true_mineral_size_scale,  ### used if mineral_size_by != singlesize eg num_localities
-                           "mineral_label_size" = true_mineral_label_size,
-                           "mineral_size"       = true_mineral_size,
-                           ## Edges
-                           "edge_color_by" = "singlecolor", 
-                           "edge_color"    = true_edge_color,
-                           "edge_palette"  = true_edge_palette)
 
 ## Dynamic overrides for testing ----------------------------
 true_element_color_by_dynamic_type <- "pauling"
@@ -133,4 +43,25 @@ true_edge_color_by_vals <- c("#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E9", "#EDF8E
 true_point_color   <- red
 true_point_size    <- 2.33 
 true_bestfit_color <- orange
+
+## Expected variables in certain dfs -----------------------------------
+true_node_names            <- sort(names(true_nodes))
+true_node_names_precluster <- true_node_names[true_node_names != "cluster_ID" & true_node_names != "cluster_algorithm"]
+true_edge_names            <- sort(names(true_edges))
+true_styled_node_names     <- sort(names(true_styled_nodes))
+true_styled_edge_names     <- sort(names(true_styled_edges))
+true_locality_names        <- sort(names(true_locality_info))
+true_mineral_node_names    <- sort(names(true_mineral_nodes))
+
+
+initialize_data_names <- sort(c("mineral_name", "mineral_id", "mindat_id", "locality_longname" , "age_type", "rruff_chemistry", "ima_chemistry", "min_age","max_age", "chemistry_elements"))
+initialize_data_age_names <- sort(c("mineral_name", "mineral_id", "max_age", "num_localities_mineral", "ima_chemistry", "rruff_chemistry", "chemistry_elements"))
+
+
+
+expected_element_variables <- c("element_hsab", "atomic_mass", "number_of_protons", "table_period", "table_group", "atomic_radius", "pauling", "metal_type", "element_density", "element_specific_heat", "element_name", "element_redox_network")
+expected_mineral_variables <- c( "mineral_id", "max_age", "ima_chemistry", "rruff_chemistry", "mean_pauling", "w_mean_pauling", "cov_pauling", "w_cov_pauling")
+expected_shared_variables <- c("cluster_ID", "network_degree", "closeness", "network_degree_norm")
+
+
 

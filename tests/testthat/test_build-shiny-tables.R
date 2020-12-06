@@ -1,8 +1,8 @@
 test_that("fct_build-shiny-tables::build_final_node_table() works", {
 
   raw_node_table <- prepare_raw_node_table(true_edges, true_nodes)
-  display <- c(element_str, mineral_name_str, max_age_str, cov_pauling_str, element_hsab_str, closeness_str) ## last one gets dup'd
-  output_display <- c(element_str, mineral_name_str, max_age_str, cov_pauling_str, element_hsab_str, element_closeness_str, mineral_closeness_str)
+  display <- c(element_str, mineral_name_str, max_age_str, w_cov_pauling_str, cov_pauling_str, element_hsab_str, closeness_str) ## last one gets dup'd
+  output_display <- c(element_str, mineral_name_str, max_age_str, w_cov_pauling_str, cov_pauling_str, element_hsab_str, element_closeness_str, mineral_closeness_str)
   
   
   selected <- c("Fe", "Os")
@@ -41,6 +41,8 @@ test_that("fct_build-shiny-tables::prepare_raw_node_table() works", {
                            element_redox_mineral_str,
                            mineral_id_str,
                            max_age_str,
+                           w_mean_pauling_str,
+                           w_cov_pauling_str,
                            mean_pauling_str,
                            cov_pauling_str,
                            ima_chemistry_str,
@@ -92,6 +94,8 @@ test_that("fct_build-shiny-tables::build_mineral_exploration_table() works", {
                            ima_chemistry_str,
                            rruff_chemistry_str,
                            max_age_str,
+                           w_mean_pauling_str,
+                           w_cov_pauling_str,
                            mean_pauling_str,
                            cov_pauling_str,
                            cluster_ID_str, 
