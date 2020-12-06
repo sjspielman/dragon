@@ -72,8 +72,15 @@ fetch_med_data <- function()
 calculate_element_redox_states <- function(med_data)
 {
   ## Return NULL right away if data is NULL or FALSE ---------------------------------------
-  if(is.null(med_data) | med_data == FALSE) return (NULL)
+  if(is.null(med_data)) return (NULL)
 
+  if(is.logical(med_data))
+  {
+    if (med_data == FALSE) 
+    { return (NULL) } else {
+      stop("ERROR WITH `med_data` input tibble.")
+    }
+  }
   ## Parse the redox ---------------------------------------------------
   med_data %>% 
     dplyr::select(mineral_name, rruff_chemistry) %>% 
