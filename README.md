@@ -31,11 +31,27 @@ Or, in LaTeX:
 }
 ```
 
-**For instructions on obtaining and using dragon**, please see the [vignette](http://htmlpreview.github.io/?https://github.com/sjspielman/dragon/blob/master/doc/dragon.html).
+**Please also cite the Mineral Evolution Database if you are using `dragon`**:
 
-**Current link to server of current release of dragon:** [https://sjspielman.shinyapps.io/dragon](https://sjspielman.shinyapps.io/dragon)
+Golden, Joshua J., Downs, Robert T., Hazen, Robert M., Pires, Alexander J., Ralph, Jolyon. 2019. Mineral Evolution Database: Data-Driven Age Assignment, How Does a Mineral Get an Age?” *In GSA Annual Meeting. Phoenix, Arizona.* [https://doi.org/10.1130/abs/2019AM-334056](https://doi.org/10.1130/abs/2019AM-334056).
+
+Or, in LaTeX:
+```
+@inproceedings{ ,
+	location = {Phoenix, Arizona},
+	title = {Mineral Evolution Database: Data-Driven Age Assignment, How Does a Mineral Get an Age?},
+	url = {https://doi.org/10.1130/abs/2019AM-334056},
+	booktitle = {{GSA} Annual Meeting},
+	year = 2019,
+	author = {Golden, Joshua J. and Downs, Robert T. and Hazen, Robert M. and Pires, Alexander J. and Ralph, Jolyon}
+}
+```
+
+**For instructions on obtaining and using `dragon`**, please see the [vignette](http://htmlpreview.github.io/?https://github.com/sjspielman/dragon/blob/master/doc/dragon.html).
+
+**Current link to server of current release of `dragon`:** [https://sjspielman.shinyapps.io/dragon](https://sjspielman.shinyapps.io/dragon)
 
 
-**Current link to server of development version of dragon:** [https://sjspielman.shinyapps.io/dragon-dev](https://sjspielman.shinyapps.io/dragon-dev)
+**Current link to server of development and wholly unguaranteed version of `dragon`:** [https://sjspielman.shinyapps.io/dragon-dev](https://sjspielman.shinyapps.io/dragon-dev)
 
 
