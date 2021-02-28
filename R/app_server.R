@@ -628,7 +628,11 @@ app_server <- function( input, output, session ) {
     {
       tibble::tibble()
     }  else {
-      build_final_node_table(chemistry_network()$raw_node_table, selected_nodes, columns_to_display)
+      
+      chemistry_network()$raw_node_table %>%
+        dplyr::mutate(dplyr::across(tidyselect::vars_select_helpers$where(is.numeric), round, input$node_table_digits)) -> rounded_table
+      build_final_node_table(rounded_table, selected_nodes, columns_to_display)
+        
     } 
 
   })
@@ -678,6 +682,7 @@ app_server <- function( input, output, session ) {
         shiny::div(style="font-size:85%;", 
           DT::dataTableOutput("nodeTable")
         ), 
+        shiny::sliderInput("node_table_digits", "Choose the number of digits to show in table:", value = 3, min = 1, max = 16, width = "275px"),
         shiny::br(),      
         div(style="display:inline-block;vertical-align:top;",
           downloadButton("export_selected_table", label = "Export table"),
@@ -738,12 +743,14 @@ app_server <- function( input, output, session ) {
   
   ## Network information panel ---------------------------------------------------------------------------------
   output$element_exploration_table <- DT::renderDataTable(rownames= FALSE, ## no IMA formulas for elements, dont need escape=F
-                                                           build_element_exploration_table(chemistry_network()$nodes), 
+                                                           build_element_exploration_table(chemistry_network()$nodes) %>%
+                                                            dplyr::mutate(dplyr::across(tidyselect::vars_select_helpers$where(is.numeric), round, input$element_table_digits)),
                                                            extensions = c('ColReorder', 'Responsive'),
                                                            options = list(
                                                              dom = 'frtip',
                                                              colReorder = TRUE
                                                            )) 
+
 
   ## Download handler for element exploration -----------------------------------------
   output$export_element_table <- shiny::downloadHandler(
@@ -759,7 +766,8 @@ app_server <- function( input, output, session ) {
 
                                                            
   output$mineral_exploration_table <- DT::renderDataTable(rownames= FALSE, escape = FALSE,  ### escape=FALSE for HTML rendering, i.e. the IMA formula
-                                                           build_mineral_exploration_table(chemistry_network()$nodes, chemistry_network()$locality_info), 
+                                                          build_mineral_exploration_table(chemistry_network()$nodes, chemistry_network()$locality_info) %>%
+                                                            dplyr::mutate(dplyr::across(tidyselect::vars_select_helpers$where(is.numeric), round, input$mineral_table_digits)), 
                                                            extensions = c('ColReorder', 'Responsive'),
                                                            options = list(
                                                              dom = 'frtip',

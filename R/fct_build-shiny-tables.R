@@ -1,6 +1,6 @@
 #' Build table to display for all element node information
 #' @param nodes Tibble of nodes and associated metadata
-#' @return Element node information table for display, rounded to 3 digits
+#' @return Element node information table for display
 #' @noRd
 build_element_exploration_table <- function(nodes)
 {
@@ -27,7 +27,6 @@ build_element_exploration_table <- function(nodes)
                   element_density) %>%
     dplyr::distinct() %>%
     dplyr::arrange(element) %>%
-    dplyr::mutate(dplyr::across(tidyselect::vars_select_helpers$where(is.numeric), round, 3)) %>%
     rename_for_ui()
   
 }
@@ -37,7 +36,7 @@ build_element_exploration_table <- function(nodes)
 #' Build table to display for all mineral node information
 #' @param nodes Tibble of nodes and associated metadata
 #' @param locality_info Tibble of mineral locality information
-#' @return Mineral node information table for display, rounded to 3 digits
+#' @return Mineral node information table for display
 #' @noRd
 build_mineral_exploration_table <- function(nodes, locality_info)
 {
@@ -60,7 +59,6 @@ build_mineral_exploration_table <- function(nodes, locality_info)
     dplyr::distinct() %>%
     dplyr::arrange(mineral_name) %>%
     dplyr::select(mineral_name, mineral_id, ima_chemistry, rruff_chemistry, max_age, w_mean_pauling, mean_pauling, w_cov_pauling, cov_pauling, cluster_ID, closeness, network_degree_norm, dplyr::everything()) %>%
-    dplyr::mutate(dplyr::across(tidyselect::vars_select_helpers$where(is.numeric), round, 3)) %>%
     rename_for_ui() 
     
 }
@@ -121,10 +119,15 @@ prepare_raw_node_table <- function(edges, nodes)
     dplyr::left_join(sel_mineral, by = "mineral_name") %>%
     dplyr::left_join(sel_element, by = "element") %>%
     dplyr::select(element, mineral_name, dplyr::everything()) %>% 
-    dplyr::mutate(dplyr::across(tidyselect::vars_select_helpers$where(is.numeric), round, 3)) %>% ## ROUND NUMERIC TO 3
     rename_for_ui() 
 }
 
+#' Prepare final table table to display for "Selected Node Table" that includes all edges in the network
+#' @param raw_node_table Outputted table from dragon::prepare_raw_node_table()
+#' @param selected_nodes User-selected nodes
+#' @param columns_to_display User-selected columns to display
+#' @return Baseline tibble
+#' @noRd
 build_final_node_table <- function(raw_node_table, selected_nodes, columns_to_display)
 {
 
