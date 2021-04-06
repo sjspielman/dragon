@@ -271,13 +271,10 @@ app_server <- function( input, output, session ) {
     ## save module output. only add in the index AFTER it's in the module list
     custom_element_modules[[ as.character(most_recent_button_index()) ]] <- mod_server_choose_custom_element_colors(this_id()) 
     previous_indices <- custom_element_modules_indices()
-    print("c")
-    
     custom_element_modules_indices( c(previous_indices, most_recent_button_index()) )
   })
   
   observeEvent(input$remove_custom, {
-    print("d")
     
     button_reset(FALSE)
     ## Remove most recent UI 
@@ -296,34 +293,23 @@ app_server <- function( input, output, session ) {
 
   ## Reactive that stores custom element colors as named list, by marching over custom_element_modules -------
   custom_element_colors <- reactive({
-    print("e")
-    
+
     custom <- c()
-    print(custom_element_modules_indices()) #1?
-    print(custom_element_modules) # good has 1 value only
-    print(most_recent_button_index()) # 1
-    print(button_reset()) ## FALSE
+    #print(custom_element_modules_indices()) #1?
+    #print(custom_element_modules) # good has 1 value only
+    #print(most_recent_button_index()) # 1
+    #print(button_reset()) ## FALSE
     if (most_recent_button_index() > 0 & !(button_reset())) {
       for (i in custom_element_modules_indices()) {
-        print("f")
         ix <- as.character(i)
-        print(custom_element_modules[[ ix ]]) # this is a UI taglist
-        this_one <- custom_element_modules[[ ix ]]() # adding parentheses ()--> bug?!
-        print("??????????????")
-        print(names(this_one))
+        this_one <- custom_element_modules[[ ix ]]() 
         if ( !(is.null( names(this_one)))) {
-          print("g")
-          
           for (nodename in names(this_one) ) {
-            print(unname( this_one[nodename] ))
             custom[nodename] <-unname( this_one[nodename] )
           }
         }
       }
     }
-    print("!")
-    print(custom)
-    print("!")
     custom
   })
 
