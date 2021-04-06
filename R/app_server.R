@@ -108,9 +108,12 @@ app_server <- function( input, output, session ) {
   })
   
   ## Call styling and table export modules ----------------------------------------------------------------------
-  element_node_color  <- callModule(mod_server_choose_color_sd_palette, id = "mod_element_colors")
-  mineral_node_color  <- callModule(mod_server_choose_color_sd_palette, id = "mod_mineral_colors")  
-  edge_color          <- callModule(mod_server_choose_color_sd_palette, id = "mod_edge_colors")
+  element_node_color  <- mod_server_choose_color_sd_palette("mod_element_colors")
+  mineral_node_color  <- mod_server_choose_color_sd_palette("mod_mineral_colors")
+  edge_color          <- mod_server_choose_color_sd_palette("mod_edge_colors")
+  
+  #mineral_node_color  <- callModule(mod_server_choose_color_sd_palette, id = "mod_mineral_colors")  
+  #edge_color          <- callModule(mod_server_choose_color_sd_palette, id = "mod_edge_colors")
 
   
   
@@ -253,24 +256,29 @@ app_server <- function( input, output, session ) {
       most_recent_button_index(0)
     }
     button_reset(FALSE)
-    last_most_recent <- most_recent_button_index()
-    if (last_most_recent < 0) last_most_recent <- 0
+    last_most_recent <- ifelse(most_recent_button_index() < 0, 
+                               0, most_recent_button_index())
     most_recent_button_index(last_most_recent + 1)
     insertUI(
       selector = '#custom_color_chooser', # label in UI
       ## wrap element in a div with id for ease of removal
       ui = tags$div(
         id = this_id(),
-        mod_ui_choose_custom_element_colors(this_id(), chemistry_network()$network_element_ids, most_recent_button_index()) 
+        mod_ui_choose_custom_element_colors(this_id(), chemistry_network()$network_element_ids) 
       )
     )
+    
     ## save module output. only add in the index AFTER it's in the module list
-    custom_element_modules[[ as.character(most_recent_button_index()) ]] <- callModule(mod_server_choose_custom_element_colors, id = this_id())
+    custom_element_modules[[ as.character(most_recent_button_index()) ]] <- mod_server_choose_custom_element_colors(this_id()) 
     previous_indices <- custom_element_modules_indices()
+    print("c")
+    
     custom_element_modules_indices( c(previous_indices, most_recent_button_index()) )
   })
   
   observeEvent(input$remove_custom, {
+    print("d")
+    
     button_reset(FALSE)
     ## Remove most recent UI 
     removeUI(selector = paste0("#customcolor_", most_recent_button_index()))
@@ -288,17 +296,34 @@ app_server <- function( input, output, session ) {
 
   ## Reactive that stores custom element colors as named list, by marching over custom_element_modules -------
   custom_element_colors <- reactive({
+    print("e")
+    
     custom <- c()
+    print(custom_element_modules_indices()) #1?
+    print(custom_element_modules) # good has 1 value only
+    print(most_recent_button_index()) # 1
+    print(button_reset()) ## FALSE
     if (most_recent_button_index() > 0 & !(button_reset())) {
       for (i in custom_element_modules_indices()) {
-        this_one <- custom_element_modules[[ as.character(i) ]]()
+        print("f")
+        ix <- as.character(i)
+        print(custom_element_modules[[ ix ]]) # this is a UI taglist
+        this_one <- custom_element_modules[[ ix ]]() # adding parentheses ()--> bug?!
+        print("??????????????")
+        print(names(this_one))
         if ( !(is.null( names(this_one)))) {
+          print("g")
+          
           for (nodename in names(this_one) ) {
+            print(unname( this_one[nodename] ))
             custom[nodename] <-unname( this_one[nodename] )
           }
         }
       }
     }
+    print("!")
+    print(custom)
+    print("!")
     custom
   })
 
