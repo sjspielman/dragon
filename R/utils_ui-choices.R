@@ -40,7 +40,8 @@ element_color_by_choices <- setNames(c("singlecolor",
                                        "num_localities",
                                        "atomic_mass",
                                        "element_density",
-                                       "element_specific_heat"),
+                                       "element_specific_heat",
+                                       "element_crust_percent_weight"),
                                      c(singlecolor_str, 
                                        network_degree_norm_str, 
                                        pauling_str,
@@ -49,7 +50,8 @@ element_color_by_choices <- setNames(c("singlecolor",
                                        num_localities_element_str,
                                        atomic_mass_str,
                                        element_density_str,
-                                       element_specific_heat_str))
+                                       element_specific_heat_str,
+                                       element_crust_percent_weight_str))
 
 #' UI options for selecting a variable to color mineral nodes by
 #' @noRd
@@ -203,7 +205,8 @@ selected_node_table_column_choices_element   <- c(pauling_str,
                                                   element_redox_network_str,
                                                   element_redox_mineral_str,
                                                   element_hsab_str, 
-                                                  element_metal_type_str) 
+                                                  element_metal_type_str, 
+                                                  element_crust_percent_weight_str) 
 
 ## BOTH ELEMENT AND MINERAL COLUMNS HAVE TO APPEAR WHEN SELECTED
 #' Variables choices for network-level node attributes to appear in the selected node table

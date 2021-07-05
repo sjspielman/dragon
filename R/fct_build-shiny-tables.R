@@ -24,7 +24,8 @@ build_element_exploration_table <- function(nodes)
                   element_table_group, 
                   atomic_radius, 
                   element_specific_heat, 
-                  element_density) %>%
+                  element_density,
+                  element_crust_percent_weight) %>%
     dplyr::distinct() %>%
     dplyr::arrange(element) %>%
     rename_for_ui()
@@ -100,11 +101,10 @@ prepare_raw_node_table <- function(edges, nodes)
   # Element-only columns
   nodes %>%
     dplyr::filter(group == "element") %>%
-    dplyr::select(id, pauling, element_hsab, element_metal_type, element_redox_network) %>%
+    dplyr::select(id, pauling, element_hsab, element_metal_type, element_redox_network, element_crust_percent_weight) %>%
     dplyr::right_join(sel_both_element) %>%
     dplyr::rename(element = id) %>%
     dplyr::select(-group) -> sel_element
-  
   
   # Mineral-only columns
   nodes %>%

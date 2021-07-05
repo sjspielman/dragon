@@ -2,7 +2,8 @@
 devtools::load_all()
 library(zip)
 
-outpath <- "../../tests/testthat/"
+proj_root <- rprojroot::find_root(rprojroot::has_dir(".git"))
+outpath <- file.path(proj_root, "tests", "testthat")
 source(file.path(outpath, "setup_network-style.R"))
 
 

@@ -76,7 +76,8 @@ baseline_timeline <- function()
                              expand=c(0,100))+ 
     ggplot2::labs(x = "Millions of years ago",
                   y = "Number of minerals discovered") +
-    ggplot2::guides(fill = FALSE)-> timeline_base_plot
+    # FALSE arg has been deprecated in ggplot >=3.3.5 - change to "none" and bumped DESC.
+    ggplot2::guides(fill = "none")-> timeline_base_plot
 
   tibble::tibble(x = c(rep("a", 5), rep("b",5))) %>%
     ggplot2::ggplot() +
