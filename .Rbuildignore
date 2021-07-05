@@ -17,3 +17,4 @@
 ^Meta$
 ^inst/app/www/sticker*
 ^inst/testdata/
+^\.github$
