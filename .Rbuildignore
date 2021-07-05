@@ -15,4 +15,5 @@
 ^data-raw$
 ^doc$
 ^Meta$
-inst/app/www/sticker*
+^inst/app/www/sticker*
+^inst/testdata/
