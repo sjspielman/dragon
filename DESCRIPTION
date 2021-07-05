@@ -8,7 +8,7 @@ Authors@R: person("Stephanie J.", "Spielman",
 Description: Create, visualize, manipulate, and analyze bipartite mineral-chemistry
     networks for set of focal element(s) across deep-time on Earth. The method is 
     described in Spielman and Moore (2020) <doi:10.3389/feart.2020.585087>.
-License: GPL-3
+License: MIT + file LICENSE
 Imports: 
     config,
     golem (>= 0.2.1),
