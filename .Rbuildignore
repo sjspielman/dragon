@@ -3,7 +3,6 @@
 ^cran-comments\.md$
 .Rapp.history
 ^CRAN-RELEASE$
-^LICENSE$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
