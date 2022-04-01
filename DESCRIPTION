@@ -2,7 +2,7 @@ Package: dragon
 Title: Deep Time Redox Analysis of the Geobiology Ontology Network
 Version: 1.1.0
 Authors@R: person("Stephanie J.", "Spielman", 
-                  email = "spielman@rowan.edu", 
+                  email = "stephanie.spielman@gmail.com", 
                   role = c("aut", "cre"),
                   comment = c(ORCID = "0000-0002-9090-4788"))
 Description: Create, visualize, manipulate, and analyze bipartite mineral-chemistry

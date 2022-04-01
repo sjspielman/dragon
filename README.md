@@ -50,8 +50,3 @@ Or, in LaTeX:
 	author = {Golden, Joshua J. and Downs, Robert T. and Hazen, Robert M. and Pires, Alexander J. and Ralph, Jolyon}
 }
 ```
-
-<!--
-**Current link to server of development and wholly unguaranteed version of `dragon`:** [https://sjspielman.shinyapps.io/dragon-dev](https://sjspielman.shinyapps.io/dragon-dev)
--->
-
