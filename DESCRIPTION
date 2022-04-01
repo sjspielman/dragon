@@ -1,6 +1,6 @@
 Package: dragon
 Title: Deep Time Redox Analysis of the Geobiology Ontology Network
-Version: 1.2.01
+Version: 1.2.1
 Authors@R: person("Stephanie J.", "Spielman", 
                   email = "stephanie.spielman@gmail.com", 
                   role = c("aut", "cre"),
