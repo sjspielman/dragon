@@ -3,7 +3,6 @@
 ^cran-comments\.md$
 .Rapp.history
 ^CRAN-RELEASE$
-^LICENSE$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
@@ -15,4 +14,7 @@
 ^data-raw$
 ^doc$
 ^Meta$
-inst/app/www/sticker*
+^inst/app/www/sticker*
+^inst/testdata/
+^inst/dragon/
+^\.github$

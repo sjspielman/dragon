@@ -108,9 +108,12 @@ app_server <- function( input, output, session ) {
   })
   
   ## Call styling and table export modules ----------------------------------------------------------------------
-  element_node_color  <- callModule(mod_server_choose_color_sd_palette, id = "mod_element_colors")
-  mineral_node_color  <- callModule(mod_server_choose_color_sd_palette, id = "mod_mineral_colors")  
-  edge_color          <- callModule(mod_server_choose_color_sd_palette, id = "mod_edge_colors")
+  element_node_color  <- mod_server_choose_color_sd_palette("mod_element_colors")
+  mineral_node_color  <- mod_server_choose_color_sd_palette("mod_mineral_colors")
+  edge_color          <- mod_server_choose_color_sd_palette("mod_edge_colors")
+  
+  #mineral_node_color  <- callModule(mod_server_choose_color_sd_palette, id = "mod_mineral_colors")  
+  #edge_color          <- callModule(mod_server_choose_color_sd_palette, id = "mod_edge_colors")
 
   
   
@@ -253,24 +256,26 @@ app_server <- function( input, output, session ) {
       most_recent_button_index(0)
     }
     button_reset(FALSE)
-    last_most_recent <- most_recent_button_index()
-    if (last_most_recent < 0) last_most_recent <- 0
+    last_most_recent <- ifelse(most_recent_button_index() < 0, 
+                               0, most_recent_button_index())
     most_recent_button_index(last_most_recent + 1)
     insertUI(
       selector = '#custom_color_chooser', # label in UI
       ## wrap element in a div with id for ease of removal
       ui = tags$div(
         id = this_id(),
-        mod_ui_choose_custom_element_colors(this_id(), chemistry_network()$network_element_ids, most_recent_button_index()) 
+        mod_ui_choose_custom_element_colors(this_id(), chemistry_network()$network_element_ids) 
       )
     )
+    
     ## save module output. only add in the index AFTER it's in the module list
-    custom_element_modules[[ as.character(most_recent_button_index()) ]] <- callModule(mod_server_choose_custom_element_colors, id = this_id())
+    custom_element_modules[[ as.character(most_recent_button_index()) ]] <- mod_server_choose_custom_element_colors(this_id()) 
     previous_indices <- custom_element_modules_indices()
     custom_element_modules_indices( c(previous_indices, most_recent_button_index()) )
   })
   
   observeEvent(input$remove_custom, {
+    
     button_reset(FALSE)
     ## Remove most recent UI 
     removeUI(selector = paste0("#customcolor_", most_recent_button_index()))
@@ -288,10 +293,16 @@ app_server <- function( input, output, session ) {
 
   ## Reactive that stores custom element colors as named list, by marching over custom_element_modules -------
   custom_element_colors <- reactive({
+
     custom <- c()
+    #print(custom_element_modules_indices()) #1?
+    #print(custom_element_modules) # good has 1 value only
+    #print(most_recent_button_index()) # 1
+    #print(button_reset()) ## FALSE
     if (most_recent_button_index() > 0 & !(button_reset())) {
       for (i in custom_element_modules_indices()) {
-        this_one <- custom_element_modules[[ as.character(i) ]]()
+        ix <- as.character(i)
+        this_one <- custom_element_modules[[ ix ]]() 
         if ( !(is.null( names(this_one)))) {
           for (nodename in names(this_one) ) {
             custom[nodename] <-unname( this_one[nodename] )
@@ -628,7 +639,11 @@ app_server <- function( input, output, session ) {
     {
       tibble::tibble()
     }  else {
-      build_final_node_table(chemistry_network()$raw_node_table, selected_nodes, columns_to_display)
+      
+      chemistry_network()$raw_node_table %>%
+        dplyr::mutate(dplyr::across(tidyselect::vars_select_helpers$where(is.numeric), round, input$node_table_digits)) -> rounded_table
+      build_final_node_table(rounded_table, selected_nodes, columns_to_display)
+        
     } 
 
   })
@@ -678,6 +693,7 @@ app_server <- function( input, output, session ) {
         shiny::div(style="font-size:85%;", 
           DT::dataTableOutput("nodeTable")
         ), 
+        shiny::sliderInput("node_table_digits", "Choose the number of digits to show in table:", value = 3, min = 1, max = 16, width = "275px"),
         shiny::br(),      
         div(style="display:inline-block;vertical-align:top;",
           downloadButton("export_selected_table", label = "Export table"),
@@ -738,12 +754,14 @@ app_server <- function( input, output, session ) {
   
   ## Network information panel ---------------------------------------------------------------------------------
   output$element_exploration_table <- DT::renderDataTable(rownames= FALSE, ## no IMA formulas for elements, dont need escape=F
-                                                           build_element_exploration_table(chemistry_network()$nodes), 
+                                                           build_element_exploration_table(chemistry_network()$nodes) %>%
+                                                            dplyr::mutate(dplyr::across(tidyselect::vars_select_helpers$where(is.numeric), round, input$element_table_digits)),
                                                            extensions = c('ColReorder', 'Responsive'),
                                                            options = list(
                                                              dom = 'frtip',
                                                              colReorder = TRUE
                                                            )) 
+
 
   ## Download handler for element exploration -----------------------------------------
   output$export_element_table <- shiny::downloadHandler(
@@ -759,7 +777,8 @@ app_server <- function( input, output, session ) {
 
                                                            
   output$mineral_exploration_table <- DT::renderDataTable(rownames= FALSE, escape = FALSE,  ### escape=FALSE for HTML rendering, i.e. the IMA formula
-                                                           build_mineral_exploration_table(chemistry_network()$nodes, chemistry_network()$locality_info), 
+                                                          build_mineral_exploration_table(chemistry_network()$nodes, chemistry_network()$locality_info) %>%
+                                                            dplyr::mutate(dplyr::across(tidyselect::vars_select_helpers$where(is.numeric), round, input$mineral_table_digits)), 
                                                            extensions = c('ColReorder', 'Responsive'),
                                                            options = list(
                                                              dom = 'frtip',

@@ -40,11 +40,24 @@ mod_ui_choose_color_sd_palette <- function(id, by_label, by_choices, by_default_
 #' 
 #' @return Reactive list with "color_by", "color", "palette" for use in shiny app
 #' @noRd
-mod_server_choose_color_sd_palette <- function(input, output, session) { 
-  reactive({
-    list(color_by = input$color_by,
-         color    = input$color,
-         palette  = input$palette
+# mod_server_choose_color_sd_palette <- function(input, output, session) { 
+#   reactive({
+#     list(color_by = input$color_by,
+#          color    = input$color,
+#          palette  = input$palette
+#         )
+#   })
+# }
+mod_server_choose_color_sd_palette <- function(id) {
+  moduleServer(
+    id,
+    function(input, output, session) {
+      reactive({
+        list(color_by = input$color_by,
+             color    = input$color,
+             palette  = input$palette
         )
-  })
+      })
+    }
+  ) 
 }

@@ -4,7 +4,7 @@ adj.p.value <- p.value <- comparison <- conf.high <- conf.low <- estimate <- sta
 age_check <- overall_max <- max_age <- min_age <- max_age_locality <- min_age_locality <- NULL
 age_type <- at_locality <- locality_longname <- mindat_id <- NULL
 num_localities <- num_localities_element <- num_localities_mineral <- mineral_id <- mineral_name <- NULL
-atomic_mass <- atomic_radius <- pauling <- element_table_group <- element_table_period <- number_of_protons <-  element_metal_type <- element_density <- element_specific_heat <- element_hsab <- NULL
+atomic_mass <- atomic_radius <- pauling <- element_table_group <- element_table_period <- number_of_protons <-  element_metal_type <- element_density <- element_specific_heat <- element_hsab <- element_crust_percent_weight <- NULL
 closeness <- network_degree <- network_degree_norm <- cov_pauling <- mean_pauling <- w_cov_pauling <- w_mean_pauling <- cluster_ID <- NULL
 Element <- Mineral <- ima_chemistry <- rruff_chemistry <- NULL
 color <- color.background <- color.border <- colour <- shape <- size <- NULL

@@ -56,6 +56,7 @@ test_that("fct_build-shiny-tables::prepare_raw_node_table() works", {
                            element_network_degree_norm_str,
                            num_localities_element_str,
                            element_redox_network_str,
+                           element_crust_percent_weight_str,
                            pauling_str,
                            element_hsab_str,
                            element_metal_type_str))
@@ -82,6 +83,7 @@ test_that("fct_build-shiny-tables::build_element_exploration_table() works", {
                            element_table_group_str,  ##
                            atomic_radius_str, 
                            element_specific_heat_str, 
+                           element_crust_percent_weight_str,
                            element_density_str))
   expect_equal(sort(names(element_table)), expected_names)
 })

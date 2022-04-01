@@ -3,7 +3,7 @@
 #' @param id UI element identifier
 #' @param available Elements to choose from
 #' @noRd
-mod_ui_choose_custom_element_colors <- function(id, available, index) {
+mod_ui_choose_custom_element_colors <- function(id, available) {
   ns <- NS(id)
   
   tagList(
@@ -26,13 +26,17 @@ mod_ui_choose_custom_element_colors <- function(id, available, index) {
 #' 
 #' @return Named list of ("element" = "color")
 #' @noRd
-mod_server_choose_custom_element_colors <- function(input, output, session)
+mod_server_choose_custom_element_colors <- function(id)
 {
-  reactive({
-    el <- input$custom_elements
-    cols <- input$custom_color
-    final <- rep(cols, length(el))
-    names(final) <- el
-    final ## NAME is node and VALUE is color
-  }) 
+  moduleServer(id, function(input, output, session){
+      reactive({
+        el <- input$custom_elements
+        cols <- input$custom_color
+        final <- rep(cols, length(el))
+        names(final) <- el
+        final ## NAME is node and VALUE is color
+      }) 
+    } # function
+  ) #moduleServer
 }
+

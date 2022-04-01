@@ -1,11 +1,13 @@
 
 # dragon
-
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Lifecycle:
-stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://www.tidyverse.org/lifecycle/#stable) 
+stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://lifecycle.r-lib.org/articles/stages.html) 
 [![Build Status](https://travis-ci.org/sjspielman/dragon.svg?branch=master)](https://travis-ci.org/sjspielman/dragon)
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/dragon)](https://CRAN.R-project.org/package=dragon)
-**The current version is 1.1.0.** (Currently on its way to CRAN, which has 1.0.5).
+
+**The current version is 1.2.0.**
+_Note that the license was changed to MIT with the release of 1.2.0 for compatibility with dependencies._
 
 
 <img src="inst/app/www/favicon.ico" height="250"/>

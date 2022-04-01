@@ -298,7 +298,8 @@ app_ui <- function(request) {
                                                         selected = "CSV")
                       ),
                       div(style = "font-size:85%;", 
-                        DT::dataTableOutput("element_exploration_table")
+                        DT::dataTableOutput("element_exploration_table"),
+                        shiny::sliderInput("element_table_digits", "Choose the number of digits to show in table:", value = 3, min = 1, max = 16, width = "275px")
                       ),
                       br(), br(),
                       h3("Explore Mineral Attributes:"),
@@ -311,7 +312,9 @@ app_ui <- function(request) {
                                                         selected = "CSV")
                       ),
                       div(style = "font-size:85%;", 
-                        DT::dataTableOutput("mineral_exploration_table")
+                        DT::dataTableOutput("mineral_exploration_table"),
+                        shiny::sliderInput("mineral_table_digits", "Choose the number of digits to show in table:", value = 3, min = 1, max = 16, width = "275px"),
+                        
                       )
                     ) ## END column
                   ) ## END fluidRow
@@ -364,7 +367,7 @@ app_ui <- function(request) {
                   ) ## END fluidRow
                  ), ## END "Analyze Network Minerals" tabPanel  
                 
-                ## TIMLINE PANEL ---------------------------------------------------------------------------------------------                   
+                ## TIMELINE PANEL ---------------------------------------------------------------------------------------------                   
                 shiny::tabPanel("Mineral formation timeline",
                   div(style="float:center;width:100%;height:700px;",
                     plotOutput("timeline_plot_output", height = "100%", width = "100%")
@@ -408,7 +411,7 @@ app_ui <- function(request) {
               ), ## END TOP tabBox
                 
                 
-              ## Render the node table ---------------------------------------------------------
+              ## RENDER SELECTED NODE TABLE BELOW NETWORK ---------------------------------------------------------
               br(),br(),br(),
               shiny::uiOutput("show_nodeTable"),
               br(),
