@@ -2,11 +2,12 @@ test_that("fct_calculate_network_info::calculate_connectivity() works", {
   expect_true(igraph::vertex_connectivity(true_graph) == true_connectivity)
 })
 
-#
-#test_that("fct_calculate_network_info::calculate_modularity() works", {
-#  expect_equal(calculate_modularity(true_graph_louvain), #true_modularity, tolerance = 1e-3)
-#})
-#
+
+# Not stable across OSs so very chill tolerance
+test_that("fct_calculate_network_info::calculate_modularity() works", {
+  expect_equal(calculate_modularity(true_graph_louvain), true_modularity, tolerance = 0.01)
+})
+
 
 
 test_that("fct_calculate_network_info::calculate_number_nodes_edges() works", {

@@ -13,7 +13,7 @@ true_styled_edges  <- readr::read_csv("styled_edges.csv.zip", col_types = readr:
 true_locality_info <- readr::read_csv("locality_info.csv.zip", col_types = readr::cols())
 
 ## Variables about the graph to be tested --------------------------------
-#true_modularity      <- 0.4432351  # This fails on linux-x86_64-fedora only 
+true_modularity      <- 0.4432351  
 true_connectivity    <- 1
 true_n_mineral_nodes <- 70
 true_n_base_elements <- 30
