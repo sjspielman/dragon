@@ -3,6 +3,7 @@
 
 
 ## Read in testdata CSV files and graph  --------------------------------
+true_nodes <- readr::read_csv("nodes_by_redox.csv.zip", col_types = readr::cols())
 true_edges <- readr::read_csv("edges_by_redox.csv.zip", col_types = readr::cols())
 true_graph <- igraph::read_graph("graph_by_redox.igraph", format = "ncol")
 true_graph_louvain <- igraph::cluster_louvain(true_graph)
