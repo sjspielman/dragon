@@ -8,6 +8,7 @@ source(file.path(outpath, "setup_network-style.R"))
 
 
 #### Code below created the CSV files and graph used for testing and were manually inspected for accuracy -------------------------
+set.seed(1) # for louvain
 network_by_redox <- dragon::initialize_network(focal, 
                                                force_all_elements = FALSE, 
                                                elements_by_redox = TRUE, 
