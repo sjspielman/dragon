@@ -14,6 +14,7 @@ initialize_network(
   age_range = c(0, 5),
   max_age_type = "Maximum",
   cluster_algorithm = "Louvain",
+  cluster_seed = NULL,
   use_data_cache = TRUE
 )
 }
@@ -43,6 +44,9 @@ If "Maximum" (default), filters minerals using maximum known ages at localities.
 If "Minimum", filters minerals using minimum known ages at localities.}
 
 \item{cluster_algorithm}{A string giving community clustering algorithm, one of 
+"Louvain" (default) or "Leading eigenvector".}
+
+\item{cluster_seed}{An integer giving a random seed for reproducible clustering. Default is NULL.
 "Louvain" (default) or "Leading eigenvector".}
 
 \item{use_data_cache}{A logical. If TRUE (default) cached Mineral Evolution Database
