@@ -7,7 +7,7 @@ stable](https://img.shields.io/badge/lifecycle-stable-green.svg)](https://lifecy
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/dragon)](https://CRAN.R-project.org/package=dragon)
 
 **The current version is 1.2.1.**
-_Note that the license was changed to MIT with the release of 1.2.1 for compatibility with dependencies._
+_Note that the license was changed to MIT with the release of 1.2.0 for compatibility with dependencies._
 
 
 <img src="inst/app/www/favicon.ico" height="250"/>
