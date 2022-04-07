@@ -37,6 +37,8 @@ get_focal_from_minerals <- function(minerals_for_focal, med_data = med_data_cach
 #' If "Minimum", filters minerals using minimum known ages at localities. 
 #' @param cluster_algorithm    A string giving community clustering algorithm, one of 
 #' "Louvain" (default) or "Leading eigenvector". 
+#' @param cluster_seed   An integer giving a random seed for reproducible clustering. Default is NULL.
+#' "Louvain" (default) or "Leading eigenvector". 
 #' @param use_data_cache    A logical. If TRUE (default) cached Mineral Evolution Database
 #'  will be used to build the network. If FALSE, data will be fetched from MED here. CAUTION: Requires
 #'  internet connection and will take several minutes to update.
@@ -70,6 +72,7 @@ initialize_network <- function(elements_of_interest,
                                age_range         = c(0, 5),
                                max_age_type      = "Maximum",
                                cluster_algorithm = "Louvain",
+                               cluster_seed      = NULL,
                                use_data_cache    = TRUE)
 {
   # TODO: Weighted values and exclusions when updating from MED? Should it be incorporated? For now, we just tell them to be aware.
@@ -104,7 +107,10 @@ initialize_network <- function(elements_of_interest,
   if (nrow(network_raw$nodes) == 0) stop("Network could not be constructed. Please adjust input settings.")
   if (nrow(network_raw$edges) == 0) stop("Network could not be constructed. Please adjust input settings.")
   
-  clustered   <- specify_community_detect_network(network_raw$network, network_raw$nodes, "Louvain")
+  clustered   <- specify_community_detect_network(network_raw$network, 
+                                                  network_raw$nodes, 
+                                                  "Louvain", 
+                                                  cluster_seed)
   return(list("network" = network_raw$network,
               "nodes"  =  clustered$nodes,
               "edges"  =  network_raw$edges,
@@ -372,13 +378,15 @@ construct_network   <- function(elements_only_age, elements_by_redox, ignore_na_
 #' @param network A network in igraph format
 #' @param nodes   A tibble containing all node information and metadata
 #' @param cluster_algorithm    A string giving community clustering algorithm, one of "Louvain" (default) or "Leading eigenvector". 
+#' @param cluster_seed   An integer giving a random seed for reproducible clustering. Default is NULL.
 #' @returns A named list of 'nodes' tibble updated to containing 'cluster_ID' and 'cluster_algorithm' columns, and 'clustered_net' which is an igraph::communities object
 #' @noRd
-specify_community_detect_network <- function(network, nodes, cluster_algorithm)
+specify_community_detect_network <- function(network, nodes, cluster_algorithm, cluster_seed = NULL)
 {
   if (!(cluster_algorithm %in% cluster_algorithm_choices)) stop("Cluster algorithm must be one of either 'Louvain' or 'Leading eigenvector'.")
   
-  
+  print(cluster_seed)
+  if (!is.null(cluster_seed)) set.seed(cluster_seed)
   if (cluster_algorithm == cluster_alg_louvain_str) clustered_net <- igraph::cluster_louvain(network)
   if (cluster_algorithm == cluster_alg_eig_str)     clustered_net <- igraph::cluster_leading_eigen(network)
 

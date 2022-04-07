@@ -73,7 +73,7 @@ app_ui <- function(request) {
                   ), style='padding:0px;' 
                 ),
                 column(4,
-                  numericInput("network_layout_seed", tags$span(style="font-weight:400", "Seed:"), min = 0, max = Inf, value = 1),
+                  numericInput("network_layout_seed", tags$span(style="font-weight:400", "Random seed:"), min = 0, max = Inf, value = 1),
                   style='padding-left:0px'
                 )
               ), # fluidRow
@@ -86,9 +86,15 @@ app_ui <- function(request) {
                 ) # column 12
               ), # fluidrow        
               fluidRow(
-                column(12, shinyWidgets::pickerInput("cluster_algorithm", tags$span(style="font-weight:400", "Network community detection (clustering) algorithm:"),
+                column(8, shinyWidgets::pickerInput("cluster_algorithm", 
+                                                     tags$span(style="font-weight:400", 
+                                                               "Network community detection (clustering) algorithm:"),
                                                       choices = cluster_algorithm_choices, selected = "Louvain"),
-                  style='padding:0px')
+                  style='padding:0px'),
+                column(4,
+                       numericInput("cluster_seed", tags$span(style="font-weight:400", "Random seed:"), min = 0, max = Inf, value = 1),
+                       style='padding-left:0px'
+                )
               ) ## fluidRow  
             ), ## END menuitem
             

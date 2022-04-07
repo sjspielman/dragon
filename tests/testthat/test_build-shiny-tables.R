@@ -14,7 +14,7 @@ test_that("fct_build-shiny-tables::build_final_node_table() works", {
   expect_true(nrow(built_test) != 0)
   
   selected <- c("All cluster 1 elements")
-  cluster_1_nodes <- c("Ca+2","Mg+2","Si+4","O-2","H+1","Na+1","Ti+4", "Al","B")   
+  cluster_1_nodes <- c("Ca+2","Mg+2","Fe+2", "Si+4","O-2","H+1","Na+1","Ti+4", "Al","B")   
   built_test <- build_final_node_table(raw_node_table, selected, display)
   expect_equal(sort(names(built_test)), sort(output_display))
   built_test %>% 

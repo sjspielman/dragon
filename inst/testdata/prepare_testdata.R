@@ -8,7 +8,6 @@ source(file.path(outpath, "setup_network-style.R"))
 
 
 #### Code below created the CSV files and graph used for testing and were manually inspected for accuracy -------------------------
-set.seed(1) # for louvain
 network_by_redox <- dragon::initialize_network(focal, 
                                                force_all_elements = FALSE, 
                                                elements_by_redox = TRUE, 
@@ -17,6 +16,7 @@ network_by_redox <- dragon::initialize_network(focal,
                                                age_range         = c(4, 5),
                                                max_age_type      = "Maximum",
                                                cluster_algorithm = "Louvain",
+                                               cluster_seed = 1,
                                                use_data_cache    = TRUE)
 
 write_zip_clean <- function(df, file){
@@ -28,6 +28,7 @@ write_zip_clean <- function(df, file){
 write_zip_clean(network_by_redox$locality_info, file.path(outpath, "locality_info.csv"))
 write_zip_clean(network_by_redox$edges, file.path(outpath, "edges_by_redox.csv"))
 write_zip_clean(network_by_redox$nodes, file.path(outpath, "nodes_by_redox.csv"))
+readr::write_rds(network_by_redox$clustering, file.path(outpath, "clustering.rds"))
 
 subset_mineral_nodes(network_by_redox$nodes) %>% 
   write_zip_clean(file.path(outpath, "true_mineral_nodes.csv"))

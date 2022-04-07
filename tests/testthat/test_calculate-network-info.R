@@ -4,7 +4,7 @@ test_that("fct_calculate_network_info::calculate_connectivity() works", {
 
 
 test_that("fct_calculate_network_info::calculate_modularity() works", {
-  expect_equal(calculate_modularity(true_graph_louvain), true_modularity)
+  expect_equal(calculate_modularity(true_clustering), true_modularity)
 })
 
 

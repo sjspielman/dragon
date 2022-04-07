@@ -1,14 +1,24 @@
-## Minor version update
-This submission is an minor version update to 1.2.0 of the package `dragon`, currently on CRAN as version 1.1.0
+## Patch version update
+This submission is a patch version update to 1.2.1 of the package `dragon`, currently on CRAN as version 1.2.0.
 
 
 All R CMD checks are passing on:
 
-+ Local MacOS (R versions 4.0.5 and 4.1.0). Note that MacOS release also builds via GitHub Actions.
-+ Linux Ubuntu release and devel via Github Actions 
++ Local MacOS (R version 4.1.2). Note that MacOS release also builds via GitHub Actions.
++ Linux Ubuntu release and devel via Github Actions
 + Win-builder oldrelease, release, devel. Note that Windows release also builds via GitHub Actions.
 
-All Win-builder builds run on `winbuilder` have the `NOTE`:
+The local MacOS build has the following `NOTE`:
+
+```
+* checking package dependencies ... NOTE
+Imports includes 32 non-default packages.
+Importing from so many packages makes the package vulnerable to any of
+them becoming unavailable.  Move as many as possible to Suggests and
+use conditionally.
+```
+
+All Win-builder builds run on `winbuilder` have the following `NOTE`:
 
 ```
 * checking CRAN incoming feasibility ... NOTE

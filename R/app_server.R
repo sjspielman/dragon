@@ -194,7 +194,7 @@ app_server <- function( input, output, session ) {
     graph <- network$network
   
     ## Perform community clustering, which also updates nodes ----------------------------
-    clustered <- specify_community_detect_network(graph, nodes, input$cluster_algorithm)
+    clustered <- specify_community_detect_network(graph, nodes, input$cluster_algorithm, input$cluster_seed)
   
     n_clusters <- length(unique(clustered$nodes$cluster_ID))
     if (n_clusters < 1)

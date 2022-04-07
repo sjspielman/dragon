@@ -11,7 +11,7 @@ pink   <- "#FFC0CB"
 orange <- "#FFA500"
 
 true_cluster_palette <- "Set2"
-true_n_clusters      <- 6 
+true_n_clusters      <- 8
 true_cluster_colors  <- RColorBrewer::brewer.pal(true_n_clusters, true_cluster_palette)
 true_mineral_label_size  <- 12
 true_mineral_size_scale  <- 10
