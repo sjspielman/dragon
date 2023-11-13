@@ -1,4 +1,5 @@
-
+### This repository is now read-only. Please fork the repository to continue development, abiding by the [license terms given here](LICENSE.md).
+ 
 # dragon
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Lifecycle:
